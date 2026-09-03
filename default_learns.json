@@ -1,0 +1,96 @@
+{
+  "version": "1.0",
+  "updated_at": "2026-09-03",
+  "source": "PostgreSQL kerja_id.temanulis_learns",
+  "total": 11,
+  "learns": [
+    {
+      "id": 1,
+      "title": "Jurus 1: It's Not About The Product, It's About You",
+      "topic": "Affiliate",
+      "source": "Kitab Affiliate Rizal",
+      "created": "03/09/2026",
+      "body": "Mulai dari masalah manusiawi, bukan spek produk. Jual rasa sakit (malu, capek, takut, rugi), bukan fitur. Bukan 'bahan stainless anti karat', tapi 'lo nggak perlu nanggung malu lagi di depan rekan kerja karena kemeja kusut'. Orang beli pereda sakit, bukan vitamin."
+    },
+    {
+      "id": 2,
+      "title": "Jurus 2: Solusi Gratisan Dulu, Produk Belakangan",
+      "topic": "Affiliate",
+      "source": "Kitab Affiliate Rizal",
+      "created": "03/09/2026",
+      "body": "Sebelum produk affiliate muncul, selalu tawarkan 2-3 alternatif solusi gratis (trik mandiri, kebiasaan baru, atau setting manual). Ini membangun kredibilitas sebagai penolong jujur yang peduli masalah audiens, bukan sales lapar komisi."
+    },
+    {
+      "id": 3,
+      "title": "Jurus 3: Framework B-A-P (Before - Agitate - Pain)",
+      "topic": "Copywriting",
+      "source": "Kitab Affiliate Rizal",
+      "created": "03/09/2026",
+      "body": "Alur konversi affiliate: Tusuk luka spesifik (Bobek) di awal → Perdalam lukanya dengan menghitung efek jangka panjang atau biaya tersembunyi yang bikin nyesek → Baru hadirkan produk pereda luka saat pembaca sadar solusi gratisan nggak cukup."
+    },
+    {
+      "id": 4,
+      "title": "Jurus 4: Teknik Harga Jangkar & Pecah Biaya Harian",
+      "topic": "Marketing",
+      "source": "Kitab Affiliate Rizal",
+      "created": "03/09/2026",
+      "body": "Jangan sebut harga produk begitu saja. Bandingkan dengan alternatif yang jauh lebih mahal (Harga Jangkar) atau pecah biayanya jadi pengeluaran receh harian: 'Cuma Rp2.500 sehari, lebih murah dari segelas es teh, tapi bikin masalah punggung beres 6 bulan'."
+    },
+    {
+      "id": 5,
+      "title": "Jurus 5: Teknik Pilihan Setan (Pancing Komentar & Viralitas)",
+      "topic": "Affiliate",
+      "source": "Kitab Affiliate Rizal",
+      "created": "03/09/2026",
+      "body": "Tutup konten dengan kontras ekstrem 2 kubu: Tim A (tetap tahan sakit, buang waktu & uang seperti biasa) vs Tim B (ambil tindakan, masalah kelar mulai hari ini). Ini memicu debat sehat dan memancing ribuan komentar organik di Threads / TikTok."
+    },
+    {
+      "id": 6,
+      "title": "Jurus 6: Testimoni Jujur & Flaw Disclosure (Kelemahan Produk)",
+      "topic": "Copywriting",
+      "source": "Kitab Affiliate Rizal",
+      "created": "03/09/2026",
+      "body": "Selalu sebutkan 1 kekurangan kecil produk secara jujur (misal: 'pengirimannya agak lama' atau 'bahannya agak berat'). Review yang 100% manis memicu curiga, sedangkan 1 kekurangan jujur melipatgandakan kepercayaan pembaca."
+    },
+    {
+      "id": 7,
+      "title": "Jurus 7: Tahan Link Sampai Post / Baris Terakhir (T-E-K-S)",
+      "topic": "Affiliate",
+      "source": "Kitab Affiliate Rizal",
+      "created": "03/09/2026",
+      "body": "Jangan pernah menaruh link affiliate di hook atau paragraf pembuka. Bangun cerita dan keterikatan emosi sampai klimaks. Tahan link sampai baris paling akhir ketika audiens sudah merasa butuh dan siap checkout."
+    },
+    {
+      "id": 8,
+      "title": "Aturan 3 Detik Pertama (Stop-Scroll Hook)",
+      "topic": "Copywriting",
+      "source": "Kaidah Emas",
+      "created": "03/09/2026",
+      "body": "Jangan pernah langsung sebut nama brand atau jualan di kalimat pembuka. Selalu buka dengan rasa sakit spesifik, fakta kontras, atau kebiasaan salah audiens untuk menghentikan scrolling."
+    },
+    {
+      "id": 9,
+      "title": "Curiosity Gap Principle (Pemicu Penasaran)",
+      "topic": "Marketing",
+      "source": "Kaidah Emas",
+      "created": "03/09/2026",
+      "body": "Beri tahu 'Apa' dan 'Mengapa' suatu fenomena terjadi, tapi simpan 'Bagaimana cara kerjanya' untuk bagian solusi atau CTA. Ini memicu rasa penasaran alami manusia untuk membaca sampai tuntas."
+    },
+    {
+      "id": 10,
+      "title": "Bahasa Mengobrol Santai (Gaya Ngopi)",
+      "topic": "Copywriting",
+      "source": "Kaidah Emas",
+      "created": "03/09/2026",
+      "body": "Gunakan bahasa Indonesia percakapan yang luwes, kalimat pendek-pendek (maksimal 15 kata per kalimat). Hindari kata-kata birokratis atau kaku seperti 'oleh karena itu', 'guna mewujudkan'."
+    },
+    {
+      "id": 11,
+      "title": "Single Call to Action (Satu Aksi Jelas)",
+      "topic": "Marketing",
+      "source": "Kaidah Emas",
+      "created": "03/09/2026",
+      "body": "Setiap konten hanya boleh punya 1 ajakan bertindak (One Single Action: klik link, komen kata kunci, atau DM). Beri alasan mendesak kenapa harus bertindak sekarang juga (urgensi/kelangkaan)."
+    }
+  ]
+}
