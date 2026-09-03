@@ -241,6 +241,26 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       <span style="font-size:12px;color:var(--txa)">← AI akan isi semua bagian sekaligus</span>
     </div>
   </div>
+
+  <!-- JURUS AI CONTEXT WIDGET -->
+  <div class="card" style="padding:10px 14px;margin-bottom:14px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:220px">
+      <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--txp);background:var(--bgp);padding:3px 8px;border-radius:6px;letter-spacing:0.04em;text-transform:uppercase">
+        <i class="ti ti-bolt"></i> Jurus AI
+      </span>
+      <span id="jurus-summary" style="font-size:12px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+        Memuat jurus...
+      </span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="btn sm" onclick="openJurusModal()" title="Pilih catatan Learn & konten Winner yang aktif"><i class="ti ti-adjustments"></i> Atur Jurus</button>
+      <label style="display:flex;align-items:center;gap:5px;font-size:12px;cursor:pointer;color:var(--tx);user-select:none">
+        <input type="checkbox" id="jurus-checkbox" onchange="toggleJurusActive(this.checked)" checked style="width:auto;cursor:pointer">
+        <span id="jurus-toggle-lbl">Aktif</span>
+      </label>
+    </div>
+  </div>
+
   <div class="card">
     <div class="row center" style="margin-bottom:12px">
       <span class="lbl" style="margin:0;flex:1">Bagian konten</span>
@@ -416,6 +436,37 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 
 <script>
 // ===================== DATA =====================
+const DEFAULT_LEARNS = [
+  {
+    id: 1,
+    title: 'Aturan 3 Detik Pertama (Stop-Scroll)',
+    topic: 'Copywriting',
+    created: '03/09/2026',
+    body: 'Jangan pernah langsung sebut nama brand atau jualan di kalimat pembuka. Selalu buka dengan rasa sakit spesifik, fakta kontras, atau kebiasaan salah audiens untuk menghentikan scrolling.'
+  },
+  {
+    id: 2,
+    title: 'Curiosity Gap Principle (Pemicu Penasaran)',
+    topic: 'Marketing',
+    created: '03/09/2026',
+    body: 'Beri tahu "Apa" dan "Mengapa" suatu fenomena terjadi, tapi simpan "Bagaimana cara kerjanya" untuk bagian solusi atau CTA. Ini memicu rasa penasaran alami manusia untuk membaca sampai tuntas.'
+  },
+  {
+    id: 3,
+    title: 'Bahasa Mengobrol Santai (Gaya Ngopi)',
+    topic: 'Copywriting',
+    created: '03/09/2026',
+    body: 'Gunakan bahasa Indonesia percakapan yang luwes, kalimat pendek-pendek (maksimal 15 kata per kalimat). Hindari kata-kata kaku atau birokratis seperti "oleh karena itu", "guna mewujudkan".'
+  },
+  {
+    id: 4,
+    title: 'Single Call to Action (Satu Aksi Jelas)',
+    topic: 'Marketing',
+    created: '03/09/2026',
+    body: 'Setiap konten hanya boleh punya 1 ajakan bertindak (One Single Action: klik link, komen kata kunci, atau DM). Beri alasan mendesak kenapa harus bertindak sekarang juga (urgensi/kelangkaan).'
+  }
+];
+
 let data = {
   sections:['Hook','Problem','Agitate','Solution','Fitur','CTA','Testimoni','Offer','Guarantee','Closing'],
   categories:['Produk Digital','Jasa','Personal Brand','Affiliate','Edukasi'],
@@ -425,6 +476,7 @@ let data = {
   learns:[]
 };
 let ai = {provider:'claude',model:'claude-sonnet-4-6',apiKey:''};
+let jurusConfig = {enabled:true, useLearns:true, useWinners:true, selectedLearnIds:[], selectedWinnerId:null};
 let currentSections=[], currentStars=0, currentTags=[], dragSrc=null, mixConfig={}, bankView='list', activeBankTags=[];
 
 const PROVIDERS = {
@@ -469,11 +521,14 @@ function save(){
   try{
     const dStr = JSON.stringify(data);
     const aStr = JSON.stringify(ai);
+    const jStr = JSON.stringify(jurusConfig);
     localStorage.setItem('temanulis_data', dStr);
     localStorage.setItem('temanulis_ai', aStr);
+    localStorage.setItem('temanulis_jurus', jStr);
     localStorage.setItem('cb_pro', dStr);
     localStorage.setItem('cb_ai', aStr);
   }catch(e){}
+  updateJurusBarSummary();
 }
 function load(){
   try{
@@ -484,6 +539,13 @@ function load(){
     const a = localStorage.getItem('temanulis_ai') || localStorage.getItem('cb_ai');
     if(a)ai=JSON.parse(a);
   }catch(e){}
+  try{
+    const j = localStorage.getItem('temanulis_jurus');
+    if(j) jurusConfig = Object.assign(jurusConfig, JSON.parse(j));
+  }catch(e){}
+  if(!data.learns || data.learns.length === 0){
+    data.learns = JSON.parse(JSON.stringify(DEFAULT_LEARNS));
+  }
 }
 
 // ===================== SIDEBAR =====================
@@ -516,6 +578,7 @@ function switchTab(i){
   if(i===4)renderStats();
   if(i===5)renderSettings();
   populateSelects();
+  updateJurusBarSummary();
   if(window.innerWidth <= 768){
     toggleSidebar(false);
   }
@@ -576,6 +639,244 @@ function applyTemplate(i){
   card.scrollIntoView({behavior:'smooth',block:'center'});
 }
 
+// ===================== JURUS & AI CONTEXT ENGINE =====================
+function getJurusPrompt(category = '', contextType = 'general'){
+  if(!jurusConfig.enabled) return '';
+
+  const blocks = [];
+
+  // 1. Ambil Catatan Kaidah/Jurus dari Tab Learn
+  if(jurusConfig.useLearns && data.learns && data.learns.length > 0){
+    let activeLearns = [];
+    if(jurusConfig.selectedLearnIds && jurusConfig.selectedLearnIds.length > 0){
+      activeLearns = data.learns.filter(l => jurusConfig.selectedLearnIds.includes(l.id));
+    }
+    // Jika user belum memilih spesifik, cari yang paling relevan dengan kategori/topik atau ambil 3 terbaru
+    if(!activeLearns.length){
+      const catLower = (category || '').toLowerCase();
+      const matched = data.learns.filter(l => 
+        (l.topic && catLower.includes(l.topic.toLowerCase())) ||
+        (l.title && catLower.includes(l.title.toLowerCase()))
+      );
+      activeLearns = matched.length ? matched.slice(-3) : data.learns.slice(-3);
+    }
+
+    if(activeLearns.length){
+      const learnLines = activeLearns.map((l, i) => {
+        const cleanBody = (l.body || '').replace(/\n+/g, ' ').slice(0, 220);
+        return `${i+1}. [${l.topic || 'Kaidah'}] ${l.title}: "${cleanBody}"`;
+      }).join('\n');
+
+      blocks.push(`=== JURUS & KAIDAH COPYWRITING DARI TAB LEARN (WAJIB DIPATUHI) ===\n${learnLines}`);
+    }
+  }
+
+  // 2. Ambil Contoh Konten Terbukti (Winner) dari Bank Konten
+  if(jurusConfig.useWinners && data.contents && data.contents.length > 0){
+    let winner = null;
+    if(jurusConfig.selectedWinnerId){
+      winner = data.contents.find(c => c.id === jurusConfig.selectedWinnerId);
+    }
+    if(!winner){
+      const catLower = (category || '').toLowerCase();
+      const catWinners = data.contents.filter(c => (c.status === 'Winner' || c.stars >= 5) && (c.category || '').toLowerCase() === catLower);
+      if(catWinners.length){
+        winner = catWinners[catWinners.length - 1];
+      } else {
+        const anyWinners = data.contents.filter(c => c.status === 'Winner' || c.stars >= 5);
+        if(anyWinners.length) winner = anyWinners[anyWinners.length - 1];
+      }
+    }
+
+    if(winner && winner.sections && winner.sections.length){
+      const sampleSections = winner.sections.slice(0, 4).map(s => {
+        const itemText = (s.items && s.items[0]) ? s.items[0].replace(/\n+/g, ' ').slice(0, 120) : '';
+        return `  - ${s.name}: "${itemText}"`;
+      }).join('\n');
+
+      blocks.push(`=== INSPIRASI GAYA DARI KONTEN PEMENANG (STATUS: WINNER) ===\nReferensi Konten Terbukti: "${winner.title}" (${winner.category})\n${sampleSections}\n(Catatan AI: Tiru ritme kalimat, keluwesan bahasa, dan daya pikatnya tapi sesuaikan dengan topik baru)`);
+    }
+  }
+
+  if(!blocks.length) return '';
+  return '\n\n' + blocks.join('\n\n') + '\n';
+}
+
+function updateJurusBarSummary(){
+  const bar = document.getElementById('jurus-summary');
+  if(!bar) return;
+  const chk = document.getElementById('jurus-checkbox');
+  const lbl = document.getElementById('jurus-toggle-lbl');
+
+  if(chk) chk.checked = !!jurusConfig.enabled;
+  if(lbl) lbl.textContent = jurusConfig.enabled ? 'Aktif' : 'Off';
+
+  if(!jurusConfig.enabled){
+    bar.innerHTML = '<span style="color:var(--txm)">Dimatikan (AI menulis mode standar tanpa jurus)</span>';
+    return;
+  }
+
+  const parts = [];
+  const selectedCount = (jurusConfig.selectedLearnIds && jurusConfig.selectedLearnIds.length)
+    ? jurusConfig.selectedLearnIds.length
+    : Math.min(data.learns.length, 3);
+
+  if(data.learns && data.learns.length > 0){
+    parts.push(`<strong>${selectedCount}</strong> Jurus Learn`);
+  } else {
+    parts.push(`<span style="color:var(--txm)">Belum ada jurus Learn</span>`);
+  }
+
+  const hasWinner = data.contents && data.contents.some(c => c.status === 'Winner' || c.stars >= 5);
+  if(hasWinner && jurusConfig.useWinners){
+    parts.push(`<strong>1</strong> Gaya Winner`);
+  }
+
+  bar.innerHTML = `Menggunakan ${parts.join(' & ')}`;
+}
+
+function toggleJurusActive(val){
+  jurusConfig.enabled = !!val;
+  save();
+  showToast(jurusConfig.enabled ? '✓ Jurus AI diaktifkan!' : 'Jurus AI dinonaktifkan.');
+}
+
+function openJurusModal(){
+  const winnerContents = (data.contents || []).filter(c => c.status === 'Winner' || c.stars >= 4);
+
+  openModal(`
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-bolt" style="color:var(--txp);font-size:20px"></i>
+      <span>Pengaturan Jurus & Konteks AI</span>
+    </div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.5">
+      Pilih catatan ilmu (Tab Learn) dan konten juara (Bank Winner) yang akan disuntikkan ke prompt AI sebagai pedoman gaya & kaidah penulisan saat membuat konten.
+    </div>
+
+    <!-- SAKLAR UTAMA -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--s1);border-radius:var(--r);border:1px solid var(--bd);margin-bottom:14px">
+      <div>
+        <div style="font-size:13px;font-weight:600;color:var(--tx)">Suntikkan Jurus ke AI</div>
+        <div style="font-size:11px;color:var(--txm)">Otomatis sertakan kaidah penulisan & gaya konten juara</div>
+      </div>
+      <label style="display:flex;align-items:center;cursor:pointer">
+        <input type="checkbox" id="modal-jurus-enabled" ${jurusConfig.enabled ? 'checked' : ''} style="width:18px;height:18px;cursor:pointer">
+      </label>
+    </div>
+
+    <!-- SECTION CATATAN TAB LEARN -->
+    <div class="card" style="padding:12px;margin-bottom:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div class="lbl" style="margin:0">Catatan Ilmu (Tab Learn)</div>
+        <button class="btn sm" onclick="openQuickAddLearnModal()"><i class="ti ti-plus"></i> Tambah Jurus</button>
+      </div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Centang catatan yang wajib dipatuhi AI:</div>
+      <div style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding-right:4px">
+        ${(data.learns || []).length ? data.learns.map(l => {
+          const isChecked = (!jurusConfig.selectedLearnIds.length || jurusConfig.selectedLearnIds.includes(l.id));
+          return `
+            <label style="display:flex;align-items:flex-start;gap:8px;padding:6px 8px;background:var(--s1);border-radius:6px;border:1px solid var(--bd);cursor:pointer;font-size:12px">
+              <input type="checkbox" class="jurus-learn-chk" value="${l.id}" ${isChecked ? 'checked' : ''} style="margin-top:2px;cursor:pointer">
+              <div style="flex:1">
+                <div style="font-weight:600;color:var(--tx)">${l.title} <span style="font-weight:400;color:var(--txm)">(${l.topic || 'Umum'})</span></div>
+                <div style="color:var(--tx2);font-size:11px;line-height:1.4">${(l.body || '').slice(0, 100)}...</div>
+              </div>
+            </label>
+          `;
+        }).join('') : '<div style="font-size:12px;color:var(--txm)">Belum ada catatan di Tab Learn.</div>'}
+      </div>
+    </div>
+
+    <!-- SECTION KONTEN JUARA -->
+    <div class="card" style="padding:12px;margin-bottom:14px">
+      <div class="lbl" style="margin-bottom:6px">Inspirasi Gaya: Konten Pemenang (Winner)</div>
+      <div style="font-size:12px;color:var(--tx2);margin-bottom:8px">Pilih konten juara yang gayanya ingin ditiru AI:</div>
+      <select id="modal-jurus-winner-sel" style="width:100%">
+        <option value="">Otomatis (Pilih yang paling cocok dengan kategori)</option>
+        ${winnerContents.map(w => `
+          <option value="${w.id}" ${jurusConfig.selectedWinnerId === w.id ? 'selected' : ''}>
+            ${w.title} (${w.category}) — ${w.status || 'Winner'} ${'★'.repeat(w.stars || 0)}
+          </option>
+        `).join('')}
+      </select>
+    </div>
+
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn primary" onclick="saveJurusModalSettings()"><i class="ti ti-check"></i> Simpan & Terapkan</button>
+    </div>
+  `);
+}
+
+function saveJurusModalSettings(){
+  const enabledChk = document.getElementById('modal-jurus-enabled');
+  if(enabledChk) jurusConfig.enabled = enabledChk.checked;
+
+  const chks = document.querySelectorAll('.jurus-learn-chk');
+  const selectedIds = [];
+  chks.forEach(c => {
+    if(c.checked) selectedIds.push(parseInt(c.value) || c.value);
+  });
+  jurusConfig.selectedLearnIds = selectedIds;
+
+  const winSel = document.getElementById('modal-jurus-winner-sel');
+  if(winSel){
+    const val = winSel.value;
+    jurusConfig.selectedWinnerId = val ? (parseInt(val) || val) : null;
+  }
+
+  save();
+  closeModal();
+  updateJurusBarSummary();
+  showToast('✓ Konfigurasi Jurus AI disimpan!');
+}
+
+function openQuickAddLearnModal(){
+  openModal(`
+    <div class="modal-title"><i class="ti ti-school" style="color:var(--txa)"></i> Tambah Jurus Cepat</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">Catat aturan copywriting atau gaya nulis baru agar diingat oleh AI:</div>
+    <div class="lbl">Judul Jurus / Aturan</div>
+    <input type="text" id="quick-jurus-title" placeholder="Contoh: Aturan Kalimat Maksimal 15 Kata" style="margin-bottom:10px"/>
+    <div class="lbl">Topik</div>
+    <select id="quick-jurus-topic" style="margin-bottom:10px">
+      ${(data.topics || ['Copywriting','Marketing','Bisnis']).map(t=>`<option>${t}</option>`).join('')}
+    </select>
+    <div class="lbl">Penjelasan & Kaidah Penulisan</div>
+    <textarea id="quick-jurus-body" style="min-height:80px;margin-bottom:14px" placeholder="Tuliskan aturan atau tips yang wajib dipatuhi..."></textarea>
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="openJurusModal()">Kembali</button>
+      <button class="btn primary" onclick="saveQuickJurus()"><i class="ti ti-device-floppy"></i> Simpan Jurus</button>
+    </div>
+  `);
+}
+
+function saveQuickJurus(){
+  const title = document.getElementById('quick-jurus-title').value.trim();
+  const topic = document.getElementById('quick-jurus-topic').value;
+  const body = document.getElementById('quick-jurus-body').value.trim();
+
+  if(!title || !body){
+    showToast('Judul dan penjelasan tidak boleh kosong!', 'warn');
+    return;
+  }
+
+  const newLearn = {
+    id: Date.now(),
+    title,
+    topic,
+    body,
+    created: new Date().toLocaleDateString('id-ID')
+  };
+
+  data.learns.push(newLearn);
+  if(!jurusConfig.selectedLearnIds.includes(newLearn.id)){
+    jurusConfig.selectedLearnIds.push(newLearn.id);
+  }
+  save();
+  showToast('✓ Jurus baru berhasil ditambahkan!');
+  openJurusModal();
+}
+
 // ===================== AI BRAINSTORM KESELURUHAN =====================
 async function aiBrainstormAll(){
   if(!ai.apiKey){showToast('Set API key dulu di AI Settings!','warn');return;}
@@ -583,15 +884,18 @@ async function aiBrainstormAll(){
   if(!tujuan){showToast('Isi tujuan tulisan dulu!','warn');return;}
   if(!currentSections.length){showToast('Pilih template dulu!','warn');return;}
   const tpl=window._activeTpl||{name:'Konten'};
+  const cat=document.getElementById('inp-cat')?.value||'';
   const sectionNames=currentSections.map(s=>s.name);
   const btn=document.getElementById('ai-brainstorm-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> AI sedang brainstorm...';
 
+  const jurusContext = getJurusPrompt(cat, 'brainstorm');
   const prompt=`Kamu adalah copywriter dan content writer expert Indonesia.
 
 Template yang digunakan: ${tpl.name}
+Kategori: ${cat}
 Tujuan tulisan: ${tujuan}
-
+${jurusContext}
 Buatkan DRAFT LENGKAP untuk setiap bagian berikut. Langsung tulis isinya, natural, persuasif, bahasa Indonesia yang enak dibaca.
 
 Format output PERSIS seperti ini (jangan tambahkan teks lain di luar format):
@@ -599,7 +903,7 @@ ${sectionNames.map(s=>`### ${s}\n[isi draft ${s} di sini]`).join('\n\n')}
 
 Pastikan:
 - Setiap bagian saling nyambung dan mendukung tujuan
-- Tone sesuai template ${tpl.name}
+- Tone mematuhi pedoman jurus dan template ${tpl.name}
 - Konkret, spesifik, tidak generik
 - Maksimal 3-4 kalimat per bagian kecuali memang perlu panjang`;
 
@@ -628,20 +932,24 @@ async function aiGenerateSection(si){
   if(!ai.apiKey){showToast('Set API key dulu di AI Settings!','warn');return;}
   const sec=currentSections[si];
   const tujuan=document.getElementById('inp-tujuan').value.trim();
+  const cat=document.getElementById('inp-cat')?.value||'';
   const tpl=window._activeTpl;
   const ctx=currentSections.map(s=>s.name+': '+s.items.filter(x=>x.trim()).join(' / ')).join('\n');
   const btn=document.querySelector(`#sh_${si} .btn`);
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
   const res=document.getElementById('ai-sec-result-'+si);
   res.style.display='block';res.textContent='Generating variasi...';
+
+  const jurusContext = getJurusPrompt(cat, 'section');
   const prompt=`Kamu adalah copywriter expert Indonesia.
 ${tpl?`Template: ${tpl.name}`:''}
+${cat?`Kategori: ${cat}`:''}
 ${tujuan?`Tujuan tulisan: ${tujuan}`:''}
 Konteks bagian lain:
 ${ctx}
-
+${jurusContext}
 Buatkan 3 VARIASI berbeda untuk bagian "${sec.name}".
-Setiap variasi punya angle/pendekatan berbeda.
+Setiap variasi punya angle/pendekatan berbeda dan mematuhi kaidah jurus penulisan di atas.
 
 Format:
 1. [variasi 1]
@@ -747,10 +1055,12 @@ async function runHookScore(){
     </div>
   `;
 
+  const cat = document.getElementById('inp-cat')?.value || '';
+  const jurusContext = getJurusPrompt(cat, 'hook');
   const prompt = `Kamu adalah copywriter & viral marketing expert Indonesia berpengalaman tinggi.
 Tugasmu adalah menganalisis kekuatan HOOK/HEADLINE pembuka berikut:
 "${hookText}"
-
+${jurusContext}
 Analisis secara objektif dan berikan penilaian dalam format JSON murni TANPA markdown pembungkus:
 {
   "score": <angka integer 1-100>,
@@ -1140,7 +1450,8 @@ async function aiEnhanceMix(){
   }).join('\n\n');
   const btn=document.getElementById('ai-enhance-btn');
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Loading...';
-  const prompt=`Kamu adalah copywriter expert Indonesia.\n\nIni adalah konten hasil mixing dari beberapa sumber:\n\n${content}\n\nTolong perbaiki setiap bagian supaya lebih halus, kohesif, dan natural. Pertahankan pesan utamanya.\n\nFormat output — tulis langsung per bagian:\n${keys.map(k=>`${k}:\n[versi perbaikan]`).join('\n\n')}`;
+  const jurusContext = getJurusPrompt('', 'mix');
+  const prompt=`Kamu adalah copywriter expert Indonesia.\n\nIni adalah konten hasil mixing dari beberapa sumber:\n\n${content}\n\nTolong perbaiki setiap bagian supaya lebih halus, kohesif, dan natural. Pertahankan pesan utamanya.${jurusContext}\n\nFormat output — tulis langsung per bagian:\n${keys.map(k=>`${k}:\n[versi perbaikan]`).join('\n\n')}`;
   const res=document.getElementById('ai-enhance-result');
   res.className='ai-result';res.style.display='block';res.textContent='Enhancing dengan AI...';
   try{
@@ -1840,6 +2151,7 @@ async function confirmLoadDefaultBank(){
 load();
 populateSelects();
 renderSections();
+updateJurusBarSummary();
 
 try{
   if(window.innerWidth <= 768 || localStorage.getItem('cb_sidebar') === '1'){
