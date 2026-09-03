@@ -1,0 +1,1430 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Content Bank Pro</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
+:root{
+  --tx:#1a1a1a;--tx2:#555;--txm:#999;--txa:#1a6ef5;--txs:#1a8a45;--txw:#b45309;--txd:#d93025;--txp:#6c35de;
+  --s0:#f5f5f3;--s1:#ebebeb;--s2:#fff;
+  --bd:#e0e0dc;--bds:#ccc;--bda:#1a6ef5;
+  --bga:#e8f0fe;--bgp:#f0eafe;--bgs:#e6f7ee;--bgw:#fef3c7;--bgd:#fef0f0;
+  --fa:#1a6ef5;--fah:#1558d6;--oa:#fff;
+  --r:8px;
+}
+@media(prefers-color-scheme:dark){
+  body{background:#1a1a18;color:#e8e8e6}
+  :root{
+    --tx:#e8e8e6;--tx2:#aaa;--txm:#666;--txa:#6b9fff;--txs:#4caf7a;--txw:#f59e0b;--txd:#f87171;--txp:#a889ff;
+    --s0:#1a1a18;--s1:#252523;--s2:#2e2e2b;
+    --bd:#3a3a36;--bds:#4a4a46;--bda:#6b9fff;
+    --bga:#0d2a5e;--bgp:#2a1a5e;--bgs:#0a2e1a;--bgw:#2e1f00;--bgd:#2e0d0d;
+    --fa:#1a6ef5;--fah:#1558d6;--oa:#fff;
+  }
+}
+.app{display:flex;flex-direction:column;min-height:100vh}
+/* TOPBAR — always fixed */
+.topbar{height:48px;background:var(--s2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:30;flex-shrink:0}
+.logo{font-size:14px;font-weight:700;color:var(--txa);flex:1}
+.toggle-btn{width:30px;height:30px;border-radius:var(--r);border:1px solid var(--bd);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx2);transition:background .12s;flex-shrink:0}
+.toggle-btn:hover{background:var(--s1)}
+/* BODY ROW */
+.body-row{display:flex;flex:1;overflow:hidden;height:calc(100vh - 48px)}
+/* SIDEBAR — collapses to 0 */
+.sidebar{width:200px;min-width:200px;background:var(--s2);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:width .2s cubic-bezier(.4,0,.2,1),min-width .2s cubic-bezier(.4,0,.2,1);flex-shrink:0}
+.sidebar.collapsed{width:0;min-width:0;border-right:none}
+.sidebar-nav{flex:1;padding:8px 0;overflow-y:auto}
+.sidebar-bottom{padding:8px 0 12px;border-top:1px solid var(--bd);flex-shrink:0}
+.tab{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;border-left:3px solid transparent;transition:all .12s;white-space:nowrap}
+.tab:hover{color:var(--tx);background:var(--s1)}
+.tab.active{color:var(--txa);background:var(--bga);border-left-color:var(--txa)}
+.tab i{font-size:16px;flex-shrink:0}
+/* MAIN */
+.main{flex:1;overflow-y:auto;min-width:0}
+.panel{display:none;padding:24px;max-width:900px;width:100%;flex-direction:column;gap:14px}
+.panel.active{display:flex}
+.card{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:16px 18px}
+.lbl{font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em}
+input[type=text],input[type=password],textarea,select{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--s1);color:var(--tx);font-size:13px;font-family:inherit;transition:border-color .12s}
+textarea{resize:vertical;min-height:80px;line-height:1.6}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box-shadow:0 0 0 3px rgba(26,110,245,.1)}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border:1px solid var(--bds);border-radius:var(--r);background:transparent;color:var(--tx);font-size:13px;cursor:pointer;transition:all .12s;font-family:inherit;white-space:nowrap}
+.btn:hover{background:var(--s1)}
+.btn.primary{background:var(--fa);color:var(--oa);border-color:var(--fa)}
+.btn.primary:hover{background:var(--fah)}
+.btn.danger{color:var(--txd);border-color:transparent}
+.btn.danger:hover{background:var(--bgd)}
+.btn.success{background:var(--bgs);color:var(--txs);border-color:transparent}
+.btn.sm{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.row{display:flex;gap:8px;align-items:flex-start}
+.row.center{align-items:center}
+.flex1{flex:1}
+.badge{display:inline-block;padding:3px 9px;border-radius:var(--r);font-size:11px;font-weight:600}
+.b-mix{background:var(--bgp);color:var(--txp)}
+.b-input{background:var(--bga);color:var(--txa)}
+.b-learn{background:var(--bgs);color:var(--txs)}
+.b-ai{background:#fef3c7;color:#92400e}
+.b-winner{background:#fef3c7;color:#92400e}
+.b-tested{background:var(--bga);color:var(--txa)}
+.b-draft{background:var(--s1);color:var(--tx2)}
+.section-block{border:1px solid var(--bd);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
+.sec-hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s1);cursor:grab;user-select:none}
+.sec-hdr:active{cursor:grabbing}
+.sec-hdr.drag-over{border-top:2px solid var(--txa)}
+.sec-tag{font-size:11px;font-weight:600;padding:3px 9px;border-radius:var(--r);background:var(--bga);color:var(--txa)}
+.sec-items{padding:10px 12px;display:flex;flex-direction:column;gap:8px;background:var(--s2)}
+.item-row{display:flex;gap:8px;align-items:flex-start}
+.drag-hint{font-size:11px;color:var(--txm);display:flex;align-items:center;gap:4px;margin-top:6px}
+.cc{border:1px solid var(--bd);border-radius:12px;padding:14px 16px;background:var(--s2);display:flex;flex-direction:column;gap:10px;transition:border-color .12s}
+.cc:hover{border-color:var(--bds)}
+.cc-title{font-size:14px;font-weight:600}
+.cc-meta{font-size:12px;color:var(--txm)}
+.cc-prev{font-size:13px;color:var(--tx2);line-height:1.6}
+.mix-slot{border:1px dashed var(--bds);border-radius:var(--r);padding:10px 12px;background:var(--s1);cursor:pointer;transition:all .12s}
+.mix-slot:hover{border-color:var(--bda);background:var(--bga)}
+.mix-slot.filled{border-style:solid;border-color:var(--bda);background:var(--bga)}
+.slot-lbl{font-size:11px;color:var(--txm);margin-bottom:3px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.mix-slot.filled .slot-lbl{color:var(--txa)}
+.slot-src{font-size:11px;color:var(--txm);margin-bottom:2px}
+.slot-val{font-size:13px;color:var(--tx)}
+.empty{text-align:center;padding:48px 20px;color:var(--txm);font-size:14px}
+.empty i{font-size:40px;display:block;margin-bottom:12px;opacity:.4}
+.mr{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bd)}
+.mr:last-child{border-bottom:none}
+.lc{border:1px solid var(--bd);border-radius:12px;padding:16px 18px;background:var(--s2)}
+.lc-title{font-size:15px;font-weight:600;margin-bottom:6px}
+.lc-body{font-size:13px;color:var(--tx2);line-height:1.8;white-space:pre-wrap}
+.sb{position:relative;flex:1}
+.sb input{padding-left:36px}
+.sb i{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--txm);font-size:16px;pointer-events:none}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:center;justify-content:center;padding:20px}
+.modal{background:var(--s2);border-radius:16px;padding:22px;width:min(540px,100%);max-height:88vh;overflow-y:auto;border:1px solid var(--bd)}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
+.pick-item{padding:11px 14px;border:1px solid var(--bd);border-radius:var(--r);margin-bottom:8px;cursor:pointer;transition:all .1s}
+.pick-item:hover{background:var(--s1);border-color:var(--bds)}
+.pick-src{font-size:11px;color:var(--txm);margin-bottom:3px}
+.pick-txt{font-size:13px;color:var(--tx)}
+.stars{display:flex;gap:2px}
+.star{font-size:16px;cursor:pointer;color:var(--txm);transition:color .1s}
+.star.on{color:#f59e0b}
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;align-items:start}
+.kb-col{border-radius:12px;padding:12px;background:var(--s1);display:flex;flex-direction:column;gap:8px}
+.kb-col-hdr{font-size:12px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.kb-card{background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);padding:10px 12px;font-size:13px;cursor:pointer;transition:all .12s}
+.kb-card:hover{border-color:var(--bda)}
+.kb-card .kct{font-weight:600;margin-bottom:4px}
+.kb-card .kcm{font-size:11px;color:var(--txm)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.stat-card{background:var(--s2);border:1px solid var(--bd);border-radius:12px;padding:14px 16px;text-align:center}
+.stat-num{font-size:28px;font-weight:700;color:var(--txa)}
+.stat-lbl{font-size:12px;color:var(--txm);margin-top:4px}
+.ai-result{background:var(--s1);border-radius:var(--r);padding:12px;font-size:13px;line-height:1.7;color:var(--tx2);white-space:pre-wrap;margin-top:8px}
+.tag{display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;background:var(--s1);color:var(--tx2);border:1px solid var(--bd);cursor:pointer;margin:2px}
+.tag:hover{background:var(--bga);color:var(--txa);border-color:var(--bda)}
+.tag.active{background:var(--bga);color:var(--txa);border-color:var(--bda)}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--bd);border-top-color:var(--txa);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.view-toggle{display:flex;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;width:fit-content}
+.vt-btn{padding:6px 12px;font-size:12px;cursor:pointer;background:transparent;border:none;color:var(--tx2);transition:all .12s;display:flex;align-items:center;gap:4px}
+.vt-btn.active{background:var(--bga);color:var(--txa)}
+.provider-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.provider-btn{padding:6px 14px;border-radius:99px;font-size:12px;font-weight:500;border:1px solid var(--bd);cursor:pointer;background:transparent;color:var(--tx2);transition:all .12s}
+.provider-btn.active{background:var(--fa);color:#fff;border-color:var(--fa)}
+.version-item{padding:8px 12px;border:1px solid var(--bd);border-radius:var(--r);margin-bottom:6px;font-size:13px;cursor:pointer;transition:all .12s}
+.version-item:hover{background:var(--s1)}
+.ver-date{font-size:11px;color:var(--txm)}
+.tpl-card{border:1px solid var(--bd);border-radius:12px;padding:14px;background:var(--s2);cursor:pointer;transition:all .12s}
+.tpl-card:hover{border-color:var(--bda);background:var(--bga)}
+.tpl-title{font-size:14px;font-weight:600;margin-bottom:6px}
+.tpl-desc{font-size:12px;color:var(--tx2)}
+.tpl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- TOPBAR: always fixed -->
+<div class="topbar">
+  <button class="toggle-btn" onclick="toggleSidebar()" title="Toggle menu">
+    <i class="ti ti-layout-sidebar" id="toggle-icon"></i>
+  </button>
+  <div class="logo"><i class="ti ti-stack-2"></i> Content Bank Pro</div>
+  <button class="btn sm" onclick="openAISettings()"><i class="ti ti-robot"></i> AI Settings</button>
+</div>
+
+<!-- BODY ROW: sidebar + main content -->
+<div class="body-row">
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-nav">
+    <div class="tab active" onclick="switchTab(0)"><i class="ti ti-pencil"></i><span>Input</span></div>
+    <div class="tab" onclick="switchTab(1)"><i class="ti ti-shuffle"></i><span>Mixing</span></div>
+    <div class="tab" onclick="switchTab(2)"><i class="ti ti-files"></i><span>Bank</span></div>
+    <div class="tab" onclick="switchTab(3)"><i class="ti ti-school"></i><span>Learn</span></div>
+    <div class="tab" onclick="switchTab(4)"><i class="ti ti-chart-bar"></i><span>Stats</span></div>
+    <div class="tab" onclick="switchTab(5)"><i class="ti ti-settings"></i><span>Setting</span></div>
+  </div>
+  <div class="sidebar-bottom">
+    <div class="tab" onclick="openAISettings()"><i class="ti ti-robot"></i><span>AI Settings</span></div>
+  </div>
+</div>
+<div class="main">
+
+<!-- TAB INPUT -->
+<div id="p0" class="panel active">
+  <div class="card">
+    <div class="row center" style="gap:10px;flex-wrap:wrap">
+      <div class="flex1">
+        <div class="lbl">Judul konten</div>
+        <input type="text" id="inp-title" placeholder="Nama konten..."/>
+      </div>
+      <div style="width:180px">
+        <div class="lbl">Kategori</div>
+        <select id="inp-cat"></select>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Template cepat</div>
+    <div id="tpl-cat-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
+    <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px"></div>
+  </div>
+  <!-- TUJUAN TULISAN -->
+  <div class="card" id="tujuan-card" style="display:none;border-color:var(--bda);background:var(--bga)">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <i class="ti ti-target" style="color:var(--txa);font-size:16px"></i>
+      <span style="font-size:13px;font-weight:600;color:var(--txa)" id="tujuan-label">Tujuan tulisan</span>
+      <span class="badge b-input" id="tpl-active-name" style="margin-left:auto"></span>
+    </div>
+    <textarea id="inp-tujuan" style="min-height:64px" id="inp-tujuan" placeholder="Deskripsikan tujuan tulisanmu..."></textarea>
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <button class="btn primary" id="ai-brainstorm-btn" onclick="aiBrainstormAll()">
+        <i class="ti ti-sparkles"></i> AI Brainstorm Keseluruhan
+      </button>
+      <span style="font-size:12px;color:var(--txa)">← AI akan isi semua bagian sekaligus</span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="row center" style="margin-bottom:12px">
+      <span class="lbl" style="margin:0;flex:1">Bagian konten</span>
+      <select id="add-section-sel" style="width:auto;flex:1;margin-right:8px"></select>
+      <button class="btn sm" onclick="addSection()"><i class="ti ti-plus"></i> Tambah</button>
+    </div>
+    <div id="sections-list"></div>
+    <div class="drag-hint"><i class="ti ti-grip-vertical"></i> Drag untuk reorder bagian</div>
+  </div>
+  <div class="card">
+    <div class="lbl">Tag konten</div>
+    <div id="tag-picker" style="margin-bottom:8px"></div>
+    <div class="row center" style="gap:8px">
+      <input type="text" id="new-tag-inp" placeholder="Tambah tag baru..." class="flex1" style="width:auto"/>
+      <button class="btn sm" onclick="addNewTag()"><i class="ti ti-plus"></i></button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Rating & Status</div>
+    <div class="row center" style="gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Bintang</div>
+        <div class="stars" id="star-picker">
+          <span class="star" onclick="setStar(1)">★</span>
+          <span class="star" onclick="setStar(2)">★</span>
+          <span class="star" onclick="setStar(3)">★</span>
+          <span class="star" onclick="setStar(4)">★</span>
+          <span class="star" onclick="setStar(5)">★</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--tx2);margin-bottom:6px">Status</div>
+        <select id="inp-status" style="width:auto">
+          <option value="Draft">Draft</option>
+          <option value="Tested">Tested</option>
+          <option value="Winner">Winner</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="row" style="justify-content:flex-end;gap:8px">
+    <button class="btn" onclick="resetInput()"><i class="ti ti-refresh"></i> Reset</button>
+    <button class="btn primary" onclick="saveContent()"><i class="ti ti-check"></i> Simpan ke Bank</button>
+  </div>
+</div>
+
+<!-- TAB MIXING -->
+<div id="p1" class="panel">
+  <div style="font-size:13px;color:var(--tx2);padding:4px 0">Klik slot untuk pilih sumber dari bank content.</div>
+  <div class="card">
+    <div class="lbl">Pilih bagian yang mau di-mix</div>
+    <div id="mix-slots" style="display:flex;flex-direction:column;gap:10px;margin-top:6px"></div>
+  </div>
+  <div id="mix-preview" class="card" style="display:none">
+    <div class="row center" style="margin-bottom:12px">
+      <span class="lbl" style="margin:0;flex:1">Edit hasil mix sebelum simpan</span>
+      <button class="btn sm primary" id="ai-enhance-btn" onclick="aiEnhanceMix()"><i class="ti ti-sparkles"></i> Enhance AI</button>
+    </div>
+    <div style="font-size:12px;color:var(--txm);margin-bottom:12px">Teks di bawah bisa langsung diedit sesuai kebutuhan sebelum disimpan.</div>
+    <div id="mix-preview-body"></div>
+    <div id="ai-enhance-result"></div>
+  </div>
+  <div class="row" style="justify-content:flex-end;gap:8px">
+    <button class="btn" onclick="initMixSlots()"><i class="ti ti-refresh"></i> Reset</button>
+    <button class="btn primary" onclick="saveMix()"><i class="ti ti-device-floppy"></i> Simpan hasil mix</button>
+  </div>
+</div>
+
+<!-- TAB BANK -->
+<div id="p2" class="panel">
+  <div class="row" style="gap:8px;flex-wrap:wrap">
+    <div class="sb"><i class="ti ti-search"></i><input type="text" id="bank-search" placeholder="Cari konten..." oninput="renderBank()"></div>
+    <select id="bank-filter-type" onchange="renderBank()" style="width:auto"></select>
+    <select id="bank-filter-status" onchange="renderBank()" style="width:auto">
+      <option value="">Semua status</option>
+      <option>Draft</option><option>Tested</option><option>Winner</option>
+    </select>
+    <div class="view-toggle">
+      <button class="vt-btn active" id="vt-list" onclick="setView('list')"><i class="ti ti-list"></i> List</button>
+      <button class="vt-btn" id="vt-kanban" onclick="setView('kanban')"><i class="ti ti-columns"></i> Kanban</button>
+    </div>
+  </div>
+  <div id="tag-filter-bar" style="display:flex;flex-wrap:wrap;gap:4px"></div>
+  <div id="bank-list"></div>
+</div>
+
+<!-- TAB LEARN -->
+<div id="p3" class="panel">
+  <div class="card">
+    <div class="lbl">Tambah ilmu baru</div>
+    <input type="text" id="learn-title" placeholder="Judul / topik..." style="margin-bottom:10px"/>
+    <select id="learn-topic" style="margin-bottom:10px"></select>
+    <textarea id="learn-body" placeholder="Tulis ilmunya di sini..."></textarea>
+    <div style="margin-top:10px;display:flex;justify-content:flex-end">
+      <button class="btn primary" onclick="saveLearn()"><i class="ti ti-plus"></i> Simpan</button>
+    </div>
+  </div>
+  <div class="row" style="gap:8px">
+    <div class="sb"><i class="ti ti-search"></i><input type="text" id="learn-search" placeholder="Cari ilmu..." oninput="renderLearn()"></div>
+    <select id="learn-filter" onchange="renderLearn()" style="width:auto"></select>
+  </div>
+  <div id="learn-list" style="display:flex;flex-direction:column;gap:12px"></div>
+</div>
+
+<!-- TAB STATS -->
+<div id="p4" class="panel">
+  <div class="card">
+    <div class="lbl">Ringkasan bank</div>
+    <div class="stat-grid" id="stats-grid"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Bagian paling sering dipakai</div>
+    <div id="stats-sections"></div>
+  </div>
+  <div class="card">
+    <div class="lbl">Top konten (by bintang)</div>
+    <div id="stats-top"></div>
+  </div>
+</div>
+
+<!-- TAB SETTING -->
+<div id="p5" class="panel">
+  <div class="card">
+    <div class="lbl">Master bagian</div>
+    <div id="master-sections"></div>
+    <div class="row center" style="margin-top:12px;gap:8px">
+      <input type="text" id="new-section" placeholder="Bagian baru..." class="flex1"/>
+      <button class="btn sm primary" onclick="addMasterSection()"><i class="ti ti-plus"></i> Tambah</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Master kategori</div>
+    <div id="master-cats"></div>
+    <div class="row center" style="margin-top:12px;gap:8px">
+      <input type="text" id="new-cat" placeholder="Kategori baru..." class="flex1"/>
+      <button class="btn sm primary" onclick="addMasterCat()"><i class="ti ti-plus"></i> Tambah</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Master topik learn</div>
+    <div id="master-topics"></div>
+    <div class="row center" style="margin-top:12px;gap:8px">
+      <input type="text" id="new-topic" placeholder="Topik baru..." class="flex1"/>
+      <button class="btn sm primary" onclick="addMasterTopic()"><i class="ti ti-plus"></i> Tambah</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Export / Import</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">Backup semua data dalam format JSON.</div>
+    <div class="row" style="gap:8px;flex-wrap:wrap">
+      <button class="btn" onclick="exportData()"><i class="ti ti-download"></i> Export JSON</button>
+      <button class="btn" onclick="document.getElementById('import-file').click()"><i class="ti ti-upload"></i> Import JSON</button>
+      <button class="btn" onclick="exportTxt()"><i class="ti ti-file-text"></i> Export TXT</button>
+      <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
+    </div>
+  </div>
+</div>
+</div><!-- end .main -->
+</div><!-- end .body-row -->
+</div><!-- end .app -->
+
+<!-- MODAL -->
+<div id="modal" class="modal-bg" style="display:none" onclick="closeModalBg(event)">
+  <div id="modal-inner" class="modal"></div>
+</div>
+
+<script>
+// ===================== DATA =====================
+let data = {
+  sections:['Hook','Problem','Agitate','Solution','Fitur','CTA','Testimoni','Offer','Guarantee','Closing'],
+  categories:['Produk Digital','Jasa','Personal Brand','Affiliate','Edukasi'],
+  topics:['Copywriting','Marketing','Mindset','Produktivitas','Bisnis'],
+  tags:['#terbukti','#highCR','#instagram','#softSell','#hardSell','#video','#carousel'],
+  contents:[],
+  learns:[]
+};
+let ai = {provider:'claude',model:'claude-sonnet-4-6',apiKey:''};
+let currentSections=[], currentStars=0, currentTags=[], dragSrc=null, mixConfig={}, bankView='list', activeBankTags=[];
+
+const PROVIDERS = {
+  claude:{name:'Claude',models:['claude-sonnet-4-6','claude-haiku-4-5-20251001','claude-opus-4-6'],url:'https://api.anthropic.com/v1/messages'},
+  gemini:{name:'Gemini',models:['gemini-2.0-flash','gemini-1.5-pro','gemini-1.5-flash' , 'gemini-2.5-flash' , 'gemini-3.1-flash-lite'],url:'https://generativelanguage.googleapis.com/v1beta/models/'},
+  deepseek:{name:'DeepSeek',models:['deepseek-chat','deepseek-reasoner'],url:'https://api.deepseek.com/chat/completions'},
+  groq:{name:'Groq',models:['llama-3.3-70b-versatile','mixtral-8x7b-32768','gemma2-9b-it'],url:'https://api.groq.com/openai/v1/chat/completions'}
+};
+
+const TEMPLATES = [
+  // === COPYWRITING ===
+  {cat:'Copywriting',name:'Launching Produk',desc:'Framework lengkap untuk launch produk baru',sections:['Hook','Problem','Agitate','Solution','Fitur','Offer','Guarantee','CTA'],icon:'ti-rocket',
+   tujuanLabel:'Produk apa? Harga? Target audience?',tujuanPlaceholder:'Contoh: Ebook cara dapat klien pertama, Rp97k, untuk freelancer pemula'},
+  {cat:'Copywriting',name:'Soft Sell',desc:'Pendekatan halus tanpa pressure',sections:['Hook','Problem','Solution','Testimoni','CTA'],icon:'ti-heart',
+   tujuanLabel:'Topik & ke mana mau diarahkan?',tujuanPlaceholder:'Contoh: Edukasi soal pentingnya personal branding, arahkan ke webinar gratis'},
+  {cat:'Copywriting',name:'Hard Sell',desc:'Direct dan to the point',sections:['Hook','Offer','Fitur','Guarantee','CTA'],icon:'ti-bolt',
+   tujuanLabel:'Produk & penawaran spesifik?',tujuanPlaceholder:'Contoh: Kelas online desain grafis, diskon 50% flash sale 24 jam'},
+  {cat:'Copywriting',name:'Edukasi + Jualan',desc:'Edukasi dulu baru tawarkan solusi',sections:['Hook','Problem','Agitate','Solution','CTA'],icon:'ti-school',
+   tujuanLabel:'Ilmu apa yang diajarkan & apa solusinya?',tujuanPlaceholder:'Contoh: Edukasi soal cold email, solusinya template cold email premium'},
+  {cat:'Copywriting',name:'Testimoni Heavy',desc:'Fokus bukti sosial dan hasil nyata',sections:['Hook','Testimoni','Solution','Fitur','CTA'],icon:'ti-star',
+   tujuanLabel:'Produk & hasil yang sudah terbukti?',tujuanPlaceholder:'Contoh: Kursus copywriting, murid sudah dapat income 5jt/bulan'},
+  {cat:'Copywriting',name:'Storytelling',desc:'Cerita yang menggerakkan emosi',sections:['Hook','Problem','Agitate','Solution','Closing'],icon:'ti-book',
+   tujuanLabel:'Cerita tentang apa & pesan utamanya?',tujuanPlaceholder:'Contoh: Cerita gagal bisnis lalu bangkit, pesan: jangan menyerah'},
+  // === KONTEN SOSMED ===
+  {cat:'Sosmed',name:'Thread / Carousel',desc:'Konten edukasi berseri di Twitter/IG',sections:['Hook','Poin 1','Poin 2','Poin 3','Poin 4','Closing/CTA'],icon:'ti-layout-list',
+   tujuanLabel:'Topik & platform target?',tujuanPlaceholder:'Contoh: 5 cara riset niche affiliate, untuk Twitter & IG carousel'},
+  {cat:'Sosmed',name:'Caption IG/FB',desc:'Caption singkat yang engaging',sections:['Hook','Isi','Pertanyaan/CTA'],icon:'ti-brand-instagram',
+   tujuanLabel:'Topik & tujuan caption?',tujuanPlaceholder:'Contoh: Foto produk sabun, mau dorong orang DM untuk order'},
+  {cat:'Sosmed',name:'Caption Video (Reels/TikTok)',desc:'Caption pendek untuk video pendek',sections:['Hook','Konteks','CTA'],icon:'ti-brand-tiktok',
+   tujuanLabel:'Konten video tentang apa?',tujuanPlaceholder:'Contoh: Tutorial skincare routine pagi hari, arahkan ke link bio'},
+  // === TULISAN PANJANG ===
+  {cat:'Tulisan',name:'Artikel Blog',desc:'Artikel informatif yang SEO-friendly',sections:['Judul','Intro','Poin Utama 1','Poin Utama 2','Poin Utama 3','Kesimpulan','CTA'],icon:'ti-article',
+   tujuanLabel:'Topik artikel & target pembaca?',tujuanPlaceholder:'Contoh: Cara memulai bisnis online modal 0, untuk mahasiswa & fresh graduate'},
+  {cat:'Tulisan',name:'Email Newsletter',desc:'Email yang dibuka dan dibaca sampai habis',sections:['Subject Preview','Opening','Isi Utama','Insight/Value','CTA'],icon:'ti-mail',
+   tujuanLabel:'Topik email & apa yang mau dicapai?',tujuanPlaceholder:'Contoh: Sharing insight soal produktivitas, arahkan ke beli buku'},
+  {cat:'Tulisan',name:'Script Video/Podcast',desc:'Naskah untuk konten video atau audio',sections:['Opening Hook','Intro Singkat','Isi Utama','Contoh/Cerita','Kesimpulan','Outro/CTA'],icon:'ti-microphone',
+   tujuanLabel:'Topik & format kontennya?',tujuanPlaceholder:'Contoh: Review aplikasi produktivitas untuk YouTube, durasi 10 menit'},
+];
+
+// ===================== SAVE / LOAD =====================
+function save(){ try{localStorage.setItem('cb_pro',JSON.stringify(data));localStorage.setItem('cb_ai',JSON.stringify(ai));}catch(e){} }
+function load(){
+  try{const d=localStorage.getItem('cb_pro');if(d){const p=JSON.parse(d);if(p&&p.contents)data=p;}}catch(e){}
+  try{const a=localStorage.getItem('cb_ai');if(a)ai=JSON.parse(a);}catch(e){}
+}
+
+// ===================== SIDEBAR =====================
+function toggleSidebar(){
+  const sb=document.getElementById('sidebar');
+  const icon=document.getElementById('toggle-icon');
+  sb.classList.toggle('collapsed');
+  const collapsed=sb.classList.contains('collapsed');
+  icon.className=collapsed?'ti ti-layout-sidebar-right':'ti ti-layout-sidebar';
+  try{localStorage.setItem('cb_sidebar',collapsed?'1':'0');}catch(e){}
+}
+
+// ===================== TABS =====================
+function switchTab(i){
+  document.querySelectorAll('.sidebar-nav .tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',i===j));
+  if(i===1)initMixSlots();
+  if(i===2)renderBank();
+  if(i===3)renderLearn();
+  if(i===4)renderStats();
+  if(i===5)renderSettings();
+  populateSelects();
+}
+
+function populateSelects(){
+  const set=(id,html)=>{const el=document.getElementById(id);if(el)el.innerHTML=html;};
+  set('inp-cat',data.categories.map(c=>`<option>${c}</option>`).join(''));
+  set('add-section-sel',data.sections.map(s=>`<option>${s}</option>`).join(''));
+  set('bank-filter-type','<option value="">Semua tipe</option><option>Input</option><option>Mix</option><option>AI Rekomen</option>');
+  set('learn-topic','<option value="">Tanpa topik</option>'+data.topics.map(t=>`<option>${t}</option>`).join(''));
+  set('learn-filter','<option value="">Semua topik</option>'+data.topics.map(t=>`<option>${t}</option>`).join(''));
+  renderTagPicker();
+  renderTemplates();
+}
+
+// ===================== TEMPLATES =====================
+let activeTplCat = 'Copywriting';
+
+function renderTemplates(){
+  const catEl=document.getElementById('tpl-cat-tabs');
+  const gridEl=document.getElementById('tpl-grid');
+  if(!catEl||!gridEl)return;
+  const cats=[...new Set(TEMPLATES.map(t=>t.cat))];
+  catEl.innerHTML=cats.map(c=>`
+    <span onclick="setTplCat('${c}')" style="padding:4px 12px;border-radius:99px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid ${c===activeTplCat?'var(--fa)':'var(--bd)'};background:${c===activeTplCat?'var(--fa)':'transparent'};color:${c===activeTplCat?'#fff':'var(--tx2)'};">${c}</span>
+  `).join('');
+  const filtered=TEMPLATES.filter(t=>t.cat===activeTplCat);
+  gridEl.innerHTML=filtered.map((t,i)=>{
+    const realIdx=TEMPLATES.indexOf(t);
+    return `
+    <div class="tpl-card" onclick="applyTemplate(${realIdx})">
+      <div class="tpl-title"><i class="ti ${t.icon}" style="color:var(--txa)"></i> ${t.name}</div>
+      <div class="tpl-desc">${t.desc}</div>
+      <div class="tpl-tags">${t.sections.map(s=>`<span class="badge b-input" style="font-size:10px">${s}</span>`).join('')}</div>
+    </div>`;
+  }).join('');
+}
+
+function setTplCat(cat){
+  activeTplCat=cat;
+  renderTemplates();
+}
+
+function applyTemplate(i){
+  const tpl=TEMPLATES[i];
+  currentSections=tpl.sections.map(s=>({id:Date.now()+'_'+Math.random(),name:s,items:['']}));
+  window._activeTpl=tpl;
+  // Tampilkan card tujuan
+  const card=document.getElementById('tujuan-card');
+  card.style.display='block';
+  document.getElementById('tujuan-label').textContent=tpl.tujuanLabel||'Tujuan tulisan';
+  document.getElementById('inp-tujuan').placeholder=tpl.tujuanPlaceholder||'Deskripsikan tujuan tulisanmu...';
+  document.getElementById('tpl-active-name').textContent=tpl.name;
+  renderSections();
+  showToast(`Template "${tpl.name}" diterapkan!`);
+  // Scroll ke tujuan
+  card.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+// ===================== AI BRAINSTORM KESELURUHAN =====================
+async function aiBrainstormAll(){
+  if(!ai.apiKey){showToast('Set API key dulu di AI Settings!','warn');return;}
+  const tujuan=document.getElementById('inp-tujuan').value.trim();
+  if(!tujuan){showToast('Isi tujuan tulisan dulu!','warn');return;}
+  if(!currentSections.length){showToast('Pilih template dulu!','warn');return;}
+  const tpl=window._activeTpl||{name:'Konten'};
+  const sectionNames=currentSections.map(s=>s.name);
+  const btn=document.getElementById('ai-brainstorm-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> AI sedang brainstorm...';
+
+  const prompt=`Kamu adalah copywriter dan content writer expert Indonesia.
+
+Template yang digunakan: ${tpl.name}
+Tujuan tulisan: ${tujuan}
+
+Buatkan DRAFT LENGKAP untuk setiap bagian berikut. Langsung tulis isinya, natural, persuasif, bahasa Indonesia yang enak dibaca.
+
+Format output PERSIS seperti ini (jangan tambahkan teks lain di luar format):
+${sectionNames.map(s=>`### ${s}\n[isi draft ${s} di sini]`).join('\n\n')}
+
+Pastikan:
+- Setiap bagian saling nyambung dan mendukung tujuan
+- Tone sesuai template ${tpl.name}
+- Konkret, spesifik, tidak generik
+- Maksimal 3-4 kalimat per bagian kecuali memang perlu panjang`;
+
+  try{
+    const txt=await callAI(prompt);
+    // Parse dan isi ke setiap section
+    let filled=0;
+    sectionNames.forEach((name,si)=>{
+      const regex=new RegExp(`###\\s*${name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')}\\s*\\n([\\s\\S]*?)(?=###|$)`,'i');
+      const match=txt.match(regex);
+      if(match&&match[1].trim()){
+        currentSections[si].items=[match[1].trim()];
+        filled++;
+      }
+    });
+    renderSections();
+    showToast(`✓ ${filled} bagian berhasil diisi AI!`);
+  }catch(e){
+    showToast('Error: '+e.message,'warn');
+  }
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> AI Brainstorm Keseluruhan';
+}
+
+// ===================== AI VARIASI PER SECTION =====================
+async function aiGenerateSection(si){
+  if(!ai.apiKey){showToast('Set API key dulu di AI Settings!','warn');return;}
+  const sec=currentSections[si];
+  const tujuan=document.getElementById('inp-tujuan').value.trim();
+  const tpl=window._activeTpl;
+  const ctx=currentSections.map(s=>s.name+': '+s.items.filter(x=>x.trim()).join(' / ')).join('\n');
+  const btn=document.querySelector(`#sh_${si} .btn`);
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>';
+  const res=document.getElementById('ai-sec-result-'+si);
+  res.style.display='block';res.textContent='Generating variasi...';
+  const prompt=`Kamu adalah copywriter expert Indonesia.
+${tpl?`Template: ${tpl.name}`:''}
+${tujuan?`Tujuan tulisan: ${tujuan}`:''}
+Konteks bagian lain:
+${ctx}
+
+Buatkan 3 VARIASI berbeda untuk bagian "${sec.name}".
+Setiap variasi punya angle/pendekatan berbeda.
+
+Format:
+1. [variasi 1]
+
+2. [variasi 2]
+
+3. [variasi 3]
+
+Bahasa Indonesia, natural, persuasif.
+berikan tips tambahan dari expert`;
+  try{
+    const txt=await callAI(prompt);
+    res.innerHTML='<div style="white-space:pre-wrap">'+txt+'</div><div style="margin-top:8px;font-size:11px;color:var(--txm)">Copy variasi yang kamu suka ke textarea di atas ↑</div>';
+  }catch(e){res.textContent='Error: '+e.message;}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Variasikan';
+}
+
+// ===================== TAGS =====================
+function renderTagPicker(){
+  const el=document.getElementById('tag-picker');
+  if(!el)return;
+  el.innerHTML=data.tags.map(t=>`<span class="tag${currentTags.includes(t)?' active':''}" onclick="toggleTag('${t}')">${t}</span>`).join('');
+}
+
+function toggleTag(t){
+  const idx=currentTags.indexOf(t);
+  if(idx>=0)currentTags.splice(idx,1); else currentTags.push(t);
+  renderTagPicker();
+}
+
+function addNewTag(){
+  let v=document.getElementById('new-tag-inp').value.trim();
+  if(!v)return;
+  if(!v.startsWith('#'))v='#'+v;
+  if(!data.tags.includes(v))data.tags.push(v);
+  if(!currentTags.includes(v))currentTags.push(v);
+  document.getElementById('new-tag-inp').value='';
+  save(); renderTagPicker();
+}
+
+// ===================== STARS =====================
+function setStar(n){
+  currentStars=currentStars===n?0:n;
+  document.querySelectorAll('#star-picker .star').forEach((s,i)=>s.classList.toggle('on',i<currentStars));
+}
+
+function renderStars(n){
+  return '★'.repeat(n)+'☆'.repeat(5-n);
+}
+
+// ===================== INPUT TAB =====================
+function addSection(){
+  const sel=document.getElementById('add-section-sel');
+  if(!sel.value)return;
+  currentSections.push({id:Date.now()+'_'+Math.random(),name:sel.value,items:['']});
+  renderSections();
+}
+
+function renderSections(){
+  const el=document.getElementById('sections-list');
+  if(!currentSections.length){
+    el.innerHTML='<div class="empty"><i class="ti ti-layout-list"></i>Belum ada bagian. Pilih template atau tambah manual.</div>';
+    return;
+  }
+  el.innerHTML=currentSections.map((sec,si)=>`
+    <div class="section-block" draggable="true" data-si="${si}"
+      ondragstart="dragStart(event,${si})" ondragover="dragOver(event,${si})" ondragleave="dragLeave(event,${si})" ondrop="dragDrop(event,${si})">
+      <div class="sec-hdr" id="sh_${si}">
+        <i class="ti ti-grip-vertical" style="color:var(--txm);font-size:16px"></i>
+        <span class="sec-tag">${sec.name}</span>
+        <span class="flex1"></span>
+        <button class="btn sm" onclick="aiGenerateSection(${si})"><i class="ti ti-refresh"></i> Variasikan</button>
+        <button class="btn sm" onclick="addItem(${si})"><i class="ti ti-plus"></i> Variasi</button>
+        <button class="btn sm danger" onclick="removeSection(${si})"><i class="ti ti-trash"></i></button>
+      </div>
+      <div class="sec-items" id="sec-items-${si}">
+        ${sec.items.map((item,ii)=>`
+          <div class="item-row">
+            <textarea style="flex:1;min-height:60px" placeholder="Isi ${sec.name}..." onchange="updateItem(${si},${ii},this.value)">${item}</textarea>
+            ${sec.items.length>1?`<button class="btn sm danger" onclick="removeItem(${si},${ii})" style="margin-top:4px"><i class="ti ti-x"></i></button>`:''}
+          </div>
+        `).join('')}
+        <div id="ai-sec-result-${si}" class="ai-result" style="display:none"></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function dragStart(e,i){dragSrc=i;e.dataTransfer.effectAllowed='move';}
+function dragOver(e,i){e.preventDefault();document.querySelectorAll('.sec-hdr').forEach(h=>h.classList.remove('drag-over'));const h=document.getElementById('sh_'+i);if(h&&dragSrc!==i)h.classList.add('drag-over');}
+function dragLeave(e,i){const h=document.getElementById('sh_'+i);if(h)h.classList.remove('drag-over');}
+function dragDrop(e,i){
+  e.preventDefault();
+  document.querySelectorAll('.sec-hdr').forEach(h=>h.classList.remove('drag-over'));
+  if(dragSrc===null||dragSrc===i)return;
+  const arr=[...currentSections];const[moved]=arr.splice(dragSrc,1);arr.splice(i,0,moved);
+  currentSections=arr;dragSrc=null;renderSections();
+}
+
+function addItem(si){currentSections[si].items.push('');renderSections();}
+function removeItem(si,ii){currentSections[si].items.splice(ii,1);if(!currentSections[si].items.length)currentSections[si].items=[''];renderSections();}
+function removeSection(si){currentSections.splice(si,1);renderSections();}
+function updateItem(si,ii,v){currentSections[si].items[ii]=v;}
+
+function saveContent(){
+  const title=document.getElementById('inp-title').value.trim();
+  if(!title){showToast('Isi judul konten dulu!','warn');return;}
+  const cat=document.getElementById('inp-cat').value;
+  const status=document.getElementById('inp-status').value;
+  const secs=currentSections.map(s=>({name:s.name,items:s.items.filter(i=>i.trim())})).filter(s=>s.items.length);
+  if(!secs.length){showToast('Tambah minimal 1 bagian!','warn');return;}
+  const existing=data.contents.find(c=>c.title===title&&c.type==='Input');
+  if(existing){
+    if(!confirm('Judul sudah ada. Simpan sebagai versi baru?'))return;
+    if(!existing.versions)existing.versions=[];
+    existing.versions.push({sections:[...existing.sections],saved:existing.created});
+    existing.sections=secs;existing.category=cat;existing.status=status;
+    existing.stars=currentStars;existing.tags=[...currentTags];
+    existing.created=new Date().toLocaleDateString('id-ID');
+  } else {
+    data.contents.push({id:Date.now(),title,category:cat,type:'Input',status,stars:currentStars,tags:[...currentTags],sections:secs,created:new Date().toLocaleDateString('id-ID'),versions:[]});
+  }
+  save();resetInput();showToast('Konten disimpan!');
+}
+
+function resetInput(){
+  document.getElementById('inp-title').value='';
+  document.getElementById('inp-tujuan').value='';
+  document.getElementById('tujuan-card').style.display='none';
+  currentSections=[];currentStars=0;currentTags=[];
+  window._activeTpl=null;
+  setStar(0);renderSections();renderTagPicker();
+}
+
+// ===================== MIXING =====================
+function initMixSlots(){
+  mixConfig={};
+  const el=document.getElementById('mix-slots');
+  document.getElementById('mix-preview').style.display='none';
+  el.innerHTML=data.sections.map(sec=>`
+    <div class="mix-slot" id="slot_${esc(sec)}" onclick="openSlotPicker('${sec}')">
+      <div class="slot-lbl">${sec}</div>
+      <div class="slot-src" id="slotSrc_${esc(sec)}" style="display:none"></div>
+      <div class="slot-val" id="slotval_${esc(sec)}" style="color:var(--txm)">Klik untuk pilih dari bank...</div>
+    </div>
+  `).join('');
+}
+
+function esc(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
+
+function openSlotPicker(secName){
+  const sources=[];
+  data.contents.forEach(c=>{
+    c.sections.forEach(s=>{
+      if(s.name===secName) s.items.forEach(item=>{if(item.trim())sources.push({contentTitle:c.title,item});});
+    });
+  });
+  if(!sources.length){showToast(`Belum ada konten dengan bagian "${secName}"!`,'warn');return;}
+  window._slotSrc=sources;window._slotSec=secName;
+  openModal(`
+    <div class="modal-title">Pilih sumber untuk <span style="color:var(--txa)">${secName}</span></div>
+    ${sources.map((s,i)=>`
+      <div class="pick-item" onclick="pickSlot(${i})">
+        <div class="pick-src">${s.contentTitle}</div>
+        <div class="pick-txt">${s.item}</div>
+      </div>
+    `).join('')}
+    <div style="margin-top:12px;display:flex;gap:8px;justify-content:space-between">
+      <button class="btn sm danger" onclick="clearSlot('${secName}')"><i class="ti ti-x"></i> Hapus pilihan</button>
+      <button class="btn sm" onclick="closeModal()">Tutup</button>
+    </div>
+  `);
+}
+
+function pickSlot(i){
+  const s=window._slotSrc[i];const secName=window._slotSec;
+  mixConfig[secName]=s;
+  const key=esc(secName);
+  document.getElementById('slot_'+key).classList.add('filled');
+  const srcEl=document.getElementById('slotSrc_'+key);
+  srcEl.style.display='block';srcEl.textContent='dari: '+s.contentTitle;
+  const valEl=document.getElementById('slotval_'+key);
+  valEl.style.color='var(--tx)';valEl.textContent=s.item;
+  closeModal();updateMixPreview();
+}
+
+function clearSlot(secName){
+  delete mixConfig[secName];
+  const key=esc(secName);
+  document.getElementById('slot_'+key).classList.remove('filled');
+  document.getElementById('slotSrc_'+key).style.display='none';
+  const valEl=document.getElementById('slotval_'+key);
+  valEl.style.color='var(--txm)';valEl.textContent='Klik untuk pilih dari bank...';
+  closeModal();updateMixPreview();
+}
+
+function updateMixPreview(){
+  const keys=Object.keys(mixConfig);
+  const prev=document.getElementById('mix-preview');
+  if(!keys.length){prev.style.display='none';return;}
+  prev.style.display='block';
+  document.getElementById('mix-preview-body').innerHTML=keys.map(k=>`
+    <div style="margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="font-size:11px;font-weight:600;color:var(--txa);text-transform:uppercase;letter-spacing:.05em">${k}</span>
+        <span style="font-size:11px;color:var(--txm)">dari: ${mixConfig[k].contentTitle}</span>
+      </div>
+      <textarea id="mix-edit-${esc(k)}" style="width:100%;min-height:72px;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--s1);color:var(--tx);font-size:13px;font-family:inherit;resize:vertical;line-height:1.6">${mixConfig[k].item}</textarea>
+    </div>
+  `).join('');
+  document.getElementById('ai-enhance-result').innerHTML='';
+}
+
+async function aiEnhanceMix(){
+  if(!ai.apiKey){showToast('Set API key dulu!','warn');return;}
+  const keys=Object.keys(mixConfig);
+  if(!keys.length){showToast('Pilih bagian dulu!','warn');return;}
+  // Ambil dari textarea (sudah diedit user)
+  const content=keys.map(k=>{
+    const ta=document.getElementById('mix-edit-'+esc(k));
+    const val=ta?ta.value:mixConfig[k].item;
+    return k+':\n'+val;
+  }).join('\n\n');
+  const btn=document.getElementById('ai-enhance-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Loading...';
+  const prompt=`Kamu adalah copywriter expert Indonesia.\n\nIni adalah konten hasil mixing dari beberapa sumber:\n\n${content}\n\nTolong perbaiki setiap bagian supaya lebih halus, kohesif, dan natural. Pertahankan pesan utamanya.\n\nFormat output — tulis langsung per bagian:\n${keys.map(k=>`${k}:\n[versi perbaikan]`).join('\n\n')}`;
+  const res=document.getElementById('ai-enhance-result');
+  res.className='ai-result';res.style.display='block';res.textContent='Enhancing dengan AI...';
+  try{
+    const txt=await callAI(prompt);
+    res.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--txs);margin-bottom:8px;text-transform:uppercase">✓ Hasil AI — klik "Pakai hasil AI" untuk terapkan ke editor</div>'+
+      '<div style="white-space:pre-wrap;font-size:13px;line-height:1.7">'+txt+'</div>'+
+      '<button class="btn sm success" style="margin-top:10px" onclick="applyAIEnhance('+JSON.stringify(txt)+')"><i class="ti ti-check"></i> Pakai hasil AI</button>';
+  }catch(e){res.textContent='Error: '+e.message;}
+  btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Enhance AI';
+}
+
+function applyAIEnhance(txt){
+  // Parse hasil AI dan terapkan ke textarea per bagian
+  const keys=Object.keys(mixConfig);
+  keys.forEach(k=>{
+    const ta=document.getElementById('mix-edit-'+esc(k));
+    if(!ta)return;
+    // Cari teks setelah "Nama Bagian:" di hasil AI
+    const regex=new RegExp(k+':\\s*([\\s\\S]*?)(?=(?:'+keys.join('|')+'|$):?\\n|$)','i');
+    const match=txt.match(regex);
+    if(match&&match[1]){ta.value=match[1].trim();}
+  });
+  document.getElementById('ai-enhance-result').innerHTML='<div style="font-size:12px;color:var(--txs);padding:8px 0"><i class="ti ti-check"></i> Hasil AI diterapkan ke editor. Silakan edit lagi jika perlu.</div>';
+  showToast('Hasil AI diterapkan!');
+}
+
+function saveMix(){
+  const keys=Object.keys(mixConfig);
+  if(!keys.length){showToast('Pilih minimal 1 bagian!','warn');return;}
+  // Ambil nilai dari textarea yang sudah diedit user
+  const secs=keys.map(k=>{
+    const ta=document.getElementById('mix-edit-'+esc(k));
+    const val=ta?ta.value.trim():mixConfig[k].item;
+    return {name:k,items:[val||mixConfig[k].item]};
+  }).filter(s=>s.items[0]);
+  if(!secs.length){showToast('Isi minimal 1 bagian!','warn');return;}
+  const title=prompt('Nama konten mix ini?');if(!title)return;
+  const sources=[...new Set(keys.map(k=>mixConfig[k].contentTitle))];
+  data.contents.push({id:Date.now(),title,category:data.categories[0]||'Umum',type:'Mix',status:'Draft',stars:0,tags:[],sections:secs,created:new Date().toLocaleDateString('id-ID'),mixSources:sources,versions:[]});
+  save();showToast('Hasil mix disimpan!');initMixSlots();
+}
+
+// ===================== BANK =====================
+function setView(v){
+  bankView=v;
+  document.getElementById('vt-list').classList.toggle('active',v==='list');
+  document.getElementById('vt-kanban').classList.toggle('active',v==='kanban');
+  renderBank();
+}
+
+function renderBank(){
+  const search=(document.getElementById('bank-search').value||'').toLowerCase();
+  const filterType=document.getElementById('bank-filter-type').value;
+  const filterStatus=document.getElementById('bank-filter-status').value;
+  const el=document.getElementById('bank-list');
+
+  // tag filter bar
+  const tfb=document.getElementById('tag-filter-bar');
+  tfb.innerHTML=data.tags.map(t=>`<span class="tag${activeBankTags.includes(t)?' active':''}" onclick="toggleBankTag('${t}')">${t}</span>`).join('');
+
+  let list=data.contents.filter(c=>{
+    const ms=c.title.toLowerCase().includes(search)||c.sections.some(s=>s.items.some(i=>i.toLowerCase().includes(search)));
+    const mt=!filterType||c.type===filterType;
+    const mst=!filterStatus||c.status===filterStatus;
+    const mtag=activeBankTags.length===0||activeBankTags.every(t=>(c.tags||[]).includes(t));
+    return ms&&mt&&mst&&mtag;
+  });
+
+  if(!list.length){
+    el.innerHTML='<div class="empty"><i class="ti ti-files"></i>Tidak ada konten ditemukan.</div>';
+    return;
+  }
+
+  if(bankView==='kanban'){
+    const cols=['Draft','Tested','Winner'];
+    el.innerHTML=`<div class="kanban">${cols.map(col=>`
+      <div class="kb-col">
+        <div class="kb-col-hdr">
+          <span class="badge b-${col.toLowerCase()}">${col}</span>
+          <span style="color:var(--txm)">${list.filter(c=>c.status===col).length}</span>
+        </div>
+        ${list.filter(c=>c.status===col).map(c=>`
+          <div class="kb-card" onclick="viewContent(${c.id})">
+            <div class="kct">${c.title}</div>
+            <div class="kcm">${c.category} · ${renderStars(c.stars||0)}</div>
+            ${(c.tags||[]).length?`<div style="margin-top:6px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+          </div>
+        `).join('')}
+      </div>
+    `).join('')}</div>`;
+    return;
+  }
+
+  el.innerHTML='<div style="display:flex;flex-direction:column;gap:12px">'+list.slice().reverse().map(c=>{
+    const typeClass=c.type==='Mix'?'mix':c.type==='AI Rekomen'?'ai':'input';
+    return `
+    <div class="cc">
+      <div class="row center">
+        <span class="cc-title flex1">${c.title}</span>
+        <span class="badge b-${typeClass}">${c.type}</span>
+        <span class="badge b-${(c.status||'draft').toLowerCase()}" style="margin-left:6px">${c.status||'Draft'}</span>
+      </div>
+      <div class="row center">
+        <span class="cc-meta flex1">${c.category} · ${c.created}</span>
+        <span style="color:#f59e0b;font-size:13px">${renderStars(c.stars||0)}</span>
+      </div>
+      ${(c.tags||[]).length?`<div>${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+      <div class="cc-prev">${c.sections.slice(0,2).map(s=>`<b>${s.name}:</b> ${s.items[0]||''}`).join('<br>')}</div>
+      <div class="row" style="gap:6px;flex-wrap:wrap">
+        <button class="btn sm" onclick="viewContent(${c.id})"><i class="ti ti-eye"></i> Lihat</button>
+        <button class="btn sm" onclick="copyContent(${c.id})"><i class="ti ti-copy"></i> Copy</button>
+        <button class="btn sm" onclick="aiAnalyzeContent(${c.id})"><i class="ti ti-sparkles"></i> AI Analisis</button>
+        ${(c.versions||[]).length?`<button class="btn sm" onclick="viewVersions(${c.id})"><i class="ti ti-history"></i> Versi (${c.versions.length})</button>`:''}
+        <div class="flex1"></div>
+        <button class="btn sm danger" onclick="deleteContent(${c.id})"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`
+  }).join('')+'</div>';
+}
+
+function toggleBankTag(t){
+  const idx=activeBankTags.indexOf(t);
+  if(idx>=0)activeBankTags.splice(idx,1); else activeBankTags.push(t);
+  renderBank();
+}
+
+function viewContent(id){
+  const c=data.contents.find(x=>x.id===id);if(!c)return;
+  openModal(`
+    <div class="row center" style="margin-bottom:14px">
+      <span style="font-size:16px;font-weight:600;flex:1">${c.title}</span>
+      <span class="badge b-${c.type==='Mix'?'mix':'input'}">${c.type}</span>
+    </div>
+    <div style="font-size:12px;color:var(--txm);margin-bottom:6px">${c.category} · ${c.created} · <span style="color:#f59e0b">${renderStars(c.stars||0)}</span> · ${c.status||'Draft'}</div>
+    ${(c.tags||[]).length?`<div style="margin-bottom:12px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+    ${c.sections.map(s=>`
+      <div style="margin-bottom:14px">
+        <div style="font-size:11px;font-weight:600;color:var(--txa);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${s.name}</div>
+        ${s.items.map(i=>`<div style="padding:9px 12px;background:var(--s1);border-radius:var(--r);font-size:13px;margin-bottom:6px;line-height:1.6">${i}</div>`).join('')}
+      </div>
+    `).join('')}
+    <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
+      <button class="btn sm" onclick="copyContent(${id});closeModal()"><i class="ti ti-copy"></i> Copy</button>
+      <button class="btn sm primary" onclick="closeModal()">Tutup</button>
+    </div>
+  `);
+}
+
+function viewVersions(id){
+  const c=data.contents.find(x=>x.id===id);if(!c||!c.versions)return;
+  openModal(`
+    <div class="modal-title">Riwayat versi: ${c.title}</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">Versi terbaru selalu aktif. Klik versi lama untuk restore.</div>
+    ${c.versions.slice().reverse().map((v,i)=>`
+      <div class="version-item" onclick="restoreVersion(${id},${c.versions.length-1-i})">
+        <div class="ver-date">Versi ${c.versions.length-i} · Disimpan: ${v.saved}</div>
+        <div style="font-size:12px;color:var(--tx2);margin-top:4px">${v.sections.slice(0,2).map(s=>s.name+': '+s.items[0]).join(' | ')}</div>
+      </div>
+    `).join('')}
+    <div style="margin-top:12px;display:flex;justify-content:flex-end">
+      <button class="btn sm" onclick="closeModal()">Tutup</button>
+    </div>
+  `);
+}
+
+function restoreVersion(id,vi){
+  const c=data.contents.find(x=>x.id===id);if(!c)return;
+  if(!confirm('Restore versi ini? Versi aktif akan jadi riwayat.'))return;
+  c.versions.push({sections:[...c.sections],saved:c.created});
+  const old=c.versions.splice(vi,1)[0];
+  c.sections=old.sections;c.created=old.saved;
+  save();closeModal();renderBank();showToast('Versi di-restore!');
+}
+
+function copyContent(id){
+  const c=data.contents.find(x=>x.id===id);if(!c)return;
+  const txt=c.sections.map(s=>s.name+':\n'+s.items.join('\n')).join('\n\n');
+  navigator.clipboard.writeText(txt).then(()=>showToast('Dicopy!')).catch(()=>showToast('Gagal copy','warn'));
+}
+
+function deleteContent(id){
+  if(!confirm('Hapus konten ini?'))return;
+  data.contents=data.contents.filter(c=>c.id!==id);
+  save();renderBank();
+}
+
+async function aiAnalyzeContent(id){
+  if(!ai.apiKey){showToast('Set API key dulu!','warn');return;}
+  const c=data.contents.find(x=>x.id===id);if(!c)return;
+  const content=c.sections.map(s=>s.name+':\n'+s.items.join('\n')).join('\n\n');
+  const sectionNames=c.sections.map(s=>s.name);
+
+  openModal(`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+      <i class="ti ti-sparkles" style="color:var(--txa);font-size:18px"></i>
+      <div>
+        <div style="font-size:15px;font-weight:700">AI Analisis</div>
+        <div style="font-size:12px;color:var(--txm)">${c.title}</div>
+      </div>
+    </div>
+
+    <!-- STEP 1: ANALISIS -->
+    <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">① Hasil Analisis</div>
+    <div id="ai-analyze-body" class="ai-result" style="min-height:80px">
+      <div style="display:flex;align-items:center;gap:8px;color:var(--txm)"><span class="spinner" style="border-top-color:var(--txa);border-color:var(--bd)"></span> Menganalisis konten...</div>
+    </div>
+
+    <!-- ACTION 1: Simpan ke Learn -->
+    <div id="analyze-actions-1" style="display:none;margin-top:10px;padding:12px;background:var(--bgs);border-radius:var(--r)">
+      <div style="font-size:12px;color:var(--txs);font-weight:500;margin-bottom:8px"><i class="ti ti-info-circle"></i> Simpan hasil analisis ini ke tab Learn sebagai catatan insight.</div>
+      <button class="btn sm success" onclick="saveAnalysisToLearn()"><i class="ti ti-bookmark"></i> Simpan Analisis ke Learn</button>
+    </div>
+
+    <div style="height:1px;background:var(--bd);margin:16px 0"></div>
+
+    <!-- STEP 2: GENERATE REKOMENDASI -->
+    <div style="font-size:11px;font-weight:700;color:var(--tx2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">② Konten Rekomendasi AI</div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:10px">AI akan buatkan ulang konten dengan struktur yang sama berdasarkan hasil analisis di atas.</div>
+    <button class="btn sm primary" id="gen-rekom-btn" onclick="generateRekomenContent(${id})" disabled>
+      <i class="ti ti-wand"></i> Generate Konten Rekomendasi
+    </button>
+
+    <div id="rekom-sections" style="margin-top:14px;display:none;flex-direction:column;gap:10px"></div>
+
+    <!-- ACTION 2: Simpan ke Bank -->
+    <div id="analyze-actions-2" style="display:none;margin-top:10px;padding:12px;background:var(--bga);border-radius:var(--r)">
+      <div style="font-size:12px;color:var(--txa);font-weight:500;margin-bottom:8px"><i class="ti ti-info-circle"></i> Edit konten di atas jika perlu, lalu simpan ke Bank dengan label AI Rekomen.</div>
+      <div class="row center" style="gap:8px">
+        <input type="text" id="rekom-title-inp" placeholder="Nama konten rekomendasi..." style="flex:1" value="${c.title} — AI Rekomen"/>
+        <button class="btn sm primary" onclick="saveRekomToBank(${id})"><i class="ti ti-device-floppy"></i> Simpan ke Bank</button>
+      </div>
+    </div>
+
+    <div style="margin-top:16px;display:flex;justify-content:flex-end">
+      <button class="btn sm" onclick="closeModal()">Tutup</button>
+    </div>
+  `);
+
+  // Jalankan analisis
+  const prompt=`Kamu adalah copywriter dan marketing expert Indonesia.
+
+Analisis konten copywriting berikut secara mendalam:
+
+${content}
+
+\n\nBerikan:\n1. Skor keseluruhan (1-10) dan alasannya\n2. Kekuatan konten\n3. Kelemahan & area perbaikan\n4. 2-3 saran spesifik untuk meningkatkan konversi\n5. Rekomendasi: Worth testing / Perlu revisi / Tidak direkomendasikan\n5. saran visual`;
+  try{
+    const txt=await callAI(prompt);
+    const bodyEl=document.getElementById('ai-analyze-body');
+    bodyEl.style.whiteSpace='pre-wrap';
+    bodyEl.textContent=txt;
+    // Simpan untuk dipakai nanti
+    window._lastAnalysis={contentId:id,contentTitle:c.title,result:txt};
+    // Tampilkan aksi
+    document.getElementById('analyze-actions-1').style.display='block';
+    document.getElementById('gen-rekom-btn').disabled=false;
+  }catch(e){
+    document.getElementById('ai-analyze-body').textContent='Error: '+e.message;
+  }
+}
+
+function saveAnalysisToLearn(){
+  const a=window._lastAnalysis;if(!a)return;
+  const topicName='AI Analisis';
+  if(!data.topics.includes(topicName))data.topics.push(topicName);
+  data.learns.push({
+    id:Date.now(),
+    title:`[AI Analisis] ${a.contentTitle}`,
+    body:a.result,
+    topic:topicName,
+    created:new Date().toLocaleDateString('id-ID'),
+    isAI:true
+  });
+  save();
+  // Visual feedback
+  const btn=document.querySelector('#analyze-actions-1 button');
+  btn.innerHTML='<i class="ti ti-check"></i> Tersimpan di Learn!';
+  btn.disabled=true;
+  btn.style.background='var(--txs)';
+  showToast('Analisis disimpan ke Learn!');
+}
+
+async function generateRekomenContent(id){
+  if(!ai.apiKey){showToast('Set API key dulu!','warn');return;}
+  const c=data.contents.find(x=>x.id===id);if(!c)return;
+  const analysis=window._lastAnalysis?.result||'';
+  const content=c.sections.map(s=>s.name+':\n'+s.items.join('\n')).join('\n\n');
+  const sectionNames=c.sections.map(s=>s.name);
+
+  const btn=document.getElementById('gen-rekom-btn');
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span> Generating...';
+
+  const prompt=`Kamu adalah copywriter expert Indonesia.
+
+Berdasarkan analisis berikut:
+${analysis}
+
+Dan konten asli:
+${content}
+
+Buatkan versi PERBAIKAN dari konten di atas. Gunakan struktur bagian yang SAMA persis:
+${sectionNames.map(s=>`### ${s}\n[tulis konten ${s} yang lebih baik di sini]`).join('\n\n')}
+
+Pastikan:
+- Setiap bagian ditulis ulang dengan lebih baik berdasarkan saran analisis
+- Bahasa Indonesia yang natural dan persuasif
+- Langsung tulis isinya, jangan tambahkan penjelasan di luar bagian yang diminta`;
+
+  try{
+    const txt=await callAI(prompt);
+    // Parse per bagian
+    const parsed={};
+    sectionNames.forEach(name=>{
+      const regex=new RegExp(`###\\s*${name}\\s*\\n([\\s\\S]*?)(?=###|$)`,'i');
+      const match=txt.match(regex);
+      parsed[name]=match?match[1].trim():'';
+    });
+
+    // Render textarea per bagian
+    const rekEl=document.getElementById('rekom-sections');
+    rekEl.style.display='flex';
+    rekEl.innerHTML=sectionNames.map(name=>`
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--txa);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${name}</div>
+        <textarea id="rekom-sec-${name.replace(/\s/g,'_')}" style="width:100%;min-height:72px;padding:9px 12px;border:1px solid var(--bd);border-radius:var(--r);background:var(--s1);color:var(--tx);font-size:13px;font-family:inherit;resize:vertical;line-height:1.6">${parsed[name]||''}</textarea>
+      </div>
+    `).join('');
+
+    document.getElementById('analyze-actions-2').style.display='block';
+    btn.innerHTML='<i class="ti ti-refresh"></i> Generate Ulang';
+    btn.disabled=false;
+  }catch(e){
+    showToast('Error: '+e.message,'warn');
+    btn.innerHTML='<i class="ti ti-wand"></i> Generate Konten Rekomendasi';
+    btn.disabled=false;
+  }
+}
+
+function saveRekomToBank(sourceId){
+  const c=data.contents.find(x=>x.id===sourceId);if(!c)return;
+  const title=document.getElementById('rekom-title-inp').value.trim();
+  if(!title){showToast('Isi nama konten dulu!','warn');return;}
+  const sectionNames=c.sections.map(s=>s.name);
+  const secs=sectionNames.map(name=>{
+    const ta=document.getElementById('rekom-sec-'+name.replace(/\s/g,'_'));
+    return {name,items:[ta?ta.value.trim():'']};
+  }).filter(s=>s.items[0]);
+  if(!secs.length){showToast('Konten rekomendasi kosong!','warn');return;}
+  data.contents.push({
+    id:Date.now(),title,
+    category:c.category,
+    type:'AI Rekomen',
+    status:'Draft',stars:0,tags:['#ai-rekomen'],
+    sections:secs,
+    created:new Date().toLocaleDateString('id-ID'),
+    sourceId,versions:[]
+  });
+  save();
+  const btn=document.querySelector('#analyze-actions-2 button:last-child');
+  btn.innerHTML='<i class="ti ti-check"></i> Tersimpan!';
+  btn.disabled=true;
+  showToast('Konten AI Rekomen disimpan ke Bank!');
+  renderBank();
+}
+
+// ===================== LEARN =====================
+function saveLearn(){
+  const title=document.getElementById('learn-title').value.trim();
+  const body=document.getElementById('learn-body').value.trim();
+  const topic=document.getElementById('learn-topic').value;
+  if(!title||!body){showToast('Isi judul dan isi ilmunya!','warn');return;}
+  data.learns.push({id:Date.now(),title,body,topic,created:new Date().toLocaleDateString('id-ID')});
+  save();
+  document.getElementById('learn-title').value='';
+  document.getElementById('learn-body').value='';
+  renderLearn();showToast('Ilmu disimpan!');
+}
+
+function renderLearn(){
+  const search=(document.getElementById('learn-search').value||'').toLowerCase();
+  const filter=document.getElementById('learn-filter').value;
+  const el=document.getElementById('learn-list');
+  let list=data.learns.filter(l=>{
+    const m=l.title.toLowerCase().includes(search)||l.body.toLowerCase().includes(search);
+    const f=!filter||l.topic===filter;
+    return m&&f;
+  });
+  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-school"></i>Belum ada catatan ilmu.</div>';return;}
+  el.innerHTML=list.slice().reverse().map(l=>`
+    <div class="lc">
+      <div class="row center" style="margin-bottom:6px">
+        <div class="lc-title flex1">${l.title}</div>
+        ${l.isAI?'<span class="badge b-ai" style="margin-right:6px">AI</span>':''}
+        ${l.topic?`<span class="badge b-learn">${l.topic}</span>`:''}
+      </div>
+      <div style="font-size:12px;color:var(--txm);margin-bottom:10px">${l.created}</div>
+      <div class="lc-body">${l.body}</div>
+      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn sm" onclick="copyLearn(${l.id})"><i class="ti ti-copy"></i> Copy</button>
+        <button class="btn sm danger" onclick="deleteLearn(${l.id})"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function copyLearn(id){
+  const l=data.learns.find(x=>x.id===id);if(!l)return;
+  const txt=l.title+'\n\n'+l.body;
+  navigator.clipboard.writeText(txt).then(()=>showToast('Materi dicopy!')).catch(()=>showToast('Gagal copy','warn'));
+}
+
+function deleteLearn(id){
+  if(!confirm('Hapus catatan ini?'))return;
+  data.learns=data.learns.filter(l=>l.id!==id);
+  save();renderLearn();
+}
+
+// ===================== STATS =====================
+function renderStats(){
+  const total=data.contents.length;
+  const inputs=data.contents.filter(c=>c.type==='Input').length;
+  const mixes=data.contents.filter(c=>c.type==='Mix').length;
+  const winners=data.contents.filter(c=>c.status==='Winner').length;
+  const tested=data.contents.filter(c=>c.status==='Tested').length;
+  const avgStars=total?Math.round(data.contents.reduce((a,c)=>a+(c.stars||0),0)/total*10)/10:0;
+
+  document.getElementById('stats-grid').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${total}</div><div class="stat-lbl">Total konten</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--txs)">${winners}</div><div class="stat-lbl">Winner</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--txa)">${tested}</div><div class="stat-lbl">Tested</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--txp)">${mixes}</div><div class="stat-lbl">Hasil mix</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:var(--txw)">${avgStars}★</div><div class="stat-lbl">Rata-rata bintang</div></div>
+    <div class="stat-card"><div class="stat-num">${data.learns.length}</div><div class="stat-lbl">Catatan learn</div></div>
+  `;
+
+  const secCount={};
+  data.contents.forEach(c=>c.sections.forEach(s=>{secCount[s.name]=(secCount[s.name]||0)+1;}));
+  const sorted=Object.entries(secCount).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const max=sorted[0]?sorted[0][1]:1;
+  document.getElementById('stats-sections').innerHTML=sorted.length?sorted.map(([name,count])=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+      <div style="width:80px;font-size:13px;color:var(--tx2)">${name}</div>
+      <div style="flex:1;background:var(--s1);border-radius:99px;height:8px;overflow:hidden">
+        <div style="height:100%;background:var(--fa);border-radius:99px;width:${Math.round(count/max*100)}%"></div>
+      </div>
+      <div style="font-size:12px;color:var(--txm);width:24px;text-align:right">${count}</div>
+    </div>
+  `).join(''):'<div class="empty" style="padding:20px">Belum ada data.</div>';
+
+  const top=data.contents.filter(c=>c.stars>0).sort((a,b)=>b.stars-a.stars).slice(0,5);
+  document.getElementById('stats-top').innerHTML=top.length?top.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)">
+      <div style="flex:1;font-size:13px;font-weight:500">${c.title}</div>
+      <span class="badge b-${(c.status||'draft').toLowerCase()}">${c.status||'Draft'}</span>
+      <span style="color:#f59e0b;font-size:13px">${renderStars(c.stars)}</span>
+    </div>
+  `).join(''):'<div class="empty" style="padding:20px">Belum ada konten berbintang.</div>';
+}
+
+// ===================== SETTINGS =====================
+function renderSettings(){
+  renderMaster('master-sections',data.sections,'section');
+  renderMaster('master-cats',data.categories,'cat');
+  renderMaster('master-topics',data.topics,'topic');
+}
+
+function renderMaster(elId,arr,type){
+  const el=document.getElementById(elId);if(!el)return;
+  el.innerHTML=arr.map((item,i)=>`
+    <div class="mr">
+      <span class="flex1" style="font-size:13px">${item}</span>
+      <button class="btn sm danger" onclick="deleteMaster('${type}',${i})"><i class="ti ti-x"></i></button>
+    </div>
+  `).join('')||'<div style="color:var(--txm);font-size:13px;padding:8px 0">Belum ada item.</div>';
+}
+
+function deleteMaster(type,i){
+  if(type==='section')data.sections.splice(i,1);
+  else if(type==='cat')data.categories.splice(i,1);
+  else data.topics.splice(i,1);
+  save();renderSettings();populateSelects();
+}
+
+function addMasterSection(){const v=document.getElementById('new-section').value.trim();if(!v||data.sections.includes(v)){showToast('Kosong atau sudah ada!','warn');return;}data.sections.push(v);save();document.getElementById('new-section').value='';renderSettings();populateSelects();}
+function addMasterCat(){const v=document.getElementById('new-cat').value.trim();if(!v||data.categories.includes(v)){showToast('Kosong atau sudah ada!','warn');return;}data.categories.push(v);save();document.getElementById('new-cat').value='';renderSettings();populateSelects();}
+function addMasterTopic(){const v=document.getElementById('new-topic').value.trim();if(!v||data.topics.includes(v)){showToast('Kosong atau sudah ada!','warn');return;}data.topics.push(v);save();document.getElementById('new-topic').value='';renderSettings();populateSelects();}
+
+function exportData(){
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='content-bank-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  showToast('Data diexport!');
+}
+
+function exportTxt(){
+  const lines=['=== CONTENT BANK EXPORT ===','Date: '+new Date().toLocaleDateString('id-ID'),'',''];
+  data.contents.forEach(c=>{
+    lines.push('--- '+c.title+' ['+c.type+'] ['+c.status+'] '+'★'.repeat(c.stars||0)+' ---');
+    lines.push('Kategori: '+c.category);
+    if((c.tags||[]).length)lines.push('Tags: '+c.tags.join(', '));
+    lines.push('');
+    c.sections.forEach(s=>{lines.push(s.name+':');s.items.forEach(i=>lines.push('  '+i));lines.push('');});
+    lines.push('');
+  });
+  const blob=new Blob([lines.join('\n')],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='content-bank-'+new Date().toISOString().slice(0,10)+'.txt';a.click();
+  showToast('Export TXT berhasil!');
+}
+
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const imp=JSON.parse(ev.target.result);
+      if(!imp.contents||!imp.sections)throw new Error('Format tidak valid');
+      data=imp;save();renderSettings();populateSelects();showToast('Import berhasil!');
+    }catch(err){showToast('Format tidak valid: '+err.message,'warn');}
+  };
+  reader.readAsText(file);e.target.value='';
+}
+
+// ===================== AI =====================
+async function callAI(prompt){
+  const p=ai.provider;const cfg=PROVIDERS[p];
+  if(p==='claude'){
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ai.apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:ai.model,max_tokens:1500,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    return d.content[0].text;
+  }
+  if(p==='gemini'){
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${ai.apiKey}`;
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message);
+    return d.candidates[0].content.parts[0].text;
+  }
+  if(p==='deepseek'||p==='groq'){
+    const r=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ai.apiKey},body:JSON.stringify({model:ai.model,messages:[{role:'user',content:prompt}],max_tokens:1500})});
+    const d=await r.json();
+    if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+    return d.choices[0].message.content;
+  }
+  throw new Error('Provider tidak dikenali');
+}
+
+function openAISettings(){
+  openModal(`
+    <div class="modal-title"><i class="ti ti-robot" style="color:var(--txa)"></i> AI Settings</div>
+    <div class="lbl">Provider</div>
+    <div class="provider-row" id="provider-btns" style="margin-bottom:14px">
+      ${Object.entries(PROVIDERS).map(([k,v])=>`
+        <button class="provider-btn${ai.provider===k?' active':''}" onclick="selectProvider('${k}')">${v.name}</button>
+      `).join('')}
+    </div>
+    <div class="lbl">Model</div>
+    <select id="ai-model-sel" style="margin-bottom:14px" onchange="ai.model=this.value">
+      ${(PROVIDERS[ai.provider].models||[]).map(m=>`<option${m===ai.model?' selected':''}>${m}</option>`).join('')}
+    </select>
+    <div class="lbl">API Key</div>
+    <input type="password" id="ai-key-inp" value="${ai.apiKey}" placeholder="Paste API key di sini..." style="margin-bottom:6px"/>
+    <div style="font-size:12px;color:var(--txm);margin-bottom:14px">API key disimpan di localStorage browser kamu saja.</div>
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn primary" onclick="saveAISettings()"><i class="ti ti-check"></i> Simpan</button>
+    </div>
+  `);
+}
+
+function selectProvider(p){
+  ai.provider=p;
+  ai.model=PROVIDERS[p].models[0];
+  document.querySelectorAll('.provider-btn').forEach((b,i)=>{
+    b.classList.toggle('active',Object.keys(PROVIDERS)[i]===p);
+  });
+  document.getElementById('ai-model-sel').innerHTML=PROVIDERS[p].models.map(m=>`<option>${m}</option>`).join('');
+}
+
+function saveAISettings(){
+  ai.apiKey=document.getElementById('ai-key-inp').value.trim();
+  ai.model=document.getElementById('ai-model-sel').value;
+  save();closeModal();showToast('AI Settings disimpan!');
+}
+
+// ===================== MODAL =====================
+function openModal(html){
+  document.getElementById('modal-inner').innerHTML=html;
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){document.getElementById('modal').style.display='none';}
+function closeModalBg(e){if(e.target===document.getElementById('modal'))closeModal();}
+
+// ===================== TOAST =====================
+function showToast(msg,type='ok'){
+  let t=document.getElementById('toast');
+  if(!t){t=document.createElement('div');t.id='toast';document.body.appendChild(t);
+    t.style.cssText='position:fixed;bottom:24px;left:50%;transform:translateX(-50%);padding:10px 20px;border-radius:8px;font-size:13px;font-weight:500;z-index:999;transition:opacity .3s;pointer-events:none;white-space:nowrap';}
+  t.textContent=msg;
+  t.style.background=type==='warn'?'#d93025':'#1a6ef5';
+  t.style.color='#fff';t.style.opacity='1';
+  clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},2500);
+}
+
+// ===================== INIT =====================
+load();
+populateSelects();
+renderSections();
+try{
+  if(localStorage.getItem('cb_sidebar')==='1'){
+    document.getElementById('sidebar').classList.add('collapsed');
+    document.getElementById('toggle-icon').className='ti ti-layout-sidebar-right';
+  }
+}catch(e){}
+
+// Auto-collapse sidebar when clicking outside
+document.addEventListener('click', function(e){
+  const sb = document.getElementById('sidebar');
+  if(sb.classList.contains('collapsed')) return;
+  const toggleBtn = document.querySelector('.toggle-btn');
+  if(!sb.contains(e.target) && !toggleBtn.contains(e.target)){
+    sb.classList.add('collapsed');
+    document.getElementById('toggle-icon').className='ti ti-layout-sidebar-right';
+    try{localStorage.setItem('cb_sidebar','1');}catch(err){}
+  }
+});
+</script>
+</body>
+</html>
