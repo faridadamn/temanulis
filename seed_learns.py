@@ -1,7 +1,8 @@
 import json
 import subprocess
 
-JURUS_DATA = [
+ALL_JURUS = [
+    # === KITAB AFFILIATE RIZAL (14 JURUS MASTER) ===
     {
         "title": "Jurus 1: It's Not About The Product, It's About You",
         "topic": "Affiliate",
@@ -17,11 +18,11 @@ JURUS_DATA = [
         "body": "Sebelum produk affiliate muncul, selalu tawarkan 2-3 alternatif solusi gratis (trik mandiri, kebiasaan baru, atau setting manual). Ini membangun kredibilitas sebagai penolong jujur yang peduli masalah audiens, bukan sales lapar komisi."
     },
     {
-        "title": "Jurus 3: Framework B-A-P (Before - Agitate - Pain)",
+        "title": "Jurus 3: Framework B-A-P (Bobek, Ajaib, Pulih)",
         "topic": "Copywriting",
         "source": "Kitab Affiliate Rizal",
         "tags": ["#copywriting", "#konversi", "#bap"],
-        "body": "Alur konversi affiliate: Tusuk luka spesifik (Bobek) di awal → Perdalam lukanya dengan menghitung efek jangka panjang atau biaya tersembunyi yang bikin nyesek → Baru hadirkan produk pereda luka saat pembaca sadar solusi gratisan nggak cukup."
+        "body": "Alur konversi affiliate: Tusuk luka spesifik (Bobek) di awal → Perdalam lukanya dengan menghitung efek jangka panjang atau biaya tersembunyi yang bikin nyesek → Baru hadirkan produk ajaib pereda luka saat pembaca sadar solusi gratisan nggak cukup → Ceritakan hasil pulih yang jujur."
     },
     {
         "title": "Jurus 4: Teknik Harga Jangkar & Pecah Biaya Harian",
@@ -31,26 +32,76 @@ JURUS_DATA = [
         "body": "Jangan sebut harga produk begitu saja. Bandingkan dengan alternatif yang jauh lebih mahal (Harga Jangkar) atau pecah biayanya jadi pengeluaran receh harian: 'Cuma Rp2.500 sehari, lebih murah dari segelas es teh, tapi bikin masalah punggung beres 6 bulan'."
     },
     {
-        "title": "Jurus 5: Teknik Pilihan Setan (Pancing Komentar & Viralitas)",
+        "title": "Jurus 5: Teknik Pilihan Setan (Pancing Komentar & Debat)",
         "topic": "Affiliate",
         "source": "Kitab Affiliate Rizal",
         "tags": ["#affiliate", "#engagement", "#viral"],
         "body": "Tutup konten dengan kontras ekstrem 2 kubu: Tim A (tetap tahan sakit, buang waktu & uang seperti biasa) vs Tim B (ambil tindakan, masalah kelar mulai hari ini). Ini memicu debat sehat dan memancing ribuan komentar organik di Threads / TikTok."
     },
     {
-        "title": "Jurus 6: Testimoni Jujur & Flaw Disclosure (Kelemahan Produk)",
+        "title": "Jurus 6: Testimoni Jujur & Flaw Disclosure (Kasih Racun Sedikit)",
         "topic": "Copywriting",
         "source": "Kitab Affiliate Rizal",
         "tags": ["#copywriting", "#testimoni", "#objectionHandling"],
-        "body": "Selalu sebutkan 1 kekurangan kecil produk secara jujur (misal: 'pengirimannya agak lama' atau 'bahannya agak berat'). Review yang 100% manis memicu curiga, sedangkan 1 kekurangan jujur melipatgandakan kepercayaan pembaca."
+        "body": "Selalu sebutkan 1 kekurangan kecil produk secara jujur (misal: 'pengirimannya agak lama' atau 'bahannya agak berat'). Review yang 100% manis memicu curiga pembaca; kasih racunnya sedikit supaya madunya laku keras!"
     },
     {
-        "title": "Jurus 7: Tahan Link Sampai Post / Baris Terakhir (T-E-K-S)",
+        "title": "Jurus 7: Tahan Link Sampai Baris Terakhir (T-E-K-S)",
         "topic": "Affiliate",
         "source": "Kitab Affiliate Rizal",
         "tags": ["#affiliate", "#cta", "#link"],
         "body": "Jangan pernah menaruh link affiliate di hook atau paragraf pembuka. Bangun cerita dan keterikatan emosi sampai klimaks. Tahan link sampai baris paling akhir ketika audiens sudah merasa butuh dan siap checkout."
     },
+    {
+        "title": "Jurus 8: 5 Jenis Konten Funnel Utas (Rotasi Anti-Bosan)",
+        "topic": "Affiliate",
+        "source": "Kitab Affiliate Rizal",
+        "tags": ["#affiliate", "#funnel", "#rotasi"],
+        "body": "Jangan tiap hari jualan! Terapkan rotasi 4 jenis konten: 40% Engagement (Pilihan Setan pancing rame), 30% Awareness (cerita relatable sehari-hari), 20% Edukasi (tips murni tanpa jualan buat bangun trust), dan cuma 10% Konversi (hard sell B-A-P + link)."
+    },
+    {
+        "title": "Jurus 9: Ubah Fitur Menjadi Borok & Rasa Malu",
+        "topic": "Copywriting",
+        "source": "Kitab Affiliate Rizal",
+        "tags": ["#copywriting", "#fitur", "#emosi"],
+        "body": "Stop bilang 'barang ini bagus'. Cari produk yang punya borok/masalah nyata. Ubah spesifikasi jadi rasa malu atau kerugian: bukan 'baterai 5000 mAh', tapi 'lo nggak perlu panik celingukan nyari colokan pas lagi meeting penting bareng bos'."
+    },
+    {
+        "title": "Jurus 10: Model Trinitas Copywriting (PAS vs AIDA vs FAB)",
+        "topic": "Copywriting",
+        "source": "Kitab Affiliate Rizal",
+        "tags": ["#copywriting", "#framework", "#trinitas"],
+        "body": "Pilih model sesuai medan: PAS (Problem-Agitate-Solution) paling sakti buat feed Threads/FB. AIDA (Attention-Interest-Desire-Action) paling pas buat video pendek/Reels. FAB (Feature-Advantage-Benefit) cocok buat jualan to-the-point yang fokus 'apa untungnya buat gue'."
+    },
+    {
+        "title": "Jurus 11: Hook Berasa Ditampar (Anti Brosur Indomaret)",
+        "topic": "Copywriting",
+        "source": "Kitab Affiliate Rizal",
+        "tags": ["#copywriting", "#hook", "#viral"],
+        "body": "Konten tanpa hook yang menusuk itu bukan konten, itu nafas terakhir brosur promo. Gunakan hook yang bikin audiens ngerasa ditampar: sebut kebiasaan salah mereka yang bikin boncos atau rugi waktu bertahun-tahun."
+    },
+    {
+        "title": "Jurus 12: Bedah Mayat Konten (Fokus CTR daripada Followers)",
+        "topic": "Affiliate",
+        "source": "Kitab Affiliate Rizal",
+        "tags": ["#affiliate", "#ctr", "#analisis"],
+        "body": "Posting lalu ditinggal itu cuma nitip harapan ke server. Evaluasi metrik: affiliate butuh pembeli (CTR link), bukan sekadar followers. Kalau views rame tapi komisi nol, masalah ada di transisi solusi gratisan ke produk yang kurang halus."
+    },
+    {
+        "title": "Jurus 13: Formula Alur 3 Hari (Storytelling Mesin Komisi)",
+        "topic": "Affiliate",
+        "source": "Kitab Affiliate Rizal",
+        "tags": ["#affiliate", "#storytelling", "#alur"],
+        "body": "Jual produk lewat cerita berseri: Hari 1 ceritakan kegiatan sehari-hari 'B aja' yang relatable. Hari 2 angkat frustrasi dan masalah yang dialami. Hari 3 baru produk nempel sebagai penyelamat. Audiens terikat secara alami tanpa merasa dijualin."
+    },
+    {
+        "title": "Jurus 14: Tamparan Data & Perbandingan Rugi Nyata",
+        "topic": "Marketing",
+        "source": "Kitab Affiliate Rizal",
+        "tags": ["#marketing", "#data", "#urgensi"],
+        "body": "Gunakan perbandingan kerugian konkret: 'Bukan soal harga produk Rp50.000, tapi lo sadar nggak selama ini udah buang Rp400.000 cuma buat nambal akibat masalah yang lo sepelekan?'. Ubah fokus dari harga beli ke biaya menunda."
+    },
+    # === KAIDAH EMAS COPYWRITING ===
     {
         "title": "Aturan 3 Detik Pertama (Stop-Scroll Hook)",
         "topic": "Copywriting",
@@ -102,11 +153,11 @@ CREATE TABLE IF NOT EXISTS temanulis_learns (
 );
 """)
 
-print("2. Clearing old learns...")
+print("2. Truncating table...")
 run_psql("TRUNCATE TABLE temanulis_learns RESTART IDENTITY;")
 
-print("3. Inserting Jurus Kitab Rizal & Kaidah Emas...")
-for item in JURUS_DATA:
+print("3. Inserting all 18 Master Jurus...")
+for item in ALL_JURUS:
     tags_literal = "ARRAY[" + ",".join([f"'{t}'" for t in item["tags"]]) + "]" if item.get("tags") else "ARRAY[]::TEXT[]"
     title_esc = item["title"].replace("'", "''")
     topic_esc = item["topic"].replace("'", "''")
@@ -119,10 +170,10 @@ for item in JURUS_DATA:
     """
     run_psql(sql)
 
-print(f"Successfully inserted {len(JURUS_DATA)} jurus into PostgreSQL!")
+print(f"Successfully inserted all {len(ALL_JURUS)} jurus into PostgreSQL!")
 
 learns_export = []
-for i, item in enumerate(JURUS_DATA):
+for i, item in enumerate(ALL_JURUS):
     learns_export.append({
         "id": i + 1,
         "title": item["title"],
@@ -133,7 +184,7 @@ for i, item in enumerate(JURUS_DATA):
     })
 
 output_data = {
-    "version": "1.0",
+    "version": "2.0",
     "updated_at": "2026-09-03",
     "source": "PostgreSQL kerja_id.temanulis_learns",
     "total": len(learns_export),
