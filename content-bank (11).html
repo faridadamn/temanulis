@@ -235,6 +235,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       <button class="btn primary" id="ai-brainstorm-btn" onclick="aiBrainstormAll()">
         <i class="ti ti-sparkles"></i> AI Brainstorm Keseluruhan
       </button>
+      <button class="btn" onclick="openHookScorerModal()" title="Uji & perkuat daya tarik Hook (1-100)">
+        <i class="ti ti-flame" style="color:#f59e0b"></i> Hook Scorer
+      </button>
       <span style="font-size:12px;color:var(--txa)">← AI akan isi semua bagian sekaligus</span>
     </div>
   </div>
@@ -243,6 +246,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       <span class="lbl" style="margin:0;flex:1">Bagian konten</span>
       <select id="add-section-sel" style="width:auto;flex:1;margin-right:8px"></select>
       <button class="btn sm" onclick="addSection()"><i class="ti ti-plus"></i> Tambah</button>
+      <button class="btn sm" onclick="openHookScorerModal()" style="margin-left:6px;border-color:#f59e0b;color:#d97706" title="Uji daya tarik Hook"><i class="ti ti-flame"></i> Hook Scorer</button>
     </div>
     <div id="sections-list"></div>
     <div class="drag-hint"><i class="ti ti-grip-vertical"></i> Drag untuk reorder bagian</div>
@@ -655,6 +659,266 @@ berikan tips tambahan dari expert`;
   btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Variasikan';
 }
 
+// ===================== HOOK SCORER =====================
+window._hookTargetSection = null;
+window._hookLastSuggestions = [];
+
+function isHook(name){
+  const n = (name||'').toLowerCase();
+  return n.includes('hook') || n.includes('judul') || n.includes('headline') || n.includes('opening') || n.includes('subject');
+}
+
+function scoreSectionHook(si){
+  const sec = currentSections[si];
+  if(!sec) return;
+  const item = sec.items.find(x => x && x.trim()) || '';
+  if(!item){
+    showToast(`Tulis dulu teks di bagian ${sec.name} untuk dinilai!`, 'warn');
+    return;
+  }
+  openHookScorerModal(item, si, true);
+}
+
+function openHookScorerModal(initialText = '', targetSectionIdx = null, autoRun = false){
+  window._hookTargetSection = targetSectionIdx;
+  window._hookLastSuggestions = [];
+
+  if(!initialText && currentSections.length){
+    const hookSec = currentSections.find(s => isHook(s.name));
+    if(hookSec && hookSec.items[0] && hookSec.items[0].trim()){
+      initialText = hookSec.items[0].trim();
+      window._hookTargetSection = currentSections.indexOf(hookSec);
+    }
+  }
+
+  const safeInitial = initialText ? initialText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') : '';
+
+  openModal(`
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-flame" style="color:#f59e0b;font-size:20px"></i>
+      <span>Hook Scorer & Viral Analyzer</span>
+    </div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:12px;line-height:1.5">
+      Evaluasi daya pikat kalimat pembuka (Hook/Headline) berdasarkan psikologi copywriting (Curiosity Gap, Stop-Scroll, Emosi, dan Keringkasan).
+    </div>
+    
+    <div class="lbl">Teks Hook / Kalimat Pembuka</div>
+    <div style="margin-bottom:12px">
+      <textarea id="hook-input-val" style="min-height:64px" placeholder="Ketik atau paste kalimat hook kamu di sini...">${safeInitial}</textarea>
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap">
+        <button class="btn primary" id="btn-run-hook-score" onclick="runHookScore()">
+          <i class="ti ti-flame"></i> Analisis Kekuatan Hook
+        </button>
+        <span style="font-size:12px;color:var(--txm)">atau ketik ulang untuk bandingkan</span>
+      </div>
+    </div>
+
+    <!-- HASIL ANALISIS -->
+    <div id="hook-score-output" style="display:none"></div>
+  `);
+
+  if(autoRun && initialText){
+    runHookScore();
+  }
+}
+
+async function runHookScore(){
+  if(!ai.apiKey){
+    showToast('Set API key dulu di AI Settings!', 'warn');
+    return;
+  }
+  const hookInput = document.getElementById('hook-input-val');
+  if(!hookInput) return;
+  const hookText = hookInput.value.trim();
+  if(!hookText){
+    showToast('Masukkan teks hook dulu!', 'warn');
+    return;
+  }
+
+  const btn = document.getElementById('btn-run-hook-score');
+  const out = document.getElementById('hook-score-output');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Menganalisis...';
+  out.style.display = 'block';
+  out.innerHTML = `
+    <div style="text-align:center;padding:24px 0;color:var(--txm)">
+      <span class="spinner" style="width:20px;height:20px;margin-bottom:8px"></span>
+      <div>Mengevaluasi daya pikat & curiosity gap...</div>
+    </div>
+  `;
+
+  const prompt = `Kamu adalah copywriter & viral marketing expert Indonesia berpengalaman tinggi.
+Tugasmu adalah menganalisis kekuatan HOOK/HEADLINE pembuka berikut:
+"${hookText}"
+
+Analisis secara objektif dan berikan penilaian dalam format JSON murni TANPA markdown pembungkus:
+{
+  "score": <angka integer 1-100>,
+  "level": "<Viral / Kuat & Efektif / Standar / Lemah>",
+  "diagnosis": "<1-2 kalimat tajam kenapa hook ini dapat skor ini dan apa yang perlu dipertajam>",
+  "pillars": {
+    "curiosity": <angka 1-100>,
+    "punchiness": <angka 1-100>,
+    "emotion": <angka 1-100>,
+    "brevity": <angka 1-100>
+  },
+  "suggestions": [
+    {
+      "angle": "Curiosity Gap",
+      "hook": "<hook baru yang membangkitkan rasa penasaran mendalam>"
+    },
+    {
+      "angle": "Pain Point Menusuk",
+      "hook": "<hook baru yang menyinggung rasa sakit / ketakutan audiens>"
+    },
+    {
+      "angle": "Spesifik & Angka",
+      "hook": "<hook baru dengan angka konkret atau fakta mengejutkan>"
+    }
+  ]
+}`;
+
+  try {
+    const raw = await callAI(prompt);
+    let parsed = null;
+    try {
+      const match = raw.match(/\{[\s\S]*\}/);
+      if(match) parsed = JSON.parse(match[0]);
+    } catch(err){}
+
+    if(!parsed || typeof parsed.score !== 'number'){
+      parsed = {
+        score: 75,
+        level: 'Standar / Bisa Dipertajam',
+        diagnosis: raw.replace(/\{|\}/g,'').slice(0,180) || 'Hook sudah cukup baik, tapi bisa lebih menonjolkan rasa penasaran audiens.',
+        pillars: { curiosity: 75, punchiness: 78, emotion: 70, brevity: 80 },
+        suggestions: [
+          { angle: 'Curiosity Gap', hook: 'Rahasia di balik ini yang jarang dibahas kreator lain...' },
+          { angle: 'Pain Point', hook: 'Stop lakukan ini kalau kamu nggak mau rugi waktu dan tenaga!' },
+          { angle: 'Angka Spesifik', hook: 'Hanya butuh 3 langkah simpel untuk hasil 2x lipat lebih cepat.' }
+        ]
+      };
+    }
+
+    window._hookLastSuggestions = parsed.suggestions || [];
+    renderHookScoreResult(parsed);
+  } catch(e){
+    out.innerHTML = `<div style="color:var(--txd);padding:12px;font-size:13px">Error: ${e.message}</div>`;
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<i class="ti ti-flame"></i> Analisis Ulang';
+}
+
+function renderHookScoreResult(res){
+  const out = document.getElementById('hook-score-output');
+  if(!out) return;
+
+  const score = Math.min(100, Math.max(10, res.score || 70));
+  const scoreColor = score >= 85 ? 'var(--txs)' : score >= 70 ? 'var(--txa)' : score >= 50 ? '#f59e0b' : 'var(--txd)';
+  const badgeBg = score >= 85 ? 'var(--bgs)' : score >= 70 ? 'var(--bga)' : score >= 50 ? '#fef3c7' : 'var(--bgd)';
+  const p = res.pillars || { curiosity: 75, punchiness: 80, emotion: 70, brevity: 85 };
+
+  out.innerHTML = `
+    <div style="border-top:1px solid var(--bd);padding-top:16px;margin-top:16px">
+      <!-- METER HEADER -->
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:${badgeBg};border-radius:12px;border:1px solid var(--bd);margin-bottom:14px">
+        <div style="width:64px;height:64px;border-radius:50%;background:${scoreColor};display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:800;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.12)">
+          <span style="font-size:22px;line-height:1">${score}</span>
+          <span style="font-size:9px;text-transform:uppercase;opacity:0.85">/100</span>
+        </div>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+            <i class="ti ti-flame" style="color:${scoreColor}"></i> ${res.level || 'Penilaian Hook'}
+          </div>
+          <div style="font-size:12px;color:var(--tx2);line-height:1.5">${res.diagnosis || ''}</div>
+        </div>
+      </div>
+
+      <!-- 4 PILARS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
+        <div style="background:var(--s1);border:1px solid var(--bd);padding:9px 12px;border-radius:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);font-weight:600;margin-bottom:4px">
+            <span>🎯 Curiosity Gap</span>
+            <span style="color:var(--txa)">${p.curiosity || 70}%</span>
+          </div>
+          <div style="background:var(--s2);height:5px;border-radius:99px;overflow:hidden">
+            <div style="background:var(--fa);height:100%;width:${p.curiosity || 70}%"></div>
+          </div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--bd);padding:9px 12px;border-radius:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);font-weight:600;margin-bottom:4px">
+            <span>⚡ Stop-Scroll Power</span>
+            <span style="color:var(--txa)">${p.punchiness || 70}%</span>
+          </div>
+          <div style="background:var(--s2);height:5px;border-radius:99px;overflow:hidden">
+            <div style="background:var(--fa);height:100%;width:${p.punchiness || 70}%"></div>
+          </div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--bd);padding:9px 12px;border-radius:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);font-weight:600;margin-bottom:4px">
+            <span>💡 Emosi & Masalah</span>
+            <span style="color:var(--txa)">${p.emotion || 70}%</span>
+          </div>
+          <div style="background:var(--s2);height:5px;border-radius:99px;overflow:hidden">
+            <div style="background:var(--fa);height:100%;width:${p.emotion || 70}%"></div>
+          </div>
+        </div>
+        <div style="background:var(--s1);border:1px solid var(--bd);padding:9px 12px;border-radius:8px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);font-weight:600;margin-bottom:4px">
+            <span>✂️ Keringkasan</span>
+            <span style="color:var(--txa)">${p.brevity || 70}%</span>
+          </div>
+          <div style="background:var(--s2);height:5px;border-radius:99px;overflow:hidden">
+            <div style="background:var(--fa);height:100%;width:${p.brevity || 70}%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3 SUGGESTIONS -->
+      <div class="lbl" style="margin-bottom:8px">3 Alternatif Hook Lebih Viral (Siap Pakai)</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        ${(res.suggestions || []).map((s, idx) => `
+          <div style="background:var(--s1);border:1px solid var(--bd);padding:10px 12px;border-radius:8px;display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;justify-content:space-between">
+              <span class="badge b-input" style="font-size:10px">${s.angle}</span>
+              <button class="btn sm primary" onclick="applyHookScoreSuggestion(${idx})"><i class="ti ti-check"></i> Pakai Hook Ini</button>
+            </div>
+            <div style="font-size:13px;color:var(--tx);font-weight:500;line-height:1.5">${formatMarkdown(s.hook)}</div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function applyHookScoreSuggestion(idx){
+  const sug = window._hookLastSuggestions[idx];
+  if(!sug) return;
+  const hookText = sug.hook;
+  const si = window._hookTargetSection;
+
+  if(si !== null && si !== undefined && currentSections[si]){
+    currentSections[si].items[0] = hookText;
+    renderSections();
+    showToast('✓ Hook baru diterapkan ke editor!');
+  } else if(currentSections.length){
+    const hookSec = currentSections.find(s => isHook(s.name));
+    if(hookSec){
+      hookSec.items[0] = hookText;
+      renderSections();
+      showToast('✓ Hook baru diterapkan ke editor!');
+    } else {
+      currentSections[0].items[0] = hookText;
+      renderSections();
+      showToast('✓ Hook diterapkan ke bagian pertama!');
+    }
+  } else {
+    navigator.clipboard.writeText(hookText);
+    showToast('✓ Hook disalin ke clipboard!');
+  }
+  closeModal();
+}
+
 // ===================== TAGS =====================
 function renderTagPicker(){
   const el=document.getElementById('tag-picker');
@@ -709,6 +973,7 @@ function renderSections(){
         <i class="ti ti-grip-vertical" style="color:var(--txm);font-size:16px"></i>
         <span class="sec-tag">${sec.name}</span>
         <span class="flex1"></span>
+        ${isHook(sec.name)?`<button class="btn sm" onclick="scoreSectionHook(${si})" style="border-color:#f59e0b;color:#d97706" title="Analisis daya pikat Hook"><i class="ti ti-flame"></i> Skor Hook</button>`:''}
         <button class="btn sm" onclick="aiGenerateSection(${si})"><i class="ti ti-refresh"></i> Variasikan</button>
         <button class="btn sm" onclick="addItem(${si})"><i class="ti ti-plus"></i> Variasi</button>
         <button class="btn sm danger" onclick="removeSection(${si})"><i class="ti ti-trash"></i></button>
