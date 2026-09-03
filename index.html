@@ -34,10 +34,36 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-siz
 .toggle-btn{width:30px;height:30px;border-radius:var(--r);border:1px solid var(--bd);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx2);transition:background .12s;flex-shrink:0}
 .toggle-btn:hover{background:var(--s1)}
 /* BODY ROW */
-.body-row{display:flex;flex:1;overflow:hidden;height:calc(100vh - 48px)}
+.body-row{display:flex;flex:1;overflow:hidden;height:calc(100vh - 48px);position:relative}
 /* SIDEBAR — collapses to 0 */
 .sidebar{width:200px;min-width:200px;background:var(--s2);border-right:1px solid var(--bd);display:flex;flex-direction:column;overflow:hidden;transition:width .2s cubic-bezier(.4,0,.2,1),min-width .2s cubic-bezier(.4,0,.2,1);flex-shrink:0}
 .sidebar.collapsed{width:0;min-width:0;border-right:none}
+.sidebar-backdrop{display:none;position:fixed;inset:0;top:48px;background:rgba(0,0,0,0.5);backdrop-filter:blur(2px);z-index:45;opacity:0;transition:opacity .2s ease-in-out;pointer-events:none}
+
+@media(max-width:768px){
+  .sidebar{
+    position:fixed;
+    top:48px;
+    left:0;
+    bottom:0;
+    width:240px !important;
+    min-width:240px !important;
+    z-index:50;
+    box-shadow:4px 0 24px rgba(0,0,0,0.18);
+    transform:translateX(0);
+    transition:transform .25s cubic-bezier(.4,0,.2,1);
+  }
+  .sidebar.collapsed{
+    transform:translateX(-100%);
+    box-shadow:none;
+    width:240px !important;
+    min-width:240px !important;
+    border-right:none;
+  }
+  .sidebar-backdrop{display:block}
+  .sidebar-backdrop.active{opacity:1;pointer-events:auto}
+  .panel{padding:16px 12px}
+}
 .sidebar-nav{flex:1;padding:8px 0;overflow-y:auto}
 .sidebar-bottom{padding:8px 0 12px;border-top:1px solid var(--bd);flex-shrink:0}
 .tab{display:flex;align-items:center;gap:10px;padding:10px 16px;font-size:13px;font-weight:500;color:var(--tx2);cursor:pointer;border-left:3px solid transparent;transition:all .12s;white-space:nowrap}
@@ -157,6 +183,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
   <div class="logo"><i class="ti ti-feather"></i> Temanulis</div>
   <button class="btn sm" onclick="openAISettings()"><i class="ti ti-robot"></i> AI Settings</button>
 </div>
+
+<!-- SIDEBAR BACKDROP (Mobile Overlay) -->
+<div id="sidebar-backdrop" class="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
 
 <!-- BODY ROW: sidebar + main content -->
 <div class="body-row">
@@ -290,6 +319,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       <button class="vt-btn active" id="vt-list" onclick="setView('list')"><i class="ti ti-list"></i> List</button>
       <button class="vt-btn" id="vt-kanban" onclick="setView('kanban')"><i class="ti ti-columns"></i> Kanban</button>
     </div>
+    <button class="btn sm" onclick="openLoadDefaultBankModal()"><i class="ti ti-database-import"></i> Bank Bawaan</button>
   </div>
   <div id="tag-filter-bar" style="display:flex;flex-wrap:wrap;gap:4px"></div>
   <div id="bank-list"></div>
@@ -364,6 +394,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       <button class="btn" onclick="exportTxt()"><i class="ti ti-file-text"></i> Export TXT</button>
       <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(event)"/>
     </div>
+  </div>
+  <div class="card">
+    <div class="lbl">Bank Konten Bawaan (Database Server)</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:12px">Muat paket formula copywriting terbukti (Hook viral TikTok/Reels, PAS, Launching Ebook, AIDA, Flash Sale, Email Sequence) langsung dari database server PostgreSQL Temanulis.</div>
+    <button class="btn primary" onclick="openLoadDefaultBankModal()"><i class="ti ti-database-import"></i> Muat Bank Konten Default</button>
   </div>
 </div>
 </div><!-- end .main -->
@@ -448,12 +483,22 @@ function load(){
 }
 
 // ===================== SIDEBAR =====================
-function toggleSidebar(){
+function toggleSidebar(forceOpen){
   const sb=document.getElementById('sidebar');
   const icon=document.getElementById('toggle-icon');
-  sb.classList.toggle('collapsed');
+  const backdrop=document.getElementById('sidebar-backdrop');
+  if(forceOpen === true){
+    sb.classList.remove('collapsed');
+  } else if(forceOpen === false){
+    sb.classList.add('collapsed');
+  } else {
+    sb.classList.toggle('collapsed');
+  }
   const collapsed=sb.classList.contains('collapsed');
   icon.className=collapsed?'ti ti-layout-sidebar-right':'ti ti-layout-sidebar';
+  if(backdrop){
+    backdrop.classList.toggle('active', !collapsed);
+  }
   try{localStorage.setItem('cb_sidebar',collapsed?'1':'0');}catch(e){}
 }
 
@@ -467,6 +512,9 @@ function switchTab(i){
   if(i===4)renderStats();
   if(i===5)renderSettings();
   populateSelects();
+  if(window.innerWidth <= 768){
+    toggleSidebar(false);
+  }
 }
 
 function populateSelects(){
@@ -1431,26 +1479,117 @@ function showToast(msg,type='ok'){
   clearTimeout(t._to);t._to=setTimeout(()=>{t.style.opacity='0';},2500);
 }
 
+// ===================== DEFAULT BANK (DATABASE SERVER) =====================
+let _defaultBankCache = null;
+
+async function openLoadDefaultBankModal(){
+  openModal(`
+    <div class="modal-title"><i class="ti ti-database-import" style="color:var(--txa)"></i> Bank Konten Default (Database Server)</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:12px;line-height:1.6">
+      Muat paket formula copywriting terbukti yang diambil langsung dari database PostgreSQL Temanulis. 
+      Tersedia formula master: Hook Viral TikTok/Reels FYP, Launching Ebook/Course, PAS B2B Lead Gen, Storytelling, Carousel Riset Niche, AIDA, Welcome Email Sequence, dan Flash Sale 24 Jam.
+    </div>
+    <div id="default-bank-preview" style="padding:10px 12px;background:var(--s1);border-radius:var(--r);font-size:12px;color:var(--tx2);margin-bottom:14px;max-height:140px;overflow-y:auto">
+      <span class="spinner"></span> Mengambil data dari server database...
+    </div>
+    <div class="lbl">Pilih Metode Impor</div>
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;font-size:13px">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="radio" name="bank-import-mode" value="merge" checked>
+        <span><strong>Gabungkan ke Bank Saya</strong> (Rekomendasi — konten lama tetap aman)</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+        <input type="radio" name="bank-import-mode" value="replace">
+        <span><strong style="color:var(--txd)">Ganti / Reset Total</strong> (Timpa seluruh isi bank dengan bawaan)</span>
+      </label>
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn primary" id="btn-confirm-load-bank" onclick="confirmLoadDefaultBank()"><i class="ti ti-download"></i> Muat Sekarang</button>
+    </div>
+  `);
+
+  try {
+    const res = await fetch('default_bank.json');
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    _defaultBankCache = await res.json();
+    const previewEl = document.getElementById('default-bank-preview');
+    if(previewEl && _defaultBankCache.contents){
+      previewEl.innerHTML = `
+        <div style="font-weight:600;color:var(--tx);margin-bottom:6px">📦 Paket Tersedia: ${_defaultBankCache.contents.length} Konten Terbukti</div>
+        ${_defaultBankCache.contents.map(c => `<div style="padding:4px 0;border-bottom:1px solid var(--bd)">• <strong>${c.title}</strong> <span style="color:var(--txm)">(${c.category})</span></div>`).join('')}
+      `;
+    }
+  } catch(err) {
+    const previewEl = document.getElementById('default-bank-preview');
+    if(previewEl) previewEl.innerHTML = `<span style="color:var(--txd)">Gagal memuat preview: ${err.message}</span>`;
+  }
+}
+
+async function confirmLoadDefaultBank(){
+  const btn = document.getElementById('btn-confirm-load-bank');
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Memproses...';
+  }
+  
+  try {
+    if(!_defaultBankCache){
+      const res = await fetch('default_bank.json');
+      if(!res.ok) throw new Error('Gagal mengambil data dari server');
+      _defaultBankCache = await res.json();
+    }
+    const mode = document.querySelector('input[name="bank-import-mode"]:checked')?.value || 'merge';
+    const serverContents = _defaultBankCache.contents || [];
+    
+    if(mode === 'replace'){
+      data.contents = JSON.parse(JSON.stringify(serverContents));
+      showToast('✓ Bank konten di-reset ke default!');
+    } else {
+      const existingTitles = new Set(data.contents.map(c => c.title));
+      let added = 0;
+      serverContents.forEach(item => {
+        if(!existingTitles.has(item.title)){
+          data.contents.push(JSON.parse(JSON.stringify(item)));
+          added++;
+        }
+      });
+      showToast(`✓ ${added} konten baru ditambahkan ke Bank!`);
+    }
+    
+    save();
+    closeModal();
+    renderBank();
+    renderStats();
+    populateSelects();
+  } catch(err) {
+    showToast('Error: ' + err.message, 'warn');
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-download"></i> Muat Sekarang';
+    }
+  }
+}
+
 // ===================== INIT =====================
 load();
 populateSelects();
 renderSections();
+
 try{
-  if(localStorage.getItem('cb_sidebar')==='1'){
-    document.getElementById('sidebar').classList.add('collapsed');
-    document.getElementById('toggle-icon').className='ti ti-layout-sidebar-right';
+  if(window.innerWidth <= 768 || localStorage.getItem('cb_sidebar') === '1'){
+    toggleSidebar(false);
   }
 }catch(e){}
 
-// Auto-collapse sidebar when clicking outside
+// Auto-collapse sidebar when clicking outside (desktop & mobile)
 document.addEventListener('click', function(e){
   const sb = document.getElementById('sidebar');
   if(sb.classList.contains('collapsed')) return;
   const toggleBtn = document.querySelector('.toggle-btn');
+  const backdrop = document.getElementById('sidebar-backdrop');
   if(!sb.contains(e.target) && !toggleBtn.contains(e.target)){
-    sb.classList.add('collapsed');
-    document.getElementById('toggle-icon').className='ti ti-layout-sidebar-right';
-    try{localStorage.setItem('cb_sidebar','1');}catch(err){}
+    toggleSidebar(false);
   }
 });
 </script>
