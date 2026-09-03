@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Content Bank Pro</title>
+<title>Temanulis — Content Bank & AI Writing Hub</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231a6ef5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M19 3a3.5 3.5 0 0 0-4.95 0L4 13.05V19h5.95L20 8.95A3.5 3.5 0 0 0 19 3z'/></svg>">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -153,7 +154,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
   <button class="toggle-btn" onclick="toggleSidebar()" title="Toggle menu">
     <i class="ti ti-layout-sidebar" id="toggle-icon"></i>
   </button>
-  <div class="logo"><i class="ti ti-stack-2"></i> Content Bank Pro</div>
+  <div class="logo"><i class="ti ti-feather"></i> Temanulis</div>
   <button class="btn sm" onclick="openAISettings()"><i class="ti ti-robot"></i> AI Settings</button>
 </div>
 
@@ -425,10 +426,25 @@ const TEMPLATES = [
 ];
 
 // ===================== SAVE / LOAD =====================
-function save(){ try{localStorage.setItem('cb_pro',JSON.stringify(data));localStorage.setItem('cb_ai',JSON.stringify(ai));}catch(e){} }
+function save(){
+  try{
+    const dStr = JSON.stringify(data);
+    const aStr = JSON.stringify(ai);
+    localStorage.setItem('temanulis_data', dStr);
+    localStorage.setItem('temanulis_ai', aStr);
+    localStorage.setItem('cb_pro', dStr);
+    localStorage.setItem('cb_ai', aStr);
+  }catch(e){}
+}
 function load(){
-  try{const d=localStorage.getItem('cb_pro');if(d){const p=JSON.parse(d);if(p&&p.contents)data=p;}}catch(e){}
-  try{const a=localStorage.getItem('cb_ai');if(a)ai=JSON.parse(a);}catch(e){}
+  try{
+    const d = localStorage.getItem('temanulis_data') || localStorage.getItem('cb_pro');
+    if(d){const p=JSON.parse(d);if(p&&p.contents)data=p;}
+  }catch(e){}
+  try{
+    const a = localStorage.getItem('temanulis_ai') || localStorage.getItem('cb_ai');
+    if(a)ai=JSON.parse(a);
+  }catch(e){}
 }
 
 // ===================== SIDEBAR =====================
@@ -1289,12 +1305,12 @@ function addMasterTopic(){const v=document.getElementById('new-topic').value.tri
 
 function exportData(){
   const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='content-bank-'+new Date().toISOString().slice(0,10)+'.json';a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='temanulis-'+new Date().toISOString().slice(0,10)+'.json';a.click();
   showToast('Data diexport!');
 }
 
 function exportTxt(){
-  const lines=['=== CONTENT BANK EXPORT ===','Date: '+new Date().toLocaleDateString('id-ID'),'',''];
+  const lines=['=== TEMANULIS CONTENT EXPORT ===','Date: '+new Date().toLocaleDateString('id-ID'),'',''];
   data.contents.forEach(c=>{
     lines.push('--- '+c.title+' ['+c.type+'] ['+c.status+'] '+'★'.repeat(c.stars||0)+' ---');
     lines.push('Kategori: '+c.category);
@@ -1304,7 +1320,7 @@ function exportTxt(){
     lines.push('');
   });
   const blob=new Blob([lines.join('\n')],{type:'text/plain'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='content-bank-'+new Date().toISOString().slice(0,10)+'.txt';a.click();
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='temanulis-'+new Date().toISOString().slice(0,10)+'.txt';a.click();
   showToast('Export TXT berhasil!');
 }
 
