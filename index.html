@@ -602,7 +602,7 @@ Bahasa Indonesia, natural, persuasif.
 berikan tips tambahan dari expert`;
   try{
     const txt=await callAI(prompt);
-    res.innerHTML='<div style="white-space:pre-wrap">'+txt+'</div><div style="margin-top:8px;font-size:11px;color:var(--txm)">Copy variasi yang kamu suka ke textarea di atas ↑</div>';
+    res.innerHTML='<div style="white-space:pre-wrap">'+formatMarkdown(txt)+'</div><div style="margin-top:8px;font-size:11px;color:var(--txm)">Copy variasi yang kamu suka ke textarea di atas ↑</div>';
   }catch(e){res.textContent='Error: '+e.message;}
   btn.disabled=false;btn.innerHTML='<i class="ti ti-refresh"></i> Variasikan';
 }
@@ -739,6 +739,18 @@ function initMixSlots(){
 }
 
 function esc(s){return s.replace(/[^a-zA-Z0-9]/g,'_');}
+function formatMarkdown(str){
+  if(!str) return '';
+  let s = String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  s = s.replace(/\*\*([\s\S]+?)\*\*/g, '<strong style="color:var(--tx);font-weight:700">$1</strong>');
+  s = s.replace(/__([\s\S]+?)__/g, '<strong style="color:var(--tx);font-weight:700">$1</strong>');
+  s = s.replace(/(^|[^*])\*(?!\*)([^*]+?)\*(?!\*)/g, '$1<em>$2</em>');
+  s = s.replace(/`([^`]+)`/g, '<code style="background:var(--s2);padding:2px 5px;border-radius:4px;font-family:monospace;border:1px solid var(--bd);font-size:12px">$1</code>');
+  return s;
+}
 
 function openSlotPicker(secName){
   const sources=[];
@@ -821,7 +833,7 @@ async function aiEnhanceMix(){
   try{
     const txt=await callAI(prompt);
     res.innerHTML='<div style="font-size:11px;font-weight:600;color:var(--txs);margin-bottom:8px;text-transform:uppercase">✓ Hasil AI — klik "Pakai hasil AI" untuk terapkan ke editor</div>'+
-      '<div style="white-space:pre-wrap;font-size:13px;line-height:1.7">'+txt+'</div>'+
+      '<div style="white-space:pre-wrap;font-size:13px;line-height:1.7">'+formatMarkdown(txt)+'</div>'+
       '<button class="btn sm success" style="margin-top:10px" onclick="applyAIEnhance('+JSON.stringify(txt)+')"><i class="ti ti-check"></i> Pakai hasil AI</button>';
   }catch(e){res.textContent='Error: '+e.message;}
   btn.disabled=false;btn.innerHTML='<i class="ti ti-sparkles"></i> Enhance AI';
@@ -954,7 +966,7 @@ function viewContent(id){
     ${c.sections.map(s=>`
       <div style="margin-bottom:14px">
         <div style="font-size:11px;font-weight:600;color:var(--txa);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${s.name}</div>
-        ${s.items.map(i=>`<div style="padding:9px 12px;background:var(--s1);border-radius:var(--r);font-size:13px;margin-bottom:6px;line-height:1.6">${i}</div>`).join('')}
+        ${s.items.map(i=>`<div style="padding:9px 12px;background:var(--s1);border-radius:var(--r);font-size:13px;margin-bottom:6px;line-height:1.6;white-space:pre-wrap">${formatMarkdown(i)}</div>`).join('')}
       </div>
     `).join('')}
     <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
@@ -1066,7 +1078,7 @@ ${content}
     const txt=await callAI(prompt);
     const bodyEl=document.getElementById('ai-analyze-body');
     bodyEl.style.whiteSpace='pre-wrap';
-    bodyEl.textContent=txt;
+    bodyEl.innerHTML=formatMarkdown(txt);
     // Simpan untuk dipakai nanti
     window._lastAnalysis={contentId:id,contentTitle:c.title,result:txt};
     // Tampilkan aksi
@@ -1212,7 +1224,7 @@ function renderLearn(){
         ${l.topic?`<span class="badge b-learn">${l.topic}</span>`:''}
       </div>
       <div style="font-size:12px;color:var(--txm);margin-bottom:10px">${l.created}</div>
-      <div class="lc-body">${l.body}</div>
+      <div class="lc-body">${formatMarkdown(l.body)}</div>
       <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end">
         <button class="btn sm" onclick="copyLearn(${l.id})"><i class="ti ti-copy"></i> Copy</button>
         <button class="btn sm danger" onclick="deleteLearn(${l.id})"><i class="ti ti-trash"></i></button>
