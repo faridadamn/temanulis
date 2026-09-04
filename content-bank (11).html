@@ -194,7 +194,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 <div class="sidebar" id="sidebar">
   <div class="sidebar-nav">
     <div class="tab active" onclick="switchTab(0)"><i class="ti ti-pencil"></i><span>Input</span></div>
-    <div class="tab" onclick="switchTab(1)"><i class="ti ti-shuffle"></i><span>Mixing</span></div>
+    <div class="tab" onclick="switchTab(1)"><i class="ti ti-arrows-shuffle"></i><span>Mixing</span></div>
     <div class="tab" onclick="switchTab(2)"><i class="ti ti-files"></i><span>Bank</span></div>
     <div class="tab" onclick="switchTab(3)"><i class="ti ti-school"></i><span>Learn</span></div>
     <div class="tab" onclick="switchTab(4)"><i class="ti ti-chart-bar"></i><span>Stats</span></div>
@@ -312,7 +312,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 
 <!-- TAB MIXING -->
 <div id="p1" class="panel">
-  <div style="font-size:13px;color:var(--tx2);padding:4px 0">Klik slot untuk pilih sumber dari bank content.</div>
+  <div style="display:flex;align-items:center;gap:8px;padding:4px 0 2px">
+    <i class="ti ti-arrows-shuffle" style="color:var(--txa);font-size:18px"></i>
+    <span style="font-weight:600;font-size:15px;color:var(--tx)">Mixing Konten Modular</span>
+  </div>
+  <div style="font-size:13px;color:var(--tx2);padding:2px 0 6px">Klik slot untuk pilih sumber dari bank content.</div>
   <div class="card">
     <div class="lbl">Pilih bagian yang mau di-mix</div>
     <div id="mix-slots" style="display:flex;flex-direction:column;gap:10px;margin-top:6px"></div>
@@ -353,8 +357,62 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 
 <!-- TAB LEARN -->
 <div id="p3" class="panel">
+  <!-- CARD EKSTRAK JURUS DARI FOTO (VISION AI) -->
+  <div class="card" style="border:1px solid var(--bda);background:linear-gradient(180deg, var(--bga) 0%, var(--s2) 56px)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <i class="ti ti-camera" style="color:var(--txa);font-size:20px"></i>
+        <div>
+          <span style="font-weight:600;font-size:14px;color:var(--tx)">Ekstrak Jurus dari Foto / Screenshot</span>
+          <span class="badge b-input" style="margin-left:6px;font-size:10px">AI Vision Multi-Foto</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.5">
+      Upload 1 atau banyak screenshot konten viral, buku copywriting, atau materi. AI Vision akan membedah polanya dan otomatis merumuskannya jadi jurus-jurus baru siap pakai!
+    </div>
+
+    <!-- DROPZONE -->
+    <div id="learn-photo-dropzone" onclick="document.getElementById('learn-photo-input').click()" 
+      ondragover="handlePhotoDragOver(event)" ondragleave="handlePhotoDragLeave(event)" ondrop="handlePhotoDrop(event)"
+      style="border:2px dashed var(--bda);border-radius:10px;padding:16px 12px;text-align:center;cursor:pointer;background:var(--s2);transition:all .15s">
+      <i class="ti ti-photo-plus" style="font-size:28px;color:var(--txa);display:block;margin-bottom:6px"></i>
+      <div style="font-size:13px;font-weight:600;color:var(--tx)">Pilih atau Tarik Foto / Screenshot ke Sini</div>
+      <div style="font-size:11px;color:var(--txm);margin-top:2px">Bisa pilih banyak foto sekaligus (JPG, PNG, WebP)</div>
+      <input type="file" id="learn-photo-input" accept="image/*" multiple style="display:none" onchange="handleLearnPhotosSelected(event)">
+    </div>
+
+    <!-- THUMBNAIL PREVIEW -->
+    <div id="learn-photo-preview-box" style="display:none;margin-top:12px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:12px;font-weight:600;color:var(--tx)" id="learn-photo-count-info">0 foto terpilih</div>
+        <button type="button" class="btn sm" onclick="clearLearnPhotos()" style="padding:2px 8px;font-size:11px;color:var(--txd);border-color:var(--bd)"><i class="ti ti-trash"></i> Hapus Semua</button>
+      </div>
+      <div id="learn-photo-thumbnails" style="display:flex;flex-wrap:wrap;gap:8px;max-height:160px;overflow-y:auto;padding:4px 0"></div>
+      
+      <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
+        <button type="button" class="btn primary" id="btn-extract-jurus" onclick="extractJurusFromPhotos()">
+          <i class="ti ti-sparkles"></i> Bedah Foto & Ekstrak Jurus Baru
+        </button>
+      </div>
+    </div>
+
+    <!-- HASIL EKSTRAKSI JURUS -->
+    <div id="learn-photo-result-container" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid var(--bd)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+        <div style="font-weight:600;font-size:13px;color:var(--txs)" id="learn-photo-result-title">
+          <i class="ti ti-check"></i> Hasil Analisis AI
+        </div>
+        <button type="button" class="btn sm primary" id="btn-add-all-extracted" onclick="addAllExtractedJurus()">
+          <i class="ti ti-plus"></i> Simpan Semua ke Tab Learn
+        </button>
+      </div>
+      <div id="learn-photo-result-cards" style="display:flex;flex-direction:column;gap:10px"></div>
+    </div>
+  </div>
+
   <div class="card">
-    <div class="lbl">Tambah ilmu baru</div>
+    <div class="lbl">Tambah ilmu manual</div>
     <input type="text" id="learn-title" placeholder="Judul / topik..." style="margin-bottom:10px"/>
     <select id="learn-topic" style="margin-bottom:10px"></select>
     <textarea id="learn-body" placeholder="Tulis ilmunya di sini..."></textarea>
@@ -2165,28 +2223,404 @@ function importData(e){
 }
 
 // ===================== AI =====================
-async function callAI(prompt){
-  const p=ai.provider;const cfg=PROVIDERS[p];
-  if(p==='claude'){
-    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':ai.apiKey,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:ai.model,max_tokens:1500,messages:[{role:'user',content:prompt}]})});
-    const d=await r.json();
-    if(d.error)throw new Error(d.error.message);
-    return d.content[0].text;
-  }
-  if(p==='gemini'){
-    const url=`https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${ai.apiKey}`;
-    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-    const d=await r.json();
-    if(d.error)throw new Error(d.error.message);
+async function callAI(prompt, images = []){
+  const p = ai.provider;
+  const cfg = PROVIDERS[p];
+
+  if(p === 'gemini'){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${ai.apiKey}`;
+    const parts = [];
+    if(images && images.length){
+      images.forEach(img => {
+        parts.push({
+          inline_data: {
+            mime_type: img.type || 'image/jpeg',
+            data: img.base64
+          }
+        });
+      });
+    }
+    parts.push({ text: prompt });
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts }] })
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+    if(!d.candidates || !d.candidates[0] || !d.candidates[0].content) throw new Error('Tidak ada respon dari Gemini');
     return d.candidates[0].content.parts[0].text;
   }
-  if(p==='deepseek'||p==='groq'){
-    const r=await fetch(cfg.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+ai.apiKey},body:JSON.stringify({model:ai.model,messages:[{role:'user',content:prompt}],max_tokens:1500})});
-    const d=await r.json();
-    if(d.error)throw new Error(d.error.message||JSON.stringify(d.error));
+
+  if(p === 'claude'){
+    const content = [];
+    if(images && images.length){
+      images.forEach(img => {
+        content.push({
+          type: 'image',
+          source: {
+            type: 'base64',
+            media_type: img.type || 'image/jpeg',
+            data: img.base64
+          }
+        });
+      });
+    }
+    content.push({ type: 'text', text: prompt });
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ai.apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: ai.model,
+        max_tokens: 2000,
+        messages: [{ role: 'user', content }]
+      })
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+    return d.content[0].text;
+  }
+
+  if(p === 'deepseek' || p === 'groq'){
+    let userContent = prompt;
+    if(images && images.length){
+      userContent = [{ type: 'text', text: prompt }];
+      images.forEach(img => {
+        userContent.push({
+          type: 'image_url',
+          image_url: { url: `data:${img.type || 'image/jpeg'};base64,${img.base64}` }
+        });
+      });
+    }
+    const r = await fetch(cfg.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + ai.apiKey
+      },
+      body: JSON.stringify({
+        model: ai.model,
+        messages: [{ role: 'user', content: userContent }],
+        max_tokens: 2000
+      })
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
     return d.choices[0].message.content;
   }
+
   throw new Error('Provider tidak dikenali');
+}
+
+// ===================== MULTI-PHOTO VISION JURUS EXTRACTOR =====================
+window._selectedLearnPhotos = [];
+window._extractedJurusList = [];
+
+function handlePhotoDragOver(e){
+  e.preventDefault();
+  const dz = document.getElementById('learn-photo-dropzone');
+  if(dz) dz.style.borderColor = 'var(--txa)';
+}
+
+function handlePhotoDragLeave(e){
+  e.preventDefault();
+  const dz = document.getElementById('learn-photo-dropzone');
+  if(dz) dz.style.borderColor = 'var(--bda)';
+}
+
+function handlePhotoDrop(e){
+  e.preventDefault();
+  handlePhotoDragLeave(e);
+  if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+    processFiles(e.dataTransfer.files);
+  }
+}
+
+function handleLearnPhotosSelected(e){
+  if(e.target.files && e.target.files.length){
+    processFiles(e.target.files);
+  }
+}
+
+async function processFiles(files){
+  const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if(!validFiles.length){
+    showToast('Pilih file gambar valid (JPG, PNG, WebP)', 'warn');
+    return;
+  }
+
+  for(const file of validFiles){
+    try{
+      const item = await processPhotoFile(file);
+      window._selectedLearnPhotos.push(item);
+    }catch(err){
+      console.error(err);
+    }
+  }
+
+  renderLearnPhotoThumbnails();
+}
+
+function processPhotoFile(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = function(e){
+      const img = new Image();
+      img.onload = function(){
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        const maxDim = 1200;
+        if(width > maxDim || height > maxDim){
+          if(width > height){
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.82);
+        const base64 = dataUrl.split(',')[1];
+        resolve({
+          id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          name: file.name,
+          type: 'image/jpeg',
+          previewUrl: dataUrl,
+          base64: base64
+        });
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderLearnPhotoThumbnails(){
+  const box = document.getElementById('learn-photo-preview-box');
+  const countEl = document.getElementById('learn-photo-count-info');
+  const thumbEl = document.getElementById('learn-photo-thumbnails');
+  if(!box || !countEl || !thumbEl) return;
+
+  const count = window._selectedLearnPhotos.length;
+  if(!count){
+    box.style.display = 'none';
+    return;
+  }
+
+  box.style.display = 'block';
+  countEl.textContent = `${count} foto screenshot siap dianalisis`;
+
+  thumbEl.innerHTML = window._selectedLearnPhotos.map(p => `
+    <div style="position:relative;width:76px;height:76px;border-radius:8px;overflow:hidden;border:1px solid var(--bd);background:var(--s1);flex-shrink:0">
+      <img src="${p.previewUrl}" style="width:100%;height:100%;object-fit:cover" alt="${p.name}"/>
+      <button type="button" onclick="removeSingleLearnPhoto('${p.id}')" title="Hapus foto" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.65);color:#fff;border:none;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer">
+        ✕
+      </button>
+    </div>
+  `).join('');
+}
+
+function removeSingleLearnPhoto(id){
+  window._selectedLearnPhotos = window._selectedLearnPhotos.filter(p => p.id !== id);
+  renderLearnPhotoThumbnails();
+}
+
+function clearLearnPhotos(){
+  window._selectedLearnPhotos = [];
+  const inp = document.getElementById('learn-photo-input');
+  if(inp) inp.value = '';
+  renderLearnPhotoThumbnails();
+  const resBox = document.getElementById('learn-photo-result-container');
+  if(resBox) resBox.style.display = 'none';
+}
+
+async function extractJurusFromPhotos(){
+  if(!window._selectedLearnPhotos || !window._selectedLearnPhotos.length){
+    showToast('Pilih minimal 1 foto screenshot dulu bre!', 'warn');
+    return;
+  }
+
+  if(!ai.apiKey){
+    showToast('API Key AI belum diatur! Isi di menu AI Settings (rekomendasi: Gemini atau Claude).', 'warn');
+    openAISettings();
+    return;
+  }
+
+  const btn = document.getElementById('btn-extract-jurus');
+  const origHtml = btn ? btn.innerHTML : '';
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Membedah ' + window._selectedLearnPhotos.length + ' foto via AI Vision...';
+  }
+
+  const resContainer = document.getElementById('learn-photo-result-container');
+  const resCards = document.getElementById('learn-photo-result-cards');
+  if(resContainer) resContainer.style.display = 'none';
+
+  try {
+    const prompt = `Kamu adalah pakar copywriting kelas dunia dan content strategist handal (bahasa Indonesia).
+Di hadapanmu terlampir ${window._selectedLearnPhotos.length} foto/screenshot berisi konten viral, buku, materi, atau studi kasus copywriting.
+
+TUGAS:
+1. Analisis pola rahasia, struktur hook, alur persuasi, psikologi penulisan, atau formula penjualan dari foto-foto ini.
+2. Rumuskan temuanmu menjadi 1 sampai 3 JURUS BARU yang praktis, aplikatif, dan langsung bisa ditiru oleh pembuat konten/copywriter.
+3. Tiap jurus WAJIB memuat:
+   - title: Nama jurus yang 'punchy', jelas, dan berbobot (contoh: "Jurus Kontras Menusuk: Bobek Rasa Sakit")
+   - topic: Salah satu dari "Copywriting", "Affiliate", "Marketing", "Sosmed", "Bisnis"
+   - body: Penjelasan lugas kaidah penulisan ini, cara kerja psikologinya, dan contoh kalimat implementasi singkat (2-4 kalimat padat)
+
+FORMAT OUTPUT WAJIB JSON MURNI TANPA MARKDOWN / PENJELASAN LAIN:
+{
+  "jurus": [
+    {
+      "title": "Nama Jurus",
+      "topic": "Copywriting",
+      "body": "Penjelasan kaidah..."
+    }
+  ]
+}`;
+
+    const raw = await callAI(prompt, window._selectedLearnPhotos);
+    
+    // Parse JSON
+    let cleaned = raw.trim();
+    if(cleaned.startsWith('```json')) cleaned = cleaned.replace(/^```json\s*/i, '').replace(/```\s*$/, '');
+    else if(cleaned.startsWith('```')) cleaned = cleaned.replace(/^```\s*/, '').replace(/```\s*$/, '');
+    
+    let parsed;
+    try {
+      parsed = JSON.parse(cleaned);
+    } catch(parseErr){
+      const match = cleaned.match(/\{[\s\S]*\}/);
+      if(match) parsed = JSON.parse(match[0]);
+      else throw new Error('Gagal memproses struktur respon AI: ' + raw.slice(0, 100));
+    }
+
+    const jurusList = parsed.jurus || parsed.jurus_list || (Array.isArray(parsed) ? parsed : []);
+    if(!jurusList.length) throw new Error('AI tidak menghasilkan jurus dari foto.');
+
+    window._extractedJurusList = jurusList;
+
+    if(resContainer && resCards){
+      resContainer.style.display = 'block';
+      resCards.innerHTML = jurusList.map((j, idx) => `
+        <div class="card" style="border:1px solid var(--bds);padding:12px;background:var(--s1)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;gap:6px;flex-wrap:wrap">
+            <div style="font-weight:600;font-size:13px;color:var(--tx)">${j.title}</div>
+            <span class="badge b-input" style="font-size:10px">${j.topic || 'Copywriting'}</span>
+          </div>
+          <div style="font-size:12px;color:var(--tx2);line-height:1.5;margin-bottom:10px">${j.body}</div>
+          <div style="display:flex;justify-content:flex-end">
+            <button type="button" class="btn sm" id="btn-add-jurus-${idx}" onclick="addSingleExtractedJurus(${idx})" style="border-color:var(--bda);color:var(--txa)">
+              <i class="ti ti-plus"></i> Tambahkan Jurus Ini
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      resContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    showToast(`✓ Berhasil membedah ${jurusList.length} jurus baru dari foto!`);
+
+  } catch(err) {
+    showToast('Error: ' + err.message, 'warn');
+  } finally {
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+
+function addSingleExtractedJurus(idx){
+  const j = window._extractedJurusList[idx];
+  if(!j) return;
+
+  const btn = document.getElementById(`btn-add-jurus-${idx}`);
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ti ti-check"></i> Sudah Ditambahkan';
+    btn.style.color = 'var(--txs)';
+    btn.style.borderColor = 'var(--txs)';
+  }
+
+  const newLearn = {
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    title: j.title,
+    topic: j.topic || 'Copywriting',
+    created: new Date().toLocaleDateString('id-ID'),
+    body: j.body,
+    source: 'Ekstrak AI Vision'
+  };
+
+  if(!data.learns) data.learns = [];
+  data.learns.unshift(newLearn);
+
+  if(!jurusConfig.selectedLearnIds) jurusConfig.selectedLearnIds = [];
+  if(!jurusConfig.selectedLearnIds.includes(newLearn.id)){
+    jurusConfig.selectedLearnIds.unshift(newLearn.id);
+  }
+
+  save();
+  renderLearn();
+  updateJurusBarSummary();
+  showToast(`✓ Jurus "${j.title}" berhasil ditambahkan & langsung aktif!`);
+}
+
+function addAllExtractedJurus(){
+  if(!window._extractedJurusList || !window._extractedJurusList.length) return;
+
+  let added = 0;
+  window._extractedJurusList.forEach((j, idx) => {
+    const btn = document.getElementById(`btn-add-jurus-${idx}`);
+    if(btn && !btn.disabled){
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ti ti-check"></i> Sudah Ditambahkan';
+      btn.style.color = 'var(--txs)';
+      btn.style.borderColor = 'var(--txs)';
+    }
+
+    const newLearn = {
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      title: j.title,
+      topic: j.topic || 'Copywriting',
+      created: new Date().toLocaleDateString('id-ID'),
+      body: j.body,
+      source: 'Ekstrak AI Vision'
+    };
+
+    if(!data.learns) data.learns = [];
+    data.learns.unshift(newLearn);
+
+    if(!jurusConfig.selectedLearnIds) jurusConfig.selectedLearnIds = [];
+    if(!jurusConfig.selectedLearnIds.includes(newLearn.id)){
+      jurusConfig.selectedLearnIds.unshift(newLearn.id);
+    }
+    added++;
+  });
+
+  const allBtn = document.getElementById('btn-add-all-extracted');
+  if(allBtn){
+    allBtn.disabled = true;
+    allBtn.innerHTML = '<i class="ti ti-check"></i> Semua Tersimpan';
+  }
+
+  save();
+  renderLearn();
+  updateJurusBarSummary();
+  showToast(`✓ ${added} Jurus baru berhasil disimpan ke Tab Learn!`);
 }
 
 function openAISettings(){
