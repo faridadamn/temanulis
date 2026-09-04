@@ -172,6 +172,227 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 .tpl-title{font-size:14px;font-weight:600;margin-bottom:6px}
 .tpl-desc{font-size:12px;color:var(--tx2)}
 .tpl-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+
+/* ===================== COPILOT SIDECAR DRAWER ===================== */
+.copilot-drawer{
+  width:380px;
+  min-width:380px;
+  background:var(--s2);
+  border-left:1px solid var(--bd);
+  display:flex;
+  flex-direction:column;
+  transition:width .22s cubic-bezier(.4,0,.2,1), min-width .22s cubic-bezier(.4,0,.2,1);
+  overflow:hidden;
+  position:relative;
+  z-index:40;
+}
+.copilot-drawer.collapsed{
+  width:0 !important;
+  min-width:0 !important;
+  border-left:none;
+  display:none !important;
+}
+.copilot-backdrop{
+  display:none;
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,0.45);
+  backdrop-filter:blur(2px);
+  z-index:55;
+  opacity:0;
+  transition:opacity .22s;
+  pointer-events:none;
+}
+@media(max-width:768px){
+  .copilot-drawer{
+    position:fixed;
+    top:48px;
+    right:0;
+    bottom:0;
+    width:min(94vw,420px) !important;
+    min-width:0 !important;
+    z-index:60;
+    box-shadow:-4px 0 24px rgba(0,0,0,0.25);
+    transform:translateX(0);
+    transition:transform .25s cubic-bezier(.4,0,.2,1);
+    display:flex !important;
+  }
+  .copilot-drawer.collapsed{
+    transform:translateX(105%);
+    display:flex !important;
+    width:min(94vw,420px) !important;
+    min-width:0 !important;
+  }
+  .copilot-backdrop{display:block}
+  .copilot-backdrop.active{opacity:1;pointer-events:auto}
+}
+.copilot-fab{
+  position:fixed;
+  right:18px;
+  bottom:20px;
+  z-index:45;
+  background:var(--txa);
+  color:#fff;
+  border:none;
+  border-radius:50px;
+  padding:10px 16px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:13px;
+  font-weight:600;
+  box-shadow:0 4px 18px rgba(26,110,245,0.38);
+  cursor:pointer;
+  transition:all .15s;
+}
+.copilot-fab:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 24px rgba(26,110,245,0.5);
+}
+@media(max-width:768px){
+  .copilot-fab{
+    padding:12px;
+    border-radius:50%;
+    bottom:16px;
+    right:16px;
+  }
+  .copilot-fab span{display:none}
+}
+.copilot-hdr{
+  padding:12px 14px;
+  border-bottom:1px solid var(--bd);
+  background:var(--s1);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  flex-shrink:0;
+}
+.copilot-ribbon{
+  padding:6px 12px;
+  background:var(--bga);
+  border-bottom:1px solid var(--bd);
+  font-size:11px;
+  color:var(--txa);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:6px;
+  flex-shrink:0;
+}
+.copilot-msgs{
+  flex:1;
+  overflow-y:auto;
+  padding:12px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  background:var(--s0);
+}
+.cmsg{
+  display:flex;
+  flex-direction:column;
+  max-width:88%;
+  gap:4px;
+}
+.cmsg.user{
+  align-self:flex-end;
+}
+.cmsg.bot{
+  align-self:flex-start;
+}
+.cmsg-bubble{
+  padding:10px 12px;
+  border-radius:12px;
+  font-size:13px;
+  line-height:1.55;
+  box-shadow:0 1px 3px rgba(0,0,0,0.06);
+}
+.cmsg.user .cmsg-bubble{
+  background:var(--txa);
+  color:#fff;
+  border-bottom-right-radius:2px;
+}
+.cmsg.bot .cmsg-bubble{
+  background:var(--s2);
+  color:var(--tx);
+  border:1px solid var(--bd);
+  border-bottom-left-radius:2px;
+}
+.cmsg .msg-text{
+  white-space:pre-wrap;
+  word-break:break-word;
+}
+.cmsg-meta{
+  font-size:10px;
+  color:var(--txm);
+  margin-top:2px;
+}
+.cmsg.user .cmsg-meta{
+  text-align:right;
+}
+.cmsg-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+  padding-top:8px;
+  border-top:1px solid var(--bd);
+}
+.copilot-chips{
+  display:flex;
+  gap:6px;
+  padding:8px 12px;
+  overflow-x:auto;
+  background:var(--s2);
+  border-top:1px solid var(--bd);
+  flex-shrink:0;
+}
+.copilot-chips::-webkit-scrollbar{height:3px}
+.copilot-chip{
+  white-space:nowrap;
+  font-size:11px;
+  padding:4px 10px;
+  border-radius:99px;
+  border:1px solid var(--bd);
+  background:var(--s1);
+  color:var(--tx2);
+  cursor:pointer;
+  transition:all .12s;
+  flex-shrink:0;
+}
+.copilot-chip:hover{
+  background:var(--bga);
+  color:var(--txa);
+  border-color:var(--bda);
+}
+.copilot-footer{
+  padding:10px 12px;
+  background:var(--s2);
+  border-top:1px solid var(--bd);
+  display:flex;
+  align-items:flex-end;
+  gap:8px;
+  flex-shrink:0;
+}
+.copilot-input{
+  flex:1;
+  resize:none;
+  border:1px solid var(--bd);
+  border-radius:18px;
+  padding:8px 12px;
+  font-size:13px;
+  line-height:1.4;
+  max-height:100px;
+  min-height:36px;
+  background:var(--s1);
+  color:var(--tx);
+}
+.copilot-input:focus{
+  outline:none;
+  border-color:var(--bda);
+  background:var(--s2);
+}
 </style>
 </head>
 <body>
@@ -183,7 +404,12 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
     <i class="ti ti-layout-sidebar" id="toggle-icon"></i>
   </button>
   <div class="logo"><i class="ti ti-feather"></i> Temanulis</div>
-  <button class="btn sm" onclick="openAISettings()"><i class="ti ti-robot"></i> AI Settings</button>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="btn sm" id="topbar-copilot-btn" onclick="toggleCopilot()" style="border-color:var(--txa);color:var(--txa);background:var(--bga)">
+      <i class="ti ti-message-chatbot"></i> <span class="copilot-btn-text">Copilot</span>
+    </button>
+    <button class="btn sm" onclick="openAISettings()"><i class="ti ti-robot"></i> AI Settings</button>
+  </div>
 </div>
 
 <!-- SIDEBAR BACKDROP (Mobile Overlay) -->
@@ -492,8 +718,62 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
   </div>
 </div>
 </div><!-- end .main -->
+
+<!-- COPILOT SIDECAR DRAWER -->
+<div class="copilot-drawer collapsed" id="copilot-drawer">
+  <div class="copilot-hdr">
+    <div style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-message-chatbot" style="color:var(--txa);font-size:20px"></i>
+      <div>
+        <div style="font-weight:600;font-size:13px;color:var(--tx)">Temanulis Copilot</div>
+        <div style="font-size:10px;color:var(--txm)">Creative Director & Partner Nulis</div>
+      </div>
+    </div>
+    <div style="display:flex;align-items:center;gap:4px">
+      <button class="btn sm" onclick="confirmResetCopilotChat()" title="Mulai obrolan baru" style="padding:4px 7px;border-color:var(--bd)" type="button">
+        <i class="ti ti-rotate-clockwise"></i>
+      </button>
+      <button class="btn sm" onclick="toggleCopilot(false)" title="Tutup Copilot" style="padding:4px 7px;border-color:var(--bd)" type="button">
+        <i class="ti ti-x"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="copilot-ribbon" id="copilot-ribbon">
+    <span id="copilot-ribbon-text"><i class="ti ti-link"></i> Terhubung: 18 Jurus & Editor</span>
+    <span class="badge b-input" id="copilot-history-count" style="font-size:9px">0 Pesan</span>
+  </div>
+
+  <div class="copilot-msgs" id="copilot-msgs"></div>
+
+  <!-- QUICK PROMPT CHIPS -->
+  <div class="copilot-chips" id="copilot-chips">
+    <div class="copilot-chip" onclick="sendQuickCopilotPrompt('Bedah angle tulisan ini dan carikan sudut pandang paling menusuk!')"><i class="ti ti-bulb"></i> Bedah Angle</div>
+    <div class="copilot-chip" onclick="sendQuickCopilotPrompt('Bikinin 3 alternatif hook viral dengan pola Kitab Rizal!')"><i class="ti ti-flame"></i> 3 Hook Rizal</div>
+    <div class="copilot-chip" onclick="sendQuickCopilotPrompt('Buat bagian penutup dengan Jurus Pilihan Setan!')"><i class="ti ti-git-fork"></i> Pilihan Setan</div>
+    <div class="copilot-chip" onclick="sendQuickCopilotPrompt('Hitung harga jangkar & pecah biayanya jadi pengeluaran receh harian!')"><i class="ti ti-coin"></i> Harga Jangkar</div>
+    <div class="copilot-chip" onclick="sendQuickCopilotPrompt('Tuliskan draft lengkap semua bagian sesuai template aktif!')"><i class="ti ti-pencil"></i> Tulis Full Draft</div>
+  </div>
+
+  <div class="copilot-footer">
+    <textarea class="copilot-input" id="copilot-input" placeholder="Tanya / minta revisi (Enter untuk kirim)..." rows="1" onkeydown="handleCopilotKeyDown(event)" oninput="autoResizeCopilotInput(this)"></textarea>
+    <button class="btn primary sm" id="copilot-send-btn" onclick="sendCopilotMessage()" style="height:36px;width:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%">
+      <i class="ti ti-send"></i>
+    </button>
+  </div>
+</div>
+
 </div><!-- end .body-row -->
 </div><!-- end .app -->
+
+<!-- COPILOT BACKDROP FOR MOBILE -->
+<div id="copilot-backdrop" class="copilot-backdrop" onclick="toggleCopilot(false)"></div>
+
+<!-- FLOATING ACTION BUTTON (FAB) -->
+<button class="copilot-fab" id="copilot-fab" onclick="toggleCopilot()" title="Buka Copilot">
+  <i class="ti ti-message-chatbot" style="font-size:18px"></i>
+  <span>Copilot</span>
+</button>
 
 <!-- MODAL -->
 <div id="modal" class="modal-bg" style="display:none" onclick="closeModalBg(event)">
@@ -2863,11 +3143,472 @@ async function confirmLoadDefaultLearns(){
   }
 }
 
+// ===================== COPILOT SIDECAR SYSTEM =====================
+window._copilotHistory = [];
+let _copilotOpen = false;
+
+function loadCopilotHistory(){
+  try{
+    const saved = localStorage.getItem('temanulis_copilot_history');
+    if(saved){
+      window._copilotHistory = JSON.parse(saved);
+    }
+  }catch(e){
+    window._copilotHistory = [];
+  }
+}
+
+function saveCopilotHistory(){
+  try{
+    localStorage.setItem('temanulis_copilot_history', JSON.stringify(window._copilotHistory));
+  }catch(e){}
+  updateCopilotRibbon();
+}
+
+function toggleCopilot(forceState){
+  const drawer = document.getElementById('copilot-drawer');
+  const backdrop = document.getElementById('copilot-backdrop');
+  const btn = document.getElementById('topbar-copilot-btn');
+  if(!drawer) return;
+
+  if(typeof forceState === 'boolean'){
+    _copilotOpen = forceState;
+  } else {
+    _copilotOpen = !_copilotOpen;
+  }
+
+  if(_copilotOpen){
+    drawer.classList.remove('collapsed');
+    if(backdrop) backdrop.classList.add('active');
+    if(btn){
+      btn.style.background = 'var(--txa)';
+      btn.style.color = '#fff';
+    }
+    renderCopilotMessages();
+    setTimeout(() => {
+      const inp = document.getElementById('copilot-input');
+      if(inp) inp.focus();
+    }, 150);
+  } else {
+    drawer.classList.add('collapsed');
+    if(backdrop) backdrop.classList.remove('active');
+    if(btn){
+      btn.style.background = 'var(--bga)';
+      btn.style.color = 'var(--txa)';
+    }
+  }
+}
+
+function updateCopilotRibbon(){
+  const countBadge = document.getElementById('copilot-history-count');
+  const ribbonText = document.getElementById('copilot-ribbon-text');
+  if(countBadge){
+    countBadge.textContent = `${window._copilotHistory.length} Pesan`;
+  }
+  if(ribbonText){
+    const title = (document.getElementById('inp-title')?.value || '').trim();
+    const tplName = window._activeTpl?.name || 'Kustom';
+    if(title){
+      ribbonText.innerHTML = `<i class="ti ti-file-text"></i> Draft: <strong>${title.slice(0, 18)}...</strong>`;
+    } else {
+      ribbonText.innerHTML = `<i class="ti ti-link"></i> Template: <strong>${tplName}</strong>`;
+    }
+  }
+}
+
+function confirmResetCopilotChat(){
+  if(window._copilotHistory.length === 0){
+    showToast('Obrolan masih kosong bre!');
+    return;
+  }
+  if(confirm('Mulai sesi obrolan baru dengan Copilot? Riwayat chat saat ini akan dibersihkan.')){
+    window._copilotHistory = [];
+    saveCopilotHistory();
+    renderCopilotMessages();
+    showToast('✓ Obrolan baru dimulai!');
+  }
+}
+
+function buildCopilotSystemContext(){
+  const title = (document.getElementById('inp-title')?.value || '').trim();
+  const category = (document.getElementById('inp-cat')?.value || '').trim();
+  const goal = (document.getElementById('inp-tujuan')?.value || '').trim();
+  const tplName = window._activeTpl?.name || 'Kustom';
+
+  // Sections
+  const secTexts = (currentSections || []).map(s => {
+    const text = (s.items && s.items[0]) ? s.items[0].trim() : '(kosong)';
+    return `[${s.name}]: ${text}`;
+  }).join('\n');
+
+  // Active Jurus & Kaidah dari Tab Learn & Winner Bank
+  const jurusPrompt = getJurusPrompt(category, 'copilot');
+
+  return `Kamu adalah 'Temanulis Copilot', asisten & partner sparring copywriting kelas atas (bahasa Indonesia).
+Gaya komunikasimu: santai, akrab, solutif, cerdas, tidak kaku, panggil user dengan sebutan 'bre'.
+
+=== KONTEKS WORKSPACE SAAT INI (REALTIME) ===
+- Judul Konten: "${title || '(belum diisi)'}"
+- Kategori Konten: "${category || 'Copywriting'}"
+- Template Aktif: "${tplName}"
+- Tujuan / Brief Konten: "${goal || '(belum diisi)'}"
+- Isi Draft Bagian di Editor Saat Ini:
+${secTexts || '(belum ada section)'}
+
+${jurusPrompt}
+
+=== TUGAS & INSTRUKSI COPILOT ===
+1. Jawab pertanyaan user dengan memprioritaskan kaidah & jurus copywriting (terutama 14 Jurus Kitab Affiliate Rizal jika kategori affiliate/sosmed).
+2. Jika user meminta saran, variasi hook, isi problem, atau copywriting lengkap:
+   SELALU format bagian tersebut dengan format tag yang jelas, misalnya:
+   [Hook]
+   Isi hook di sini...
+
+   [Problem]
+   Isi problem di sini...
+
+   [Solution]
+   Isi solusi di sini...
+
+   [CTA]
+   Isi call to action di sini...
+3. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.`;
+}
+
+async function callAICopilot(history, systemPrompt){
+  const p = ai.provider;
+  const cfg = PROVIDERS[p];
+
+  if(p === 'gemini'){
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${ai.apiKey}`;
+    const contents = [];
+    history.forEach(h => {
+      contents.push({
+        role: h.role === 'assistant' ? 'model' : 'user',
+        parts: [{ text: h.content }]
+      });
+    });
+
+    const bodyObj = {
+      system_instruction: { parts: [{ text: systemPrompt }] },
+      contents: contents
+    };
+
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(bodyObj)
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+    if(!d.candidates || !d.candidates[0] || !d.candidates[0].content) throw new Error('Tidak ada respon dari Gemini');
+    return d.candidates[0].content.parts[0].text;
+  }
+
+  if(p === 'claude'){
+    const messages = history.map(h => ({
+      role: h.role === 'assistant' ? 'assistant' : 'user',
+      content: h.content
+    }));
+
+    const r = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': ai.apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: ai.model,
+        max_tokens: 2500,
+        system: systemPrompt,
+        messages: messages
+      })
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+    return d.content[0].text;
+  }
+
+  if(p === 'deepseek' || p === 'groq'){
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...history.map(h => ({
+        role: h.role === 'assistant' ? 'assistant' : 'user',
+        content: h.content
+      }))
+    ];
+
+    const r = await fetch(cfg.url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + ai.apiKey
+      },
+      body: JSON.stringify({
+        model: ai.model,
+        messages: messages,
+        max_tokens: 2500
+      })
+    });
+    const d = await r.json();
+    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+    return d.choices[0].message.content;
+  }
+
+  throw new Error('Provider tidak dikenali');
+}
+
+function renderCopilotMessages(){
+  const container = document.getElementById('copilot-msgs');
+  if(!container) return;
+
+  if(window._copilotHistory.length === 0){
+    container.innerHTML = `
+      <div style="text-align:center;padding:30px 14px;color:var(--txm)">
+        <i class="ti ti-message-chatbot" style="font-size:36px;display:block;margin-bottom:10px;color:var(--txa)"></i>
+        <div style="font-weight:600;font-size:14px;color:var(--tx);margin-bottom:4px">Halo bre! Mau nulis apa hari ini?</div>
+        <div style="font-size:12px;line-height:1.5">Gue siap bantu brainstorming angle, bedah draft, atau nulis copywriting pake 18 Jurus Kitab Rizal. Coba klik tombol cepat di bawah!</div>
+      </div>
+    `;
+    updateCopilotRibbon();
+    return;
+  }
+
+  let html = '';
+  window._copilotHistory.forEach((msg, idx) => {
+    const isUser = (msg.role === 'user');
+    if(isUser){
+      html += `
+        <div class="cmsg user">
+          <div class="cmsg-bubble">
+            <span class="msg-text">${escapeHtml(msg.content)}</span>
+          </div>
+          <div class="cmsg-meta">Kamu</div>
+        </div>
+      `;
+    } else {
+      const parsedSections = extractSectionsFromText(msg.content);
+      const secKeys = Object.keys(parsedSections);
+      const hasSections = secKeys.length > 0;
+
+      let actionButtons = '';
+      if(hasSections){
+        actionButtons = `<div class="cmsg-actions">`;
+        secKeys.forEach(secName => {
+          actionButtons += `<button class="btn sm" onclick="applySectionFromChat('${escapeJsStr(secName)}', ${idx})" style="padding:2px 8px;font-size:11px;border-color:var(--bda);color:var(--txa)"><i class="ti ti-arrow-left"></i> Terapkan ke ${secName}</button>`;
+        });
+        if(secKeys.length > 1){
+          actionButtons += `<button class="btn sm primary" onclick="applyAllSectionsFromHistory(${idx})" style="padding:2px 8px;font-size:11px"><i class="ti ti-check-all"></i> Terapkan Semua</button>`;
+        }
+        actionButtons += `<button class="btn sm" onclick="copyCopilotMsg(${idx})" style="padding:2px 8px;font-size:11px;border-color:var(--bd)"><i class="ti ti-copy"></i> Salin</button>`;
+        actionButtons += `</div>`;
+      } else {
+        actionButtons = `<div class="cmsg-actions">
+          <button class="btn sm" onclick="copyCopilotMsg(${idx})" style="padding:2px 8px;font-size:11px;border-color:var(--bd)"><i class="ti ti-copy"></i> Salin</button>
+        </div>`;
+      }
+
+      html += `
+        <div class="cmsg bot">
+          <div class="cmsg-bubble">
+            <span class="msg-text">${formatMarkdownText(msg.content)}</span>
+            ${actionButtons}
+          </div>
+          <div class="cmsg-meta">Copilot</div>
+        </div>
+      `;
+    }
+  });
+
+  container.innerHTML = html;
+  container.scrollTop = container.scrollHeight;
+  updateCopilotRibbon();
+}
+
+function extractSectionsFromText(text){
+  const result = {};
+  if(!text) return result;
+  const regex = /\[([A-Za-z0-9\s\/\-_]{2,25})\]\s*\n?([^\[]+)/g;
+  let match;
+  while((match = regex.exec(text)) !== null){
+    const secName = match[1].trim();
+    const content = match[2].trim();
+    if(content && !result[secName]){
+      result[secName] = content;
+    }
+  }
+  return result;
+}
+
+function escapeJsStr(str){
+  return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function formatMarkdownText(str){
+  if(!str) return '';
+  let out = escapeHtml(str);
+  out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  out = out.replace(/\*(.*?)\*/g, '<em>$1</em>');
+  out = out.replace(/\[([A-Za-z0-9\s\/\-_]{2,25})\]/g, '<span class="badge b-input" style="font-weight:700;margin-right:4px">[$1]</span>');
+  return out;
+}
+
+function applySectionFromChat(secName, msgIdx){
+  const msg = window._copilotHistory[msgIdx];
+  if(!msg) return;
+  const sections = extractSectionsFromText(msg.content);
+  const text = sections[secName];
+  if(!text){
+    showToast(`Teks untuk bagian [${secName}] tidak ditemukan`, 'warn');
+    return;
+  }
+
+  const norm = secName.trim().toLowerCase();
+  let target = currentSections.find(s => s.name.toLowerCase() === norm);
+  if(!target){
+    target = currentSections.find(s => s.name.toLowerCase().includes(norm) || norm.includes(s.name.toLowerCase()));
+  }
+
+  if(target){
+    target.items = [text.trim()];
+  } else {
+    currentSections.push({
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      name: secName.trim(),
+      items: [text.trim()]
+    });
+  }
+
+  renderSections();
+  showToast(`✓ Berhasil diterapkan ke bagian [${secName}]!`);
+  switchTab(0);
+}
+
+function applyAllSectionsFromHistory(msgIdx){
+  const msg = window._copilotHistory[msgIdx];
+  if(!msg) return;
+  const sections = extractSectionsFromText(msg.content);
+  let count = 0;
+  for(const [secName, text] of Object.entries(sections)){
+    const norm = secName.trim().toLowerCase();
+    let target = currentSections.find(s => s.name.toLowerCase() === norm || s.name.toLowerCase().includes(norm));
+    if(target){
+      target.items = [text.trim()];
+    } else {
+      currentSections.push({
+        id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        name: secName.trim(),
+        items: [text.trim()]
+      });
+    }
+    count++;
+  }
+  renderSections();
+  showToast(`✓ ${count} bagian berhasil diterapkan ke Editor!`);
+  switchTab(0);
+}
+
+function copyCopilotMsg(msgIdx){
+  const msg = window._copilotHistory[msgIdx];
+  if(!msg) return;
+  navigator.clipboard.writeText(msg.content).then(() => {
+    showToast('✓ Disalin ke clipboard!');
+  }).catch(() => {
+    showToast('Gagal menyalin', 'warn');
+  });
+}
+
+async function sendCopilotMessage(){
+  const inp = document.getElementById('copilot-input');
+  if(!inp) return;
+  const text = inp.value.trim();
+  if(!text) return;
+
+  if(!ai.apiKey){
+    showToast('API Key belum diisi! Silakan isi di menu AI Settings.', 'warn');
+    openAISettings();
+    return;
+  }
+
+  window._copilotHistory.push({ role: 'user', content: text });
+  inp.value = '';
+  autoResizeCopilotInput(inp);
+  renderCopilotMessages();
+  saveCopilotHistory();
+
+  const sendBtn = document.getElementById('copilot-send-btn');
+  if(sendBtn) sendBtn.disabled = true;
+
+  const container = document.getElementById('copilot-msgs');
+  const tempId = 'temp-copilot-loading';
+  if(container){
+    container.innerHTML += `
+      <div class="cmsg bot" id="${tempId}">
+        <div class="cmsg-bubble" style="color:var(--txm)">
+          <span class="spinner"></span> Copilot sedang meracik jawaban...
+        </div>
+      </div>
+    `;
+    container.scrollTop = container.scrollHeight;
+  }
+
+  try {
+    const systemPrompt = buildCopilotSystemContext();
+    const reply = await callAICopilot(window._copilotHistory, systemPrompt);
+    
+    const loadEl = document.getElementById(tempId);
+    if(loadEl) loadEl.remove();
+
+    window._copilotHistory.push({ role: 'assistant', content: reply.trim() });
+    saveCopilotHistory();
+    renderCopilotMessages();
+
+  } catch(err){
+    const loadEl = document.getElementById(tempId);
+    if(loadEl) loadEl.remove();
+    showToast('Error Copilot: ' + err.message, 'warn');
+    window._copilotHistory.push({
+      role: 'assistant',
+      content: 'Waduh bre, ada kendala: ' + err.message + '. Pastikan API Key di AI Settings sudah aktif dan kuotanya cukup ya!'
+    });
+    renderCopilotMessages();
+  } finally {
+    if(sendBtn) sendBtn.disabled = false;
+  }
+}
+
+function sendQuickCopilotPrompt(promptText){
+  const inp = document.getElementById('copilot-input');
+  if(!inp) return;
+  inp.value = promptText;
+  sendCopilotMessage();
+}
+
+function handleCopilotKeyDown(e){
+  if(e.key === 'Enter' && !e.shiftKey){
+    e.preventDefault();
+    sendCopilotMessage();
+  }
+}
+
+function autoResizeCopilotInput(el){
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
 // ===================== INIT =====================
 load();
+loadCopilotHistory();
 populateSelects();
 renderSections();
 updateJurusBarSummary();
+updateCopilotRibbon();
 
 try{
   if(window.innerWidth <= 768 || localStorage.getItem('cb_sidebar') === '1'){
