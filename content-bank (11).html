@@ -544,6 +544,15 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
     </div>
     <textarea id="inp-tujuan" style="min-height:64px" id="inp-tujuan" placeholder="Deskripsikan tujuan tulisanmu..."></textarea>
     <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px">
+        <span style="font-size:12px;font-weight:600;color:var(--tx)">Kedalaman:</span>
+        <select id="inp-depth-mode" style="font-size:12px;padding:4px 8px;height:30px;width:auto;border-radius:6px;background:var(--bg);color:var(--tx);border:1px solid var(--bd)">
+          <option value="auto">Otomatis (Sesuai Template)</option>
+          <option value="short">⚡ Ringkas (2-4 Kalimat / Sosmed)</option>
+          <option value="medium">📄 Menengah (2-3 Paragraf / Blog/Newsletter)</option>
+          <option value="long">📚 Mendalam (Tutorial 15 Menit / Long-form)</option>
+        </select>
+      </div>
       <button class="btn primary" id="ai-brainstorm-btn" onclick="aiBrainstormAll()">
         <i class="ti ti-sparkles"></i> AI Brainstorm Keseluruhan
       </button>
@@ -585,6 +594,21 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
     </div>
     <div id="sections-list"></div>
     <div class="drag-hint"><i class="ti ti-grip-vertical"></i> Drag untuk reorder bagian</div>
+
+    <!-- LIVE WORD & READ TIME BAR -->
+    <div id="draft-stats-bar" style="margin-top:14px;padding:10px 14px;background:var(--s1);border-radius:8px;border:1px solid var(--bd);display:none;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+      <div style="display:flex;align-items:center;gap:12px;font-size:12px;color:var(--tx2);flex-wrap:wrap">
+        <span><i class="ti ti-typography" style="color:var(--txa)"></i> <strong style="color:var(--tx)" id="draft-word-count">0</strong> kata</span>
+        <span><i class="ti ti-letter-case" style="color:var(--txa)"></i> <strong style="color:var(--tx)" id="draft-char-count">0</strong> karakter</span>
+        <span class="badge" style="background:var(--bga);color:var(--txa);font-size:11px" id="draft-read-time">
+          <i class="ti ti-clock"></i> ~0 menit baca
+        </span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" type="button" onclick="openFullDraftPreviewModal()" title="Pratinjau naskah utuh berurutan"><i class="ti ti-eye"></i> Pratinjau Naskah</button>
+        <button class="btn sm primary" type="button" onclick="copyFullDraft()" title="Salin seluruh isi tulisan ke clipboard"><i class="ti ti-copy"></i> Salin Semua Teks</button>
+      </div>
+    </div>
   </div>
   <div class="card">
     <div class="lbl">Tag konten</div>
@@ -703,6 +727,23 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       </div>
       <div id="learn-photo-thumbnails" style="display:flex;flex-wrap:wrap;gap:8px;max-height:160px;overflow-y:auto;padding:4px 0"></div>
       
+      <!-- PENGATURAN TARGET HASIL JURUS -->
+      <div style="margin-top:10px;padding:10px 12px;background:var(--s1);border-radius:8px;border:1px solid var(--bd)">
+        <div style="font-size:12px;font-weight:600;color:var(--tx);margin-bottom:6px;display:flex;align-items:center;gap:6px">
+          <i class="ti ti-adjustments-horizontal" style="color:var(--txa)"></i> Mau diracik jadi berapa jurus?
+        </div>
+        <select id="learn-photo-target-count" style="font-size:12px;padding:6px 10px;border-radius:6px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);width:100%">
+          <option value="1" selected>1 Jurus Utuh Komprehensif (Rekomendasi: gabungkan 1 thread/tulisan panjang orang lain)</option>
+          <option value="auto">Otomatis Ditentukan AI (1 - 3 Jurus)</option>
+          <option value="2">2 Jurus Berbeda</option>
+          <option value="3">3 Jurus Berbeda</option>
+          <option value="per_photo">1 Jurus per Screenshot</option>
+        </select>
+        <div style="font-size:11px;color:var(--txm);margin-top:5px;line-height:1.4">
+          Pilih <strong>1 Jurus Utuh</strong> jika lo mengunggah beberapa screenshot dari 1 tulisan/carousel bersambung milik orang lain agar AI merangkum seluruh alurnya menjadi satu formula utuh dan mendalam.
+        </div>
+      </div>
+
       <div style="margin-top:12px;display:flex;justify-content:flex-end;gap:8px">
         <button type="button" class="btn primary" id="btn-extract-jurus" onclick="extractJurusFromPhotos()">
           <i class="ti ti-sparkles"></i> Bedah Foto & Ekstrak Jurus Baru
@@ -899,7 +940,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 
   <div class="copilot-footer">
     <input type="file" id="copilot-file-inp" accept="image/*" multiple style="display:none" onchange="handleCopilotPhotosSelected(event)">
-    <button class="btn sm" id="copilot-upload-btn" type="button" onclick="triggerCopilotPhotoUpload()" title="Unggah screenshot akun/konten untuk dianalisis jadi Persona" style="height:36px;width:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;border-color:var(--bd);background:var(--s1);color:var(--tx2);flex-shrink:0">
+    <button class="btn sm" id="copilot-upload-btn" type="button" onclick="triggerCopilotPhotoUpload()" title="Unggah foto screenshot (analisis Persona di Tab Persona, atau ekstrak Jurus di Tab Learn)" style="height:36px;width:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;border-color:var(--bd);background:var(--s1);color:var(--tx2);flex-shrink:0">
       <i class="ti ti-photo" style="font-size:17px"></i>
     </button>
     <textarea class="copilot-input" id="copilot-input" placeholder="Tanya / minta wawancara / drop screenshot..." rows="1" onkeydown="handleCopilotKeyDown(event)" oninput="autoResizeCopilotInput(this)"></textarea>
@@ -1145,6 +1186,10 @@ const TEMPLATES = [
   {cat:'Sosmed',name:'Caption Video (Reels/TikTok)',desc:'Caption pendek untuk video pendek',sections:['Hook','Konteks','CTA'],icon:'ti-brand-tiktok',
    tujuanLabel:'Konten video tentang apa?',tujuanPlaceholder:'Contoh: Tutorial skincare routine pagi hari, arahkan ke link bio'},
   // === TULISAN PANJANG ===
+  {cat:'Tulisan',name:'Tutorial Mendalam (15 Menit)',desc:'Panduan step-by-step komprehensif, mendalam & bernutrisi tinggi (~2000-3000 kata)',sections:['Judul & Hook Otoritas','Overview & Prasyarat','Mindset & Fondasi Logika','Langkah 1 (Persiapan & Fondasi)','Langkah 2 (Eksekusi Inti)','Langkah 3 (Optimasi & Skalasi)','Studi Kasus & Analisis Hasil','Kesalahan Fatal Pemula & Solusinya','Action Plan & Checklist CTA'],icon:'ti-book-2',
+   tujuanLabel:'Topik tutorial, skill yang diajarkan, dan target pembaca?',tujuanPlaceholder:'Contoh: Panduan lengkap langkah demi langkah membangun sales funnel affiliate dari 0 sampai profit pertama tanpa modal iklan'},
+  {cat:'Tulisan',name:'Ultimate Guide / Pilar Content',desc:'Artikel pilar terlengkap sebagai rujukan otoritas industri (~2500+ kata)',sections:['Headline & Janji Utama','Mengapa Masalah Ini Kerap Gagal Diatasi','Framework & Blueprint Inti','Pilar 1 (Fondasi Strategis)','Pilar 2 (Taktik Implementasi)','Pilar 3 (Alat, Template & Resource)','Bedah Kasus Nyata','FAQ / Pertanyaan Kritis','Kesimpulan & Roadmap Aksi'],icon:'ti-certificate',
+   tujuanLabel:'Topik besar & keahlian apa yang ingin dibongkar tuntas?',tujuanPlaceholder:'Contoh: Panduan menyeluruh organic marketing di Threads untuk kreator pemula'},
   {cat:'Tulisan',name:'Artikel Blog',desc:'Artikel informatif yang SEO-friendly',sections:['Judul','Intro','Poin Utama 1','Poin Utama 2','Poin Utama 3','Kesimpulan','CTA'],icon:'ti-article',
    tujuanLabel:'Topik artikel & target pembaca?',tujuanPlaceholder:'Contoh: Cara memulai bisnis online modal 0, untuk mahasiswa & fresh graduate'},
   {cat:'Tulisan',name:'Email Newsletter',desc:'Email yang dibuka dan dibaca sampai habis',sections:['Subject Preview','Opening','Isi Utama','Insight/Value','CTA'],icon:'ti-mail',
@@ -1325,6 +1370,19 @@ function applyTemplate(i){
   document.getElementById('tujuan-label').textContent=tpl.tujuanLabel||'Tujuan tulisan';
   document.getElementById('inp-tujuan').placeholder=tpl.tujuanPlaceholder||'Deskripsikan tujuan tulisanmu...';
   document.getElementById('tpl-active-name').textContent=tpl.name;
+
+  // Auto-adjust depth mode
+  const depthSel = document.getElementById('inp-depth-mode');
+  if(depthSel){
+    if(tpl.name.includes('Tutorial') || tpl.name.includes('Guide') || tpl.name.includes('Pilar')){
+      depthSel.value = 'long';
+    } else if(tpl.cat === 'Tulisan' || tpl.name.includes('Thread') || tpl.name.includes('Storytelling')){
+      depthSel.value = 'medium';
+    } else {
+      depthSel.value = 'short';
+    }
+  }
+
   renderSections();
   showToast(`Template "${tpl.name}" diterapkan!`);
   // Scroll ke tujuan
@@ -1758,22 +1816,43 @@ async function aiBrainstormAll(){
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span> AI sedang brainstorm...';
 
   const jurusContext = getJurusPrompt(cat, 'brainstorm');
+  const depthMode = document.getElementById('inp-depth-mode')?.value || 'auto';
+
+  const isLong = (depthMode === 'long') || (depthMode === 'auto' && (tpl.name.includes('Tutorial') || tpl.name.includes('Guide') || tpl.name.includes('Pilar') || tpl.name.includes('Artikel')));
+  const isMedium = (depthMode === 'medium') || (depthMode === 'auto' && (tpl.cat === 'Tulisan' || tpl.name.includes('Thread') || tpl.name.includes('Storytelling')));
+
+  let lengthInstruction = '';
+  if(isLong){
+    lengthInstruction = `=== INSTRUKSI KHUSUS TULISAN PANJANG / TUTORIAL MENDALAM (ESTIMASI 10-15 MENIT BACA) ===
+- Tuliskan SETIAP bagian secara SANGAT MENDALAM, KOMPREHENSIF, dan ELABORATIF (minimal 3 sampai 6 paragraf per bagian).
+- JANGAN DIBIKIN SINGKAT ATAU SEKADAR POIN-POIN DANGKAL! Uraikan langkah teknis konkret, logika mendasar, analogi tajam, contoh naskah/dialog nyata, framework teruji, dan tips implementasi praktis.
+- Sajikan konten yang benar-benar bernutrisi tinggi ('daging semua') setara artikel tutorial otoritatif yang membutuhkan waktu baca 10-15 menit.`;
+  } else if(isMedium){
+    lengthInstruction = `=== INSTRUKSI KEDALAMAN TULISAN MENENGAH (MEDIUM-FORM) ===
+- Tuliskan 2-3 paragraf berbobot per bagian, disertai elaborasi runtut dan contoh nyata.`;
+  } else {
+    lengthInstruction = `=== INSTRUKSI KEDALAMAN TULISAN RINGKAS (SHORT-FORM) ===
+- Tuliskan 2-4 kalimat padat, menusuk, dan to-the-point per bagian kecuali jika bagian membutuhkan penjelasan lebih.`;
+  }
+
   const prompt=`Kamu adalah copywriter dan content writer expert Indonesia.
 
 Template yang digunakan: ${tpl.name}
 Kategori: ${cat}
 Tujuan tulisan: ${tujuan}
 ${jurusContext}
+${lengthInstruction}
+
 Buatkan DRAFT LENGKAP untuk setiap bagian berikut. Langsung tulis isinya, natural, persuasif, bahasa Indonesia yang enak dibaca.
 
 Format output PERSIS seperti ini (jangan tambahkan teks lain di luar format):
 ${sectionNames.map(s=>`### ${s}\n[isi draft ${s} di sini]`).join('\n\n')}
 
 Pastikan:
-- Setiap bagian saling nyambung dan mendukung tujuan
+- Setiap bagian saling nyambung secara mulus dan mendukung tujuan utama
 - Tone mematuhi pedoman jurus dan template ${tpl.name}
 - Konkret, spesifik, tidak generik
-- Maksimal 3-4 kalimat per bagian kecuali memang perlu panjang`;
+- Patuhi standar kedalaman tulisan sesuai instruksi di atas`;
 
   try{
     const txt=await callAI(prompt);
@@ -2142,6 +2221,7 @@ function renderSections(){
   const el=document.getElementById('sections-list');
   if(!currentSections.length){
     el.innerHTML='<div class="empty"><i class="ti ti-layout-list"></i>Belum ada bagian. Pilih template atau tambah manual.</div>';
+    updateDraftWordCount();
     return;
   }
   el.innerHTML=currentSections.map((sec,si)=>`
@@ -2159,7 +2239,7 @@ function renderSections(){
       <div class="sec-items" id="sec-items-${si}">
         ${sec.items.map((item,ii)=>`
           <div class="item-row">
-            <textarea style="flex:1;min-height:60px" placeholder="Isi ${sec.name}..." onchange="updateItem(${si},${ii},this.value)">${item}</textarea>
+            <textarea style="flex:1;min-height:60px" placeholder="Isi ${sec.name}..." oninput="updateItem(${si},${ii},this.value)" onchange="updateItem(${si},${ii},this.value)">${item}</textarea>
             ${sec.items.length>1?`<button class="btn sm danger" onclick="removeItem(${si},${ii})" style="margin-top:4px"><i class="ti ti-x"></i></button>`:''}
           </div>
         `).join('')}
@@ -2167,6 +2247,96 @@ function renderSections(){
       </div>
     </div>
   `).join('');
+
+  updateDraftWordCount();
+}
+
+function updateDraftWordCount(){
+  const wordEl = document.getElementById('draft-word-count');
+  const charEl = document.getElementById('draft-char-count');
+  const timeEl = document.getElementById('draft-read-time');
+  const barEl = document.getElementById('draft-stats-bar');
+  if(!barEl) return;
+
+  if(!currentSections || !currentSections.length){
+    barEl.style.display = 'none';
+    return;
+  }
+  barEl.style.display = 'flex';
+
+  let totalChars = 0;
+  let totalWords = 0;
+  currentSections.forEach(s => {
+    (s.items || []).forEach(it => {
+      if(it && it.trim()){
+        totalChars += it.length;
+        totalWords += it.trim().split(/\s+/).filter(Boolean).length;
+      }
+    });
+  });
+
+  if(wordEl) wordEl.textContent = totalWords.toLocaleString('id-ID');
+  if(charEl) charEl.textContent = totalChars.toLocaleString('id-ID');
+
+  const mins = Math.max(1, Math.round(totalWords / 200));
+  if(timeEl){
+    if(totalWords === 0){
+      timeEl.innerHTML = '<i class="ti ti-clock"></i> ~0 menit baca';
+    } else {
+      timeEl.innerHTML = `<i class="ti ti-clock"></i> ~${mins} menit baca`;
+    }
+  }
+}
+
+function getFullDraftText(){
+  return (currentSections || []).map(s => {
+    const text = (s.items && s.items.length) ? s.items.filter(x => x && x.trim()).join('\n\n') : '';
+    return text ? `### ${s.name}\n${text}` : '';
+  }).filter(Boolean).join('\n\n');
+}
+
+function copyFullDraft(){
+  const full = getFullDraftText();
+  if(!full){
+    showToast('Belum ada teks pada draft untuk disalin!', 'warn');
+    return;
+  }
+  navigator.clipboard.writeText(full).then(() => {
+    showToast('✓ Seluruh naskah disalin ke clipboard!');
+  }).catch(() => {
+    showToast('Gagal menyalin naskah', 'warn');
+  });
+}
+
+function openFullDraftPreviewModal(){
+  const full = getFullDraftText();
+  if(!full){
+    showToast('Belum ada isi naskah untuk dipratinjau!', 'warn');
+    return;
+  }
+  const title = (document.getElementById('inp-title')?.value || '').trim() || (window._activeTpl?.name || 'Naskah Lengkap');
+  const words = full.trim().split(/\s+/).filter(Boolean).length;
+  const readMins = Math.max(1, Math.round(words / 200));
+
+  openModal(`
+    <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <i class="ti ti-article" style="color:var(--txa)"></i>
+        <span>Pratinjau Naskah Lengkap</span>
+      </div>
+      <div style="font-size:12px;color:var(--txa);font-weight:600;background:var(--bga);padding:3px 8px;border-radius:6px">
+        <i class="ti ti-clock"></i> ~${words} kata • ±${readMins} menit baca
+      </div>
+    </div>
+    <div style="margin-bottom:12px;font-size:14px;font-weight:700;color:var(--tx)">${escapeHtml(title)}</div>
+    <div style="max-height:420px;overflow-y:auto;background:var(--s1);padding:14px 16px;border-radius:8px;border:1px solid var(--bd);line-height:1.7;font-size:13px;color:var(--tx)">
+      ${formatMarkdown(full)}
+    </div>
+    <div class="row" style="justify-content:flex-end;gap:8px;margin-top:14px">
+      <button class="btn" onclick="copyFullDraft()"><i class="ti ti-copy"></i> Salin Semua Teks</button>
+      <button class="btn primary" onclick="closeModal()">Tutup</button>
+    </div>
+  `);
 }
 
 function dragStart(e,i){dragSrc=i;e.dataTransfer.effectAllowed='move';}
@@ -2183,7 +2353,10 @@ function dragDrop(e,i){
 function addItem(si){currentSections[si].items.push('');renderSections();}
 function removeItem(si,ii){currentSections[si].items.splice(ii,1);if(!currentSections[si].items.length)currentSections[si].items=[''];renderSections();}
 function removeSection(si){currentSections.splice(si,1);renderSections();}
-function updateItem(si,ii,v){currentSections[si].items[ii]=v;}
+function updateItem(si,ii,v){
+  currentSections[si].items[ii]=v;
+  updateDraftWordCount();
+}
 
 function saveContent(){
   const title=document.getElementById('inp-title').value.trim();
@@ -3250,16 +3423,34 @@ async function extractJurusFromPhotos(){
   if(resContainer) resContainer.style.display = 'none';
 
   try {
-    const prompt = `Kamu adalah pakar copywriting kelas dunia dan content strategist handal (bahasa Indonesia).
-Di hadapanmu terlampir ${window._selectedLearnPhotos.length} foto/screenshot berisi konten viral, buku, materi, atau studi kasus copywriting.
+    const targetCountVal = document.getElementById('learn-photo-target-count')?.value || '1';
 
-TUGAS:
-1. Analisis pola rahasia, struktur hook, alur persuasi, psikologi penulisan, atau formula penjualan dari foto-foto ini.
-2. Rumuskan temuanmu menjadi 1 sampai 3 JURUS BARU yang praktis, aplikatif, dan langsung bisa ditiru oleh pembuat konten/copywriter.
-3. Tiap jurus WAJIB memuat:
-   - title: Nama jurus yang 'punchy', jelas, dan berbobot (contoh: "Jurus Kontras Menusuk: Bobek Rasa Sakit")
-   - topic: Salah satu dari "Copywriting", "Affiliate", "Marketing", "Sosmed", "Bisnis"
-   - body: Penjelasan lugas kaidah penulisan ini, cara kerja psikologinya, dan contoh kalimat implementasi singkat (2-4 kalimat padat)
+    let targetInstruction = '';
+    if(targetCountVal === '1'){
+      targetInstruction = `Konteks: Semua ${window._selectedLearnPhotos.length} foto/screenshot ini merupakan SATU KESATUAN TULISAN BERSAMBUNG MILIK ORANG LAIN (1 carousel / 1 thread panjang).
+TUGAS UTAMA (SANGAT KRUSIAL):
+Bedah dan gabungkan seluruh alur dari foto-foto ini menjadi TEPAT 1 JURUS UTAMA YANG KOMPREHENSIF, PANJANG, DAN UTUH (JANGAN DIPECAH-PECAH!).
+Jelaskan alur formulanya secara mendalam: dari hook pembuka, cara membangun empati/problem, transisi emosi, alur persuasi, hingga cara closing dan CTA.`;
+    } else if(targetCountVal === 'per_photo'){
+      targetInstruction = `TUGAS UTAMA:
+Rumuskan temuanmu menjadi TEPAT ${window._selectedLearnPhotos.length} JURUS BERBEDA (1 jurus terpisah untuk masing-masing foto/screenshot).`;
+    } else if(targetCountVal === '2' || targetCountVal === '3'){
+      targetInstruction = `TUGAS UTAMA:
+Rumuskan temuanmu menjadi TEPAT ${targetCountVal} JURUS BERBEDA yang independen dan aplikatif.`;
+    } else {
+      targetInstruction = `TUGAS UTAMA:
+Analisis pola rahasia dan rumuskan menjadi 1 sampai 3 JURUS BARU yang paling aplikatif dan bernilai tinggi.`;
+    }
+
+    const prompt = `Kamu adalah pakar copywriting kelas dunia dan content strategist handal (bahasa Indonesia).
+Di hadapanmu terlampir ${window._selectedLearnPhotos.length} foto/screenshot berisi konten viral, buku, materi, atau studi kasus copywriting orang lain.
+
+${targetInstruction}
+
+Tiap jurus WAJIB memuat:
+- title: Nama jurus yang 'punchy', jelas, dan berbobot (contoh: "Jurus Alur Bertahap: Hook Kontras ke Solusi Gratisan")
+- topic: Salah satu dari "Copywriting", "Affiliate", "Marketing", "Sosmed", "Bisnis"
+- body: Penjelasan lugas kaidah penulisan ini, alur step-by-step formulanya secara lengkap, cara kerja psikologinya, dan contoh kalimat implementasi nyata.
 
 FORMAT OUTPUT WAJIB JSON MURNI TANPA MARKDOWN / PENJELASAN LAIN:
 {
@@ -3914,6 +4105,109 @@ function applyPersonaFromChat(msgIdx){
   switchTab(4);
 }
 
+function extractJurusFromText(text){
+  if(!text) return [];
+  const list = [];
+  const regex = /\[(?:Jurus|Formula|Kaidah)\]([\s\S]+?)(?=(?:\n\s*\[(?:Jurus|Formula|Kaidah|Persona|[A-Za-z0-9\s\/\-_]{2,25})\]|$))/gi;
+  let match;
+  while((match = regex.exec(text)) !== null){
+    const block = match[1];
+    const getField = (field) => {
+      const m = block.match(new RegExp(`(?:^|\\n)\\s*(?:•|-|\\*)?\\s*${field}\\s*[:=]\\s*(.+)`, 'i'));
+      return m ? m[1].trim() : '';
+    };
+    const title = getField('Judul') || getField('Nama') || getField('Nama Jurus') || getField('Jurus');
+    const topic = getField('Topik') || getField('Kategori') || 'Copywriting';
+    
+    let kaidah = getField('Kaidah') || getField('Penjelasan') || getField('Pola') || getField('Isi') || getField('Body');
+    const contoh = getField('Contoh') || getField('Implementasi');
+    
+    let fullBody = '';
+    if(kaidah){
+      fullBody = kaidah;
+      if(contoh) fullBody += '\n\nContoh:\n' + contoh;
+    } else {
+      fullBody = block.replace(/(?:^|\n)\s*(?:Judul|Nama|Topik|Kategori)\s*[:=].*/gi, '').trim();
+    }
+
+    if(title && fullBody){
+      list.push({
+        title: title.replace(/^["']|["']$/g, ''),
+        topic: topic.replace(/^["']|["']$/g, ''),
+        body: fullBody
+      });
+    }
+  }
+  return list;
+}
+
+function applyJurusFromChat(msgIdx, jurusIdx = 0){
+  const msg = window._copilotHistory[msgIdx];
+  if(!msg) return;
+  const jurusList = extractJurusFromText(msg.content);
+  const j = jurusList[jurusIdx];
+  if(!j){
+    showToast('Jurus tidak ditemukan di pesan ini', 'warn');
+    return;
+  }
+
+  const newLearn = {
+    id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+    title: j.title,
+    topic: j.topic || 'Copywriting',
+    created: new Date().toLocaleDateString('id-ID'),
+    body: j.body,
+    source: 'Copilot AI'
+  };
+
+  if(!data.learns) data.learns = [];
+  data.learns.unshift(newLearn);
+
+  if(!jurusConfig.selectedLearnIds) jurusConfig.selectedLearnIds = [];
+  if(!jurusConfig.selectedLearnIds.includes(newLearn.id)){
+    jurusConfig.selectedLearnIds.unshift(newLearn.id);
+  }
+
+  save();
+  renderLearn();
+  updateJurusBarSummary();
+  showToast(`✓ Jurus "${j.title}" berhasil ditambahkan & langsung aktif!`);
+  switchTab(3);
+}
+
+function applyAllJurusFromChat(msgIdx){
+  const msg = window._copilotHistory[msgIdx];
+  if(!msg) return;
+  const jurusList = extractJurusFromText(msg.content);
+  if(!jurusList.length) return;
+
+  if(!data.learns) data.learns = [];
+  if(!jurusConfig.selectedLearnIds) jurusConfig.selectedLearnIds = [];
+
+  let count = 0;
+  jurusList.forEach((j, i) => {
+    const newLearn = {
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 5) + '_' + i,
+      title: j.title,
+      topic: j.topic || 'Copywriting',
+      created: new Date().toLocaleDateString('id-ID'),
+      body: j.body,
+      source: 'Copilot AI'
+    };
+    data.learns.unshift(newLearn);
+    if(!jurusConfig.selectedLearnIds.includes(newLearn.id)){
+      jurusConfig.selectedLearnIds.unshift(newLearn.id);
+    }
+    count++;
+  });
+
+  save();
+  renderLearn();
+  updateJurusBarSummary();
+  showToast(`✓ ${count} Jurus baru berhasil ditambahkan ke Tab Learn & aktif!`);
+  switchTab(3);
+}
+
 // ===================== DEFAULT LEARNS (DATABASE SERVER) =====================
 let _defaultLearnsCache = null;
 
@@ -4040,7 +4334,11 @@ async function processCopilotFiles(files){
   toggleCopilot(true);
   const inp = document.getElementById('copilot-input');
   if(inp && !inp.value.trim()){
-    inp.value = 'Analisis screenshot akun/konten ini dan buatkan Persona Brand lengkap beserta rekomendasinya!';
+    if(window._currentTab === 3){
+      inp.value = 'Tolong bedah screenshot tulisan orang lain ini dan rumuskan menjadi 1 Jurus copywriting utuh dalam format [Jurus] agar bisa langsung gue simpan!';
+    } else {
+      inp.value = 'Analisis screenshot akun/konten ini dan buatkan Persona Brand lengkap beserta rekomendasinya!';
+    }
   }
 }
 
@@ -4211,9 +4509,10 @@ function renderCopilotChips(){
     ];
   } else if(tabIdx === 3){ // Tab Learn
     chips = [
+      { icon: 'ti-photo-search', label: 'Ekstrak Jurus dari Tulisan/SS', prompt: 'Gue punya contoh tulisan orang lain yang bagus dan viral. Tolong bedah formula dan alurnya secara mendalam, lalu rumuskan menjadi 1 Jurus utuh dalam format [Jurus] supaya bisa langsung gue simpan!' },
+      { icon: 'ti-plus', label: 'Bantu Bikin Jurus Baru', prompt: 'Gue mau bikin jurus copywriting baru dari pengalaman praktis. Bantu gue rumuskan nama, kaidah psikologi, dan contohnya dalam format [Jurus]!' },
       { icon: 'ti-school', label: 'Jelaskan Jurus B-A-P', prompt: 'Jelaskan cara pakai Jurus B-A-P (Before - After - Pivot/Bridge) dan kasih contoh praktisnya!' },
       { icon: 'ti-award', label: '3 Jurus Affiliate Top', prompt: 'Dari semua jurus yang ada di Tab Learn, sebutkan 3 jurus paling mematikan khusus affiliate dan jelaskan alasannya!' },
-      { icon: 'ti-plus', label: 'Bantu Bikin Jurus Baru', prompt: 'Gue punya pola copywriting yang sering berhasil, bantu gue rumuskan jadi jurus baru lengkap dengan kaidah dan contohnya!' },
       { icon: 'ti-help', label: 'Kuis Copywriting', prompt: 'Kuis gue dong bre! Kasih satu skenario produk dan uji pemahaman gue tentang jurus mana yang harus dipakai.' }
     ];
   } else if(tabIdx === 4){ // Tab Persona
@@ -4310,12 +4609,24 @@ ${slotDetails || '(belum ada slot mixing yang aktif)'}`;
 ${recent || '(bank masih kosong)'}`;
   } else if(currentTabIdx === 3){
     const learns = data.learns || [];
-    const jurusList = learns.map((l, i) => `${i + 1}. [${l.topic}] ${l.title}: ${(l.content || '').slice(0, 140)}...`).join('\n');
+    const jurusList = learns.map((l, i) => `${i + 1}. [${l.topic}] ${l.title}: ${(l.body || l.content || '').slice(0, 140)}...`).join('\n');
     tabSpecificContext = `=== DETAIL TAB LEARN SAAT INI (JURUS & KAIDAH TERDAFTAR) ===
 - Total Jurus & Kaidah: ${learns.length} item
 - Daftar Jurus:
 ${jurusList || '(belum ada jurus)'}
-(Catatan: User sedang mempelajari atau mengelola kaidah/jurus di Tab Learn. Berikan panduan mendalam tentang kaidah, bedah jurus, atau bantu merumuskan formula baru!)`;
+
+(Instruksi Khusus Mode Tab Learn):
+Jika user meminta bantuan membedah tulisan/screenshot orang lain, merumuskan jurus baru, atau mengekstrak formula copywriting:
+1. Bedah pola persuasi, alur formula, dan psikologi penulisannya secara mendalam.
+2. SELALU sertakan blok tag [Jurus] dengan format standar berikut agar tombol 1-tap "Terapkan Jadi Jurus: [Nama]" otomatis muncul di bubble chat:
+
+[Jurus]
+Judul: [Nama Jurus yang Punchy dan Berbobot]
+Topik: [Pilih: Copywriting / Affiliate / Marketing / Sosmed / Bisnis]
+Kaidah: [Penjelasan mendalam alur formula, prinsip psikologis, dan aturan praktisnya]
+Contoh: [Contoh naskah nyata penerapan jurus ini]
+
+(Catatan Khusus: Jika user memberikan beberapa screenshot atau contoh tulisan panjang/carousel bersambung dari orang lain, rangkum seluruh alurnya menjadi 1 Jurus utuh komprehensif, jangan dipecah-pecah!)`;
   } else if(currentTabIdx === 4){
     const personas = data.personas || [];
     const pList = personas.map((p, i) => `${i + 1}. "${p.name}" (Target: ${p.targetAudience}, Tone: ${p.toneOfVoice}) [${p.id === (activeP ? activeP.id : null) ? 'AKTIF' : 'NONAKTIF'}]`).join('\n');
@@ -4373,7 +4684,10 @@ ${jurusPrompt}
 2. Jika user berada di Tab Persona atau meminta bantuan merumuskan persona:
    - Wawancarai secara santai atau bedah contoh naskah/screenshot gambar yang dikirimkan.
    - SELALU sertakan blok tag [Persona] lengkap seperti format di atas agar user bisa langsung menyimpannya ke database dengan 1 klik!
-3. Jika user meminta variasi hook, isi problem, atau copywriting lengkap:
+3. Jika user berada di Tab Learn atau meminta bantuan merumuskan jurus baru / membedah contoh tulisan orang lain:
+   - Bedah formulanya secara mendalam.
+   - SELALU sertakan blok tag [Jurus] lengkap dengan Judul, Topik, Kaidah, dan Contoh agar tombol 1-tap "Terapkan Jadi Jurus: [Nama]" otomatis muncul di bubble chat!
+4. Jika user meminta variasi hook, isi problem, atau copywriting lengkap:
    SELALU format bagian tersebut dengan format tag yang jelas, misalnya:
    [Hook]
    Isi hook di sini...
@@ -4386,8 +4700,8 @@ ${jurusPrompt}
 
    [CTA]
    Isi call to action di sini...
-4. Tombol "Terapkan ke [Nama Bagian]" otomatis muncul di bubble chat jika kamu menggunakan format tag [Nama Bagian], sehingga memudahkan user memasukkannya ke editor dengan 1-tap.
-5. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.`;
+5. Tombol "Terapkan ke [Nama Bagian]" otomatis muncul di bubble chat jika kamu menggunakan format tag [Nama Bagian], sehingga memudahkan user memasukkannya ke editor dengan 1-tap.
+6. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.`;
 }
 
 async function callAICopilot(history, systemPrompt, attachments = []){
@@ -4541,10 +4855,19 @@ function renderCopilotMessages(){
       const secKeys = Object.keys(parsedSections);
       const hasSections = secKeys.length > 0;
       const personaObj = extractPersonaFromText(msg.content);
+      const jurusList = extractJurusFromText(msg.content);
 
       let actionButtons = '<div class="cmsg-actions">';
       if(personaObj){
         actionButtons += `<button class="btn sm primary" onclick="applyPersonaFromChat(${idx})" style="padding:4px 10px;font-size:11px;background:#059669;border-color:#059669;color:#fff;font-weight:600"><i class="ti ti-user-plus"></i> Terapkan Jadi Persona: ${escapeHtml(personaObj.name)}</button>`;
+      }
+      if(jurusList && jurusList.length){
+        jurusList.forEach((j, jIdx) => {
+          actionButtons += `<button class="btn sm primary" onclick="applyJurusFromChat(${idx}, ${jIdx})" style="padding:4px 10px;font-size:11px;background:#2563eb;border-color:#2563eb;color:#fff;font-weight:600"><i class="ti ti-book-upload"></i> Terapkan Jadi Jurus: ${escapeHtml(j.title)}</button>`;
+        });
+        if(jurusList.length > 1){
+          actionButtons += `<button class="btn sm" onclick="applyAllJurusFromChat(${idx})" style="padding:4px 10px;font-size:11px;border-color:var(--bda);color:var(--txa);font-weight:600"><i class="ti ti-check-all"></i> Simpan Semua (${jurusList.length} Jurus)</button>`;
+        }
       }
       if(hasSections){
         secKeys.forEach(secName => {
@@ -4674,7 +4997,11 @@ async function sendCopilotMessage(){
   const hasAttachments = (window._copilotAttachments && window._copilotAttachments.length > 0);
   if(!text && !hasAttachments) return;
 
-  const msgText = text || 'Analisis screenshot akun/konten ini dan buatkan Persona Brand lengkap beserta rekomendasinya!';
+  let defaultMsg = 'Analisis screenshot akun/konten ini dan buatkan Persona Brand lengkap beserta rekomendasinya!';
+  if(window._currentTab === 3){
+    defaultMsg = 'Tolong bedah screenshot tulisan orang lain ini dan rumuskan menjadi 1 Jurus copywriting utuh dalam format [Jurus] agar bisa langsung gue simpan!';
+  }
+  const msgText = text || defaultMsg;
 
   const activeKey = (ai.apiKey && ai.apiKey.trim()) ? ai.apiKey.trim() : ((ai.provider === 'gemini') ? DEFAULT_GEMINI_KEY : '');
   if(!activeKey){
