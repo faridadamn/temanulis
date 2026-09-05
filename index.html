@@ -568,16 +568,22 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       <span class="badge b-input" id="tpl-active-name" style="margin-left:auto;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></span>
     </div>
     <textarea id="inp-tujuan" style="min-height:64px" placeholder="Deskripsikan tujuan tulisanmu..."></textarea>
-    <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
-      <div style="display:flex;align-items:center;gap:6px">
-        <span style="font-size:12px;font-weight:600;color:var(--tx)">Kedalaman:</span>
-        <select id="inp-depth-mode" style="font-size:12px;padding:4px 8px;height:30px;width:auto;border-radius:6px;background:var(--bg);color:var(--tx);border:1px solid var(--bd)">
-          <option value="auto">Otomatis (Sesuai Template)</option>
-          <option value="short">⚡ Ringkas (2-4 Kalimat / Sosmed)</option>
-          <option value="medium">📄 Menengah (2-3 Paragraf / Blog/Newsletter)</option>
-          <option value="long">📚 Mendalam (Tutorial 15 Menit / Long-form)</option>
-        </select>
+    <!-- KEDALAMAN TULISAN BAR (PECAH BARIS DEDIKASI) -->
+    <div style="margin-top:10px;padding:8px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+        <i class="ti ti-adjustments-horizontal" style="color:var(--txa);font-size:16px"></i>
+        <span style="font-size:12px;font-weight:600;color:var(--tx)">Kedalaman Tulisan:</span>
       </div>
+      <select id="inp-depth-mode" style="font-size:12px;padding:6px 10px;height:32px;border-radius:6px;background:var(--s1);color:var(--tx);border:1px solid var(--bd);flex:1;min-width:200px">
+        <option value="auto">Otomatis (Sesuai Karakter Template)</option>
+        <option value="short">Ringkas (2-4 Kalimat / Sosmed)</option>
+        <option value="medium">Menengah (2-3 Paragraf / Blog &amp; Newsletter)</option>
+        <option value="long">Mendalam (Tutorial 15 Menit / Long-form)</option>
+      </select>
+    </div>
+
+    <!-- TOMBOL AKSI AI BRAINSTORM -->
+    <div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
       <button class="btn primary" id="ai-brainstorm-btn" onclick="aiBrainstormAll()">
         <i class="ti ti-sparkles"></i> AI Brainstorm Keseluruhan
       </button>
