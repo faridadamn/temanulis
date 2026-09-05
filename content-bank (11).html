@@ -490,11 +490,14 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
   </div>
 
   <div class="card">
-    <div class="row center" style="margin-bottom:12px">
+    <div class="row center" style="margin-bottom:12px;gap:6px;flex-wrap:wrap">
       <span class="lbl" style="margin:0;flex:1">Bagian konten</span>
-      <select id="add-section-sel" style="width:auto;flex:1;margin-right:8px"></select>
+      <select id="add-section-sel" style="width:auto;flex:1;min-width:130px;margin-right:4px"></select>
       <button class="btn sm" onclick="addSection()"><i class="ti ti-plus"></i> Tambah</button>
-      <button class="btn sm" onclick="openHookScorerModal()" style="margin-left:6px;border-color:#f59e0b;color:#d97706" title="Uji daya tarik Hook"><i class="ti ti-flame"></i> Hook Scorer</button>
+      <button class="btn sm" onclick="openSaveQuickTemplateModal()" style="border-color:var(--bda);color:var(--txa)" title="Simpan susunan bagian saat ini sebagai template baru">
+        <i class="ti ti-device-floppy"></i> Simpan Template
+      </button>
+      <button class="btn sm" onclick="openHookScorerModal()" style="border-color:#f59e0b;color:#d97706" title="Uji daya tarik Hook"><i class="ti ti-flame"></i> Hook Scorer</button>
     </div>
     <div id="sections-list"></div>
     <div class="drag-hint"><i class="ti ti-grip-vertical"></i> Drag untuk reorder bagian</div>
@@ -1003,6 +1006,15 @@ function load(){
   if(autoAdded){
     save();
   }
+
+  // Merge custom templates ke TEMPLATES
+  if(data.customTemplates && data.customTemplates.length){
+    data.customTemplates.forEach(ct => {
+      if(!TEMPLATES.some(t => t.name === ct.name && t.cat === ct.cat)){
+        TEMPLATES.push(ct);
+      }
+    });
+  }
 }
 
 // ===================== SIDEBAR =====================
@@ -1027,6 +1039,7 @@ function toggleSidebar(forceOpen){
 
 // ===================== TABS =====================
 function switchTab(i){
+  window._currentTab = i;
   document.querySelectorAll('.sidebar-nav .tab').forEach((t,j)=>t.classList.toggle('active',i===j));
   document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',i===j));
   if(i===1)initMixSlots();
@@ -1036,6 +1049,8 @@ function switchTab(i){
   if(i===5)renderSettings();
   populateSelects();
   updateJurusBarSummary();
+  if(typeof updateCopilotRibbon === 'function') updateCopilotRibbon();
+  if(typeof renderCopilotChips === 'function') renderCopilotChips();
   if(window.innerWidth <= 768){
     toggleSidebar(false);
   }
@@ -1067,8 +1082,16 @@ function renderTemplates(){
   gridEl.innerHTML=filtered.map((t,i)=>{
     const realIdx=TEMPLATES.indexOf(t);
     return `
-    <div class="tpl-card" onclick="applyTemplate(${realIdx})">
-      <div class="tpl-title"><i class="ti ${t.icon}" style="color:var(--txa)"></i> ${t.name}</div>
+    <div class="tpl-card" onclick="applyTemplate(${realIdx})" style="position:relative">
+      ${t.custom ? `
+        <button type="button" onclick="deleteCustomTemplate('${escapeJsStr(t.name)}',event)" title="Hapus template kustom" style="position:absolute;top:6px;right:6px;background:var(--s1);border:1px solid var(--bd);border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--txd);cursor:pointer;font-size:11px">
+          ✕
+        </button>
+      ` : ''}
+      <div class="tpl-title" style="padding-right:${t.custom ? '20px' : '0'}">
+        <i class="ti ${t.icon}" style="color:var(--txa)"></i> ${t.name}
+        ${t.custom ? '<span class="badge b-input" style="font-size:9px;padding:1px 5px;margin-left:4px">Kustom</span>' : ''}
+      </div>
       <div class="tpl-desc">${t.desc}</div>
       <div class="tpl-tags">${t.sections.map(s=>`<span class="badge b-input" style="font-size:10px">${s}</span>`).join('')}</div>
     </div>`;
@@ -1094,6 +1117,89 @@ function applyTemplate(i){
   showToast(`Template "${tpl.name}" diterapkan!`);
   // Scroll ke tujuan
   card.scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function openSaveQuickTemplateModal(){
+  if(!currentSections || !currentSections.length){
+    showToast('Belum ada bagian konten di editor!', 'warn');
+    return;
+  }
+  const secNames = currentSections.map(s => s.name);
+  const currentCat = document.getElementById('inp-cat')?.value || 'Copywriting';
+  const defaultName = (document.getElementById('inp-title')?.value || '').trim() || 'Template Baru ' + (TEMPLATES.length + 1);
+
+  openModal(`
+    <div class="modal-title"><i class="ti ti-device-floppy" style="color:var(--txa)"></i> Simpan sebagai Template Cepat</div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.5">
+      Simpan susunan <strong>${secNames.length} bagian</strong> saat ini agar bisa dipakai ulang kapan saja di Tab Input!
+    </div>
+    <div class="lbl">Nama Template</div>
+    <input type="text" id="quick-tpl-name" value="${escapeHtml(defaultName)}" style="margin-bottom:10px" placeholder="Contoh: Utas Viral Threads B-A-P"/>
+    
+    <div class="lbl">Kategori Template</div>
+    <select id="quick-tpl-cat" style="margin-bottom:10px">
+      ${(data.categories || ['Copywriting','Affiliate','Sosmed','Produk Digital','Tulisan']).map(c => `<option ${c === currentCat ? 'selected' : ''}>${c}</option>`).join('')}
+      <option value="Kustom">Kustom</option>
+    </select>
+
+    <div class="lbl">Deskripsi Singkat</div>
+    <input type="text" id="quick-tpl-desc" value="Alur ${secNames.length} bagian: ${secNames.slice(0,3).join(' → ')}..." style="margin-bottom:10px" placeholder="Deskripsi template..."/>
+
+    <div class="lbl">Susunan Bagian yang Disimpan</div>
+    <div style="display:flex;flex-wrap:wrap;gap:4px;padding:8px;background:var(--s1);border-radius:var(--r);margin-bottom:14px">
+      ${secNames.map(s => `<span class="badge b-input">${s}</span>`).join('')}
+    </div>
+
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn primary" onclick="confirmSaveQuickTemplate()"><i class="ti ti-check"></i> Simpan Template</button>
+    </div>
+  `);
+}
+
+function confirmSaveQuickTemplate(){
+  const name = document.getElementById('quick-tpl-name')?.value.trim();
+  const cat = document.getElementById('quick-tpl-cat')?.value || 'Copywriting';
+  const desc = document.getElementById('quick-tpl-desc')?.value.trim() || 'Template kustom pengguna';
+  if(!name){
+    showToast('Nama template tidak boleh kosong!', 'warn');
+    return;
+  }
+
+  const secNames = currentSections.map(s => s.name);
+  const newTpl = {
+    cat: cat,
+    name: name,
+    desc: desc,
+    sections: [...secNames],
+    icon: 'ti-bookmark',
+    custom: true,
+    tujuanLabel: 'Tujuan tulisan?',
+    tujuanPlaceholder: 'Deskripsikan tujuan tulisan untuk template ini...'
+  };
+
+  if(!data.customTemplates) data.customTemplates = [];
+  data.customTemplates.push(newTpl);
+  TEMPLATES.push(newTpl);
+  save();
+  closeModal();
+  setTplCat(cat);
+  showToast(`✓ Template "${name}" berhasil disimpan di kategori [${cat}]!`);
+}
+
+function deleteCustomTemplate(tplName, e){
+  if(e) e.stopPropagation();
+  if(!confirm(`Hapus template kustom "${tplName}"?`)) return;
+  if(data.customTemplates){
+    data.customTemplates = data.customTemplates.filter(t => t.name !== tplName);
+  }
+  const idx = TEMPLATES.findIndex(t => t.name === tplName && t.custom);
+  if(idx >= 0){
+    TEMPLATES.splice(idx, 1);
+  }
+  save();
+  renderTemplates();
+  showToast(`Template "${tplName}" dihapus.`);
 }
 
 // ===================== JURUS & AI CONTEXT ENGINE =====================
@@ -1897,10 +2003,32 @@ function formatMarkdown(str){
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+
+  // Headings: ###, ##, #
+  s = s.replace(/^### (.*$)/gim, '<div style="font-weight:700;font-size:14px;color:var(--tx);margin:8px 0 4px">$1</div>');
+  s = s.replace(/^## (.*$)/gim, '<div style="font-weight:700;font-size:15px;color:var(--tx);margin:10px 0 4px">$1</div>');
+  s = s.replace(/^# (.*$)/gim, '<div style="font-weight:800;font-size:16px;color:var(--tx);margin:12px 0 6px">$1</div>');
+
+  // Bold: **text** or __text__ (handles multiline)
   s = s.replace(/\*\*([\s\S]+?)\*\*/g, '<strong style="color:var(--tx);font-weight:700">$1</strong>');
   s = s.replace(/__([\s\S]+?)__/g, '<strong style="color:var(--tx);font-weight:700">$1</strong>');
+
+  // Italic: *text* or _text_
   s = s.replace(/(^|[^*])\*(?!\*)([^*]+?)\*(?!\*)/g, '$1<em>$2</em>');
-  s = s.replace(/`([^`]+)`/g, '<code style="background:var(--s2);padding:2px 5px;border-radius:4px;font-family:monospace;border:1px solid var(--bd);font-size:12px">$1</code>');
+  s = s.replace(/(^|[^_])_(?!_)([^_]+?)_(?!_)/g, '$1<em>$2</em>');
+
+  // Inline Code: `code`
+  s = s.replace(/`([^`]+)`/g, '<code style="background:var(--s1);padding:2px 5px;border-radius:4px;font-family:monospace;border:1px solid var(--bd);font-size:12px">$1</code>');
+
+  // Section tags: [Hook], [Problem], etc.
+  s = s.replace(/\[([A-Za-z0-9\s\/\-_]{2,25})\]/g, '<span class="badge b-input" style="font-weight:700;margin-right:4px">[$1]</span>');
+
+  // Unordered list items: - item or * item
+  s = s.replace(/^[*-] (.*$)/gim, '<div style="display:flex;gap:6px;margin:2px 0"><span style="color:var(--txa)">•</span><span>$1</span></div>');
+
+  // Numbered list items: 1. item
+  s = s.replace(/^(\d+)\. (.*$)/gim, '<div style="display:flex;gap:6px;margin:2px 0"><span style="color:var(--txa);font-weight:600">$1.</span><span>$2</span></div>');
+
   return s;
 }
 
@@ -2114,19 +2242,140 @@ function viewContent(id){
       <span style="font-size:16px;font-weight:600;flex:1">${c.title}</span>
       <span class="badge b-${c.type==='Mix'?'mix':'input'}">${c.type}</span>
     </div>
-    <div style="font-size:12px;color:var(--txm);margin-bottom:6px">${c.category} · ${c.created} · <span style="color:#f59e0b">${renderStars(c.stars||0)}</span> · ${c.status||'Draft'}</div>
+    <div style="font-size:12px;color:var(--txm);margin-bottom:6px">${c.category} · ${c.created} · <span style="color:#f59e0b">${renderStars(c.stars||0)}</span> · <span class="badge b-${(c.status||'draft').toLowerCase()}">${c.status||'Draft'}</span></div>
     ${(c.tags||[]).length?`<div style="margin-bottom:12px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
     ${c.sections.map(s=>`
-      <div style="margin-bottom:14px">
-        <div style="font-size:11px;font-weight:600;color:var(--txa);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px">${s.name}</div>
-        ${s.items.map(i=>`<div style="padding:9px 12px;background:var(--s1);border-radius:var(--r);font-size:13px;margin-bottom:6px;line-height:1.6;white-space:pre-wrap">${formatMarkdown(i)}</div>`).join('')}
+      <div style="margin-bottom:12px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">
+        <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s1);padding:6px 10px">
+          <span style="font-size:11px;font-weight:700;color:var(--txa);text-transform:uppercase;letter-spacing:.05em">${s.name}</span>
+          <button class="btn sm" onclick="copySegment(${id},'${escapeJsStr(s.name)}')" style="padding:2px 8px;font-size:11px;background:var(--s2);border-color:var(--bd)" title="Copy bagian ${s.name}">
+            <i class="ti ti-copy"></i> Copy Bagian
+          </button>
+        </div>
+        <div style="padding:10px 12px;background:var(--s2)">
+          ${s.items.map(i=>`<div style="font-size:13px;line-height:1.6;white-space:pre-wrap">${formatMarkdown(i)}</div>`).join('')}
+        </div>
       </div>
     `).join('')}
-    <div style="margin-top:14px;display:flex;justify-content:flex-end;gap:8px">
-      <button class="btn sm" onclick="copyContent(${id});closeModal()"><i class="ti ti-copy"></i> Copy</button>
-      <button class="btn sm primary" onclick="closeModal()">Tutup</button>
+    <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="btn sm" onclick="loadContentToEditor(${id});closeModal()" style="border-color:var(--bda);color:var(--txa)"><i class="ti ti-pencil"></i> Edit di Tab Input</button>
+        <button class="btn sm" onclick="openEditBankModal(${id})"><i class="ti ti-edit"></i> Edit Langsung</button>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn sm" onclick="copyContent(${id})"><i class="ti ti-copy"></i> Copy Semua</button>
+        <button class="btn sm primary" onclick="closeModal()">Tutup</button>
+      </div>
     </div>
   `);
+}
+
+function copySegment(id, secName){
+  const c = data.contents.find(x => x.id === id);
+  if(!c) return;
+  const sec = c.sections.find(s => s.name === secName);
+  if(!sec || !sec.items.length){
+    showToast('Teks bagian tidak ditemukan!', 'warn');
+    return;
+  }
+  const txt = sec.items.join('\n');
+  navigator.clipboard.writeText(txt).then(() => {
+    showToast(`✓ Bagian [${secName}] berhasil disalin!`);
+  }).catch(() => {
+    showToast('Gagal menyalin', 'warn');
+  });
+}
+
+function loadContentToEditor(id){
+  const c = data.contents.find(x => x.id === id);
+  if(!c) return;
+  const inpTitle = document.getElementById('inp-title');
+  const inpCat = document.getElementById('inp-cat');
+  if(inpTitle) inpTitle.value = c.title || '';
+  if(inpCat) inpCat.value = c.category || '';
+  currentSections = JSON.parse(JSON.stringify(c.sections || []));
+  currentTags = [...(c.tags || [])];
+  currentStars = c.stars || 0;
+  renderSections();
+  renderTagPicker();
+  renderStarsInput();
+  switchTab(0);
+  showToast(`✓ Konten "${c.title}" dimuat ke Editor Tab Input!`);
+}
+
+function openEditBankModal(id){
+  const c = data.contents.find(x => x.id === id);
+  if(!c) return;
+  openModal(`
+    <div class="modal-title"><i class="ti ti-edit" style="color:var(--txa)"></i> Edit Konten Bank</div>
+    <div class="lbl">Judul Konten</div>
+    <input type="text" id="edit-bank-title" value="${escapeHtml(c.title)}" style="margin-bottom:10px"/>
+
+    <div class="row" style="gap:10px;margin-bottom:10px">
+      <div class="flex1">
+        <div class="lbl">Kategori</div>
+        <select id="edit-bank-cat">
+          ${(data.categories || []).map(cat => `<option ${cat === c.category ? 'selected' : ''}>${cat}</option>`).join('')}
+        </select>
+      </div>
+      <div style="width:130px">
+        <div class="lbl">Status</div>
+        <select id="edit-bank-status">
+          <option ${c.status === 'Draft' ? 'selected' : ''}>Draft</option>
+          <option ${c.status === 'Tested' ? 'selected' : ''}>Tested</option>
+          <option ${c.status === 'Winner' ? 'selected' : ''}>Winner</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="lbl">Edit Tiap Bagian Konten</div>
+    <div style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:10px;margin-bottom:14px;padding-right:2px">
+      ${c.sections.map((s, sIdx) => `
+        <div style="border:1px solid var(--bd);border-radius:var(--r);padding:8px 10px;background:var(--s1)">
+          <div style="font-size:11px;font-weight:700;color:var(--txa);margin-bottom:4px;text-transform:uppercase">${s.name}</div>
+          <textarea class="edit-bank-sec-item" data-sec-idx="${sIdx}" style="min-height:60px;font-size:13px;width:100%">${escapeHtml(s.items.join('\n'))}</textarea>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="viewContent(${id})">Kembali</button>
+      <button class="btn primary" onclick="saveEditBankContent(${id})"><i class="ti ti-check"></i> Simpan Perubahan</button>
+    </div>
+  `);
+}
+
+function saveEditBankContent(id){
+  const c = data.contents.find(x => x.id === id);
+  if(!c) return;
+
+  const newTitle = document.getElementById('edit-bank-title')?.value.trim();
+  if(!newTitle){
+    showToast('Judul tidak boleh kosong!', 'warn');
+    return;
+  }
+
+  // Simpan versi lama ke history jika ada
+  if(!c.versions) c.versions = [];
+  c.versions.push({ sections: JSON.parse(JSON.stringify(c.sections)), saved: c.created });
+
+  c.title = newTitle;
+  c.category = document.getElementById('edit-bank-cat')?.value || c.category;
+  c.status = document.getElementById('edit-bank-status')?.value || c.status;
+
+  // Update text sections
+  const textareas = document.querySelectorAll('.edit-bank-sec-item');
+  textareas.forEach(ta => {
+    const sIdx = parseInt(ta.getAttribute('data-sec-idx'));
+    if(!isNaN(sIdx) && c.sections[sIdx]){
+      c.sections[sIdx].items = [ta.value.trim()];
+    }
+  });
+
+  save();
+  renderBank();
+  closeModal();
+  showToast('✓ Konten bank berhasil diperbarui!');
 }
 
 function viewVersions(id){
@@ -3205,15 +3454,88 @@ function updateCopilotRibbon(){
   if(countBadge){
     countBadge.textContent = `${window._copilotHistory.length} Pesan`;
   }
-  if(ribbonText){
+  if(!ribbonText) return;
+
+  const tabIdx = (typeof window._currentTab === 'number') ? window._currentTab : 0;
+  if(tabIdx === 0){
     const title = (document.getElementById('inp-title')?.value || '').trim();
     const tplName = window._activeTpl?.name || 'Kustom';
     if(title){
-      ribbonText.innerHTML = `<i class="ti ti-file-text"></i> Draft: <strong>${title.slice(0, 18)}...</strong>`;
+      ribbonText.innerHTML = `<i class="ti ti-file-text"></i> Input: <strong>${escapeHtml(title.slice(0, 18))}...</strong>`;
     } else {
-      ribbonText.innerHTML = `<i class="ti ti-link"></i> Template: <strong>${tplName}</strong>`;
+      ribbonText.innerHTML = `<i class="ti ti-pencil"></i> Tab Input: <strong>${escapeHtml(tplName)}</strong>`;
     }
+  } else if(tabIdx === 1){
+    const slotCount = (currentMix && currentMix.slots) ? currentMix.slots.length : 0;
+    ribbonText.innerHTML = `<i class="ti ti-arrows-shuffle"></i> Tab Mixing: <strong>${slotCount} Slot Aktif</strong>`;
+  } else if(tabIdx === 2){
+    const bankCount = (data.contents || []).length;
+    ribbonText.innerHTML = `<i class="ti ti-files"></i> Tab Bank: <strong>${bankCount} Konten</strong>`;
+  } else if(tabIdx === 3){
+    const learnCount = (data.learns || []).length;
+    ribbonText.innerHTML = `<i class="ti ti-school"></i> Tab Learn: <strong>${learnCount} Jurus &amp; Kaidah</strong>`;
+  } else if(tabIdx === 4){
+    ribbonText.innerHTML = `<i class="ti ti-chart-bar"></i> Tab Stats: <strong>Performa Konten</strong>`;
+  } else if(tabIdx === 5){
+    ribbonText.innerHTML = `<i class="ti ti-settings"></i> Tab Setting: <strong>AI &amp; Konfigurasi</strong>`;
+  } else {
+    ribbonText.innerHTML = `<i class="ti ti-link"></i> Terhubung: 18 Jurus &amp; Editor`;
   }
+}
+
+function renderCopilotChips(){
+  const container = document.getElementById('copilot-chips');
+  if(!container) return;
+
+  const tabIdx = (typeof window._currentTab === 'number') ? window._currentTab : 0;
+  let chips = [];
+
+  if(tabIdx === 0){ // Tab Input
+    chips = [
+      { icon: 'ti-bulb', label: 'Bedah Angle', prompt: 'Bedah angle tulisan ini dan carikan sudut pandang paling menusuk!' },
+      { icon: 'ti-flame', label: '3 Hook Rizal', prompt: 'Bikinin 3 alternatif hook viral dengan pola Kitab Rizal!' },
+      { icon: 'ti-git-fork', label: 'Pilihan Setan', prompt: 'Buat bagian penutup dengan Jurus Pilihan Setan!' },
+      { icon: 'ti-coin', label: 'Harga Jangkar', prompt: 'Hitung harga jangkar & pecah biayanya jadi pengeluaran receh harian!' },
+      { icon: 'ti-pencil', label: 'Tulis Full Draft', prompt: 'Tuliskan draft lengkap semua bagian sesuai template aktif!' }
+    ];
+  } else if(tabIdx === 1){ // Tab Mixing
+    chips = [
+      { icon: 'ti-arrows-shuffle', label: 'Analisis Alur Mixing', prompt: 'Tolong evaluasi kombinasi slot mixing yang lagi gue susun di tab ini, apakah transisinya sudah mulus dan logis?' },
+      { icon: 'ti-link', label: 'Bikinin Bridging', prompt: 'Bikinin kalimat bridging / jembatan antar segmen supaya kombinasi slot mixing ini ngalir enak dan gak patah!' },
+      { icon: 'ti-flame', label: 'Variasi Hook Baru', prompt: 'Kasih ide hook baru yang kontras untuk dicoba di slot awal mixing ini!' },
+      { icon: 'ti-sparkles', label: 'Rangkum Jadi Naskah', prompt: 'Rangkumkan seluruh kombinasi slot mixing aktif ini jadi satu naskah utuh yang siap posting!' }
+    ];
+  } else if(tabIdx === 2){ // Tab Bank
+    chips = [
+      { icon: 'ti-trophy', label: 'Bedah Konten Winner', prompt: 'Bedah kenapa konten-konten pemenang (winner) di Bank Konten ini bisa berkinerja tinggi dan formula apa yang dipakai!' },
+      { icon: 'ti-refresh', label: 'Remix Konten Lama', prompt: 'Pilihin 1 angle dari koleksi Bank Konten dan remix jadi format baru yang segar!' },
+      { icon: 'ti-tool', label: 'Evaluasi Performa', prompt: 'Kasih saran perbaikan untuk konten-konten di bank yang statusnya perlu perbaikan (needs work) atau belum maksimal.' },
+      { icon: 'ti-bulb', label: 'Cari Peluang Baru', prompt: 'Berdasarkan arsip Bank Konten saat ini, topik atau sudut pandang apa yang belum pernah gue sentuh?' }
+    ];
+  } else if(tabIdx === 3){ // Tab Learn
+    chips = [
+      { icon: 'ti-school', label: 'Jelaskan Jurus B-A-P', prompt: 'Jelaskan cara pakai Jurus B-A-P (Before - After - Pivot/Bridge) dan kasih contoh praktisnya!' },
+      { icon: 'ti-award', label: '3 Jurus Affiliate Top', prompt: 'Dari semua jurus yang ada di Tab Learn, sebutkan 3 jurus paling mematikan khusus affiliate dan jelaskan alasannya!' },
+      { icon: 'ti-plus', label: 'Bantu Bikin Jurus Baru', prompt: 'Gue punya pola copywriting yang sering berhasil, bantu gue rumuskan jadi jurus baru lengkap dengan kaidah dan contohnya!' },
+      { icon: 'ti-help', label: 'Kuis Copywriting', prompt: 'Kuis gue dong bre! Kasih satu skenario produk dan uji pemahaman gue tentang jurus mana yang harus dipakai.' }
+    ];
+  } else if(tabIdx === 4){ // Tab Stats
+    chips = [
+      { icon: 'ti-chart-line', label: 'Analisis Rasio Winner', prompt: 'Bantu analisa rasio pemenang (winner) vs total konten di Tab Stats ini serta langkah strategis untuk meningkatkannya!' },
+      { icon: 'ti-stack', label: 'Rekomendasi Format', prompt: 'Dari tren statistik yang ada, format atau kategori mana yang paling potensial untuk digandakan produksinya?' }
+    ];
+  } else if(tabIdx === 5){ // Tab Setting
+    chips = [
+      { icon: 'ti-cpu', label: 'Cek Kapabilitas Model', prompt: 'Jelaskan kelebihan dan karakteristik model AI yang lagi gue pilih saat ini untuk kebutuhan copywriting!' },
+      { icon: 'ti-notes', label: 'Tips Prompt Tajam', prompt: 'Kasih tips prompt terbaik supaya hasil naskah AI makin bernyawa, tajam, dan tidak terdengar seperti robot!' }
+    ];
+  }
+
+  let html = '';
+  chips.forEach(c => {
+    html += `<div class="copilot-chip" onclick="sendQuickCopilotPrompt('${escapeJsStr(c.prompt)}')"><i class="ti ${c.icon}"></i> ${escapeHtml(c.label)}</div>`;
+  });
+  container.innerHTML = html;
 }
 
 function confirmResetCopilotChat(){
@@ -3230,16 +3552,74 @@ function confirmResetCopilotChat(){
 }
 
 function buildCopilotSystemContext(){
+  const tabNames = ['Input / Editor', 'Mixing', 'Bank Konten', 'Learn (Jurus & Kaidah)', 'Stats & Performa', 'Pengaturan'];
+  const currentTabIdx = (typeof window._currentTab === 'number') ? window._currentTab : 0;
+  const currentTabName = tabNames[currentTabIdx] || 'Input / Editor';
+
   const title = (document.getElementById('inp-title')?.value || '').trim();
   const category = (document.getElementById('inp-cat')?.value || '').trim();
   const goal = (document.getElementById('inp-tujuan')?.value || '').trim();
   const tplName = window._activeTpl?.name || 'Kustom';
 
-  // Sections
+  // Sections di Tab Input
   const secTexts = (currentSections || []).map(s => {
     const text = (s.items && s.items[0]) ? s.items[0].trim() : '(kosong)';
     return `[${s.name}]: ${text}`;
   }).join('\n');
+
+  // Konteks Tab Aktif Spesifik
+  let tabSpecificContext = '';
+
+  if(currentTabIdx === 0){
+    tabSpecificContext = `=== DETAIL TAB INPUT SAAT INI ===
+- Judul Draft: "${title || '(belum diisi)'}"
+- Kategori Draft: "${category || 'Copywriting'}"
+- Template Draft: "${tplName}"
+- Tujuan / Brief: "${goal || '(belum diisi)'}"
+- Isi Bagian di Editor:
+${secTexts || '(belum ada bagian)'}`;
+  } else if(currentTabIdx === 1){
+    const slots = (currentMix && currentMix.slots) ? currentMix.slots : [];
+    const slotDetails = slots.map((sl, idx) => {
+      const activeIdx = sl.selected || 0;
+      const text = (sl.items && sl.items[activeIdx]) ? sl.items[activeIdx] : '(kosong)';
+      return `Slot ${idx + 1} [${sl.name}]: "${text}"`;
+    }).join('\n');
+    tabSpecificContext = `=== DETAIL TAB MIXING SAAT INI ===
+- Jumlah Slot Mixing: ${slots.length}
+- Kombinasi Slot Terpilih:
+${slotDetails || '(belum ada slot mixing yang aktif)'}`;
+  } else if(currentTabIdx === 2){
+    const contents = data.contents || [];
+    const recent = contents.slice(-8).reverse().map(c => {
+      const isWinner = c.winner ? '⭐ WINNER' : (c.needs_work ? '⚠️ NEEDS WORK' : 'NORMAL');
+      return `• [${c.type || 'Draft'}] "${c.title}" (${c.category || '-'}) - Status: ${isWinner} | Ringkasan: ${(c.body || '').slice(0, 100)}...`;
+    }).join('\n');
+    tabSpecificContext = `=== DETAIL TAB BANK KONTEN SAAT INI ===
+- Total Koleksi di Bank: ${contents.length} konten
+- 8 Konten Terbaru di Bank:
+${recent || '(bank masih kosong)'}`;
+  } else if(currentTabIdx === 3){
+    const learns = data.learns || [];
+    const jurusList = learns.map((l, i) => `${i + 1}. [${l.topic}] ${l.title}: ${(l.content || '').slice(0, 140)}...`).join('\n');
+    tabSpecificContext = `=== DETAIL TAB LEARN SAAT INI (JURUS & KAIDAH TERDAFTAR) ===
+- Total Jurus & Kaidah: ${learns.length} item
+- Daftar Jurus:
+${jurusList || '(belum ada jurus)'}
+(Catatan: User sedang mempelajari atau mengelola kaidah/jurus di Tab Learn. Berikan panduan mendalam tentang kaidah, bedah jurus, atau bantu merumuskan formula baru!)`;
+  } else if(currentTabIdx === 4){
+    const total = (data.contents || []).length;
+    const winners = (data.contents || []).filter(c => c.winner).length;
+    tabSpecificContext = `=== DETAIL TAB STATS SAAT INI ===
+- Total Konten di Bank: ${total}
+- Konten Winner: ${winners}
+- Rasio Pemenang: ${total > 0 ? Math.round((winners / total) * 100) : 0}%`;
+  } else if(currentTabIdx === 5){
+    tabSpecificContext = `=== DETAIL TAB SETTING SAAT INI ===
+- AI Provider: ${ai.provider || 'gemini'}
+- Model: ${ai.model || 'gemini-1.5-flash'}
+- Status API Key: ${ai.apiKey ? 'Sudah terpasang' : 'Belum terpasang'}`;
+  }
 
   // Active Jurus & Kaidah dari Tab Learn & Winner Bank
   const jurusPrompt = getJurusPrompt(category, 'copilot');
@@ -3247,19 +3627,18 @@ function buildCopilotSystemContext(){
   return `Kamu adalah 'Temanulis Copilot', asisten & partner sparring copywriting kelas atas (bahasa Indonesia).
 Gaya komunikasimu: santai, akrab, solutif, cerdas, tidak kaku, panggil user dengan sebutan 'bre'.
 
-=== KONTEKS WORKSPACE SAAT INI (REALTIME) ===
-- Judul Konten: "${title || '(belum diisi)'}"
-- Kategori Konten: "${category || 'Copywriting'}"
-- Template Aktif: "${tplName}"
-- Tujuan / Brief Konten: "${goal || '(belum diisi)'}"
-- Isi Draft Bagian di Editor Saat Ini:
-${secTexts || '(belum ada section)'}
+=== LOKASI & TAB PENGGUNA SAAT INI ===
+Pengguna sedang membuka TAB: "${currentTabName}".
+Kamu memiliki KEKUASAAN dan KESADARAN PENUH atas apa yang sedang dilihat dan dikerjakan pengguna di tab ini. Selalu berikan tanggapan yang selaras dengan tab aktif tersebut!
+
+${tabSpecificContext}
 
 ${jurusPrompt}
 
 === TUGAS & INSTRUKSI COPILOT ===
-1. Jawab pertanyaan user dengan memprioritaskan kaidah & jurus copywriting (terutama 14 Jurus Kitab Affiliate Rizal jika kategori affiliate/sosmed).
-2. Jika user meminta saran, variasi hook, isi problem, atau copywriting lengkap:
+1. Jawab pertanyaan user dengan memprioritaskan kaidah & jurus copywriting (terutama 18 Jurus Kitab Rizal & Kaidah Emas di Tab Learn).
+2. Jika user berada di Tab Learn, diskusikan cara penerapan formula, cara menajamkan jurus, atau bantu ciptakan jurus baru.
+3. Jika user meminta variasi hook, isi problem, atau copywriting lengkap:
    SELALU format bagian tersebut dengan format tag yang jelas, misalnya:
    [Hook]
    Isi hook di sini...
@@ -3272,7 +3651,8 @@ ${jurusPrompt}
 
    [CTA]
    Isi call to action di sini...
-3. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.`;
+4. Tombol "Terapkan ke [Nama Bagian]" otomatis muncul di bubble chat jika kamu menggunakan format tag [Nama Bagian], sehingga memudahkan user memasukkannya ke editor dengan 1-tap.
+5. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.`;
 }
 
 async function callAICopilot(history, systemPrompt){
@@ -3451,12 +3831,7 @@ function escapeHtml(str){
 }
 
 function formatMarkdownText(str){
-  if(!str) return '';
-  let out = escapeHtml(str);
-  out = out.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-  out = out.replace(/\*(.*?)\*/g, '<em>$1</em>');
-  out = out.replace(/\[([A-Za-z0-9\s\/\-_]{2,25})\]/g, '<span class="badge b-input" style="font-weight:700;margin-right:4px">[$1]</span>');
-  return out;
+  return formatMarkdown(str);
 }
 
 function applySectionFromChat(secName, msgIdx){
@@ -3609,6 +3984,7 @@ populateSelects();
 renderSections();
 updateJurusBarSummary();
 updateCopilotRibbon();
+renderCopilotChips();
 
 try{
   if(window.innerWidth <= 768 || localStorage.getItem('cb_sidebar') === '1'){
