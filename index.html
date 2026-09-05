@@ -924,13 +924,20 @@ let data = {
   contents:[],
   learns:[]
 };
-let ai = {provider:'claude',model:'claude-sonnet-4-6',apiKey:''};
+const DEFAULT_GEMINI_KEY = (function(){
+  try {
+    return atob('QVEuQWI4Uk42S3V1cjNNdFFqMldkNjNMdmhuaU16dG1IaGVqOUEwV0tRM3EwWm5SZ3hBb2c=');
+  } catch(e){
+    return '';
+  }
+})();
+let ai = {provider:'gemini', model:'gemini-3.1-flash-lite', apiKey: DEFAULT_GEMINI_KEY};
 let jurusConfig = {enabled:true, useLearns:true, useWinners:true, selectedLearnIds:[], selectedWinnerId:null};
 let currentSections=[], currentStars=0, currentTags=[], dragSrc=null, mixConfig={}, bankView='list', activeBankTags=[];
 
 const PROVIDERS = {
+  gemini:{name:'Gemini',models:['gemini-3.1-flash-lite','gemini-3.5-flash-lite','gemini-2.5-flash','gemini-2.5-flash-lite','gemini-2.0-flash','gemini-1.5-flash','gemini-1.5-pro'],url:'https://generativelanguage.googleapis.com/v1beta/models/'},
   claude:{name:'Claude',models:['claude-sonnet-4-6','claude-haiku-4-5-20251001','claude-opus-4-6'],url:'https://api.anthropic.com/v1/messages'},
-  gemini:{name:'Gemini',models:['gemini-2.0-flash','gemini-1.5-pro','gemini-1.5-flash' , 'gemini-2.5-flash' , 'gemini-3.1-flash-lite'],url:'https://generativelanguage.googleapis.com/v1beta/models/'},
   deepseek:{name:'DeepSeek',models:['deepseek-chat','deepseek-reasoner'],url:'https://api.deepseek.com/chat/completions'},
   groq:{name:'Groq',models:['llama-3.3-70b-versatile','mixtral-8x7b-32768','gemma2-9b-it'],url:'https://api.groq.com/openai/v1/chat/completions'}
 };
@@ -986,8 +993,20 @@ function load(){
   }catch(e){}
   try{
     const a = localStorage.getItem('temanulis_ai') || localStorage.getItem('cb_ai');
-    if(a)ai=JSON.parse(a);
+    if(a){
+      const parsed = JSON.parse(a);
+      if(parsed) ai = Object.assign(ai, parsed);
+    }
   }catch(e){}
+
+  // Default fallback jika provider gemini tapi apiKey belum terisi
+  if(ai.provider === 'gemini' && (!ai.apiKey || ai.apiKey.trim() === '')){
+    ai.apiKey = DEFAULT_GEMINI_KEY;
+  }
+  // Migrasi model lama ke gemini-3.1-flash-lite jika masih model default lama
+  if(ai.provider === 'gemini' && (!ai.model || ai.model === 'gemini-1.5-flash' || ai.model === 'gemini-2.0-flash' || ai.model === 'claude-sonnet-4-6')){
+    ai.model = 'gemini-3.1-flash-lite';
+  }
   try{
     const j = localStorage.getItem('temanulis_jurus');
     if(j) jurusConfig = Object.assign(jurusConfig, JSON.parse(j));
@@ -2757,7 +2776,10 @@ async function callAI(prompt, images = []){
   const cfg = PROVIDERS[p];
 
   if(p === 'gemini'){
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${ai.apiKey}`;
+    const primaryModel = ai.model || 'gemini-3.1-flash-lite';
+    const fallbackModel = (primaryModel === 'gemini-3.1-flash-lite') ? 'gemini-3.5-flash-lite' : 'gemini-3.1-flash-lite';
+    const activeKey = (ai.apiKey && ai.apiKey.trim()) ? ai.apiKey.trim() : DEFAULT_GEMINI_KEY;
+
     const parts = [];
     if(images && images.length){
       images.forEach(img => {
@@ -2770,15 +2792,31 @@ async function callAI(prompt, images = []){
       });
     }
     parts.push({ text: prompt });
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts }] })
-    });
-    const d = await r.json();
-    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
-    if(!d.candidates || !d.candidates[0] || !d.candidates[0].content) throw new Error('Tidak ada respon dari Gemini');
-    return d.candidates[0].content.parts[0].text;
+    const bodyObj = { contents: [{ parts }] };
+
+    async function sendGemini(modelName){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyObj)
+      });
+      const d = await r.json();
+      if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+      if(!d.candidates || !d.candidates[0] || !d.candidates[0].content) throw new Error('Tidak ada respon dari Gemini');
+      return d.candidates[0].content.parts[0].text;
+    }
+
+    try {
+      return await sendGemini(primaryModel);
+    } catch(errPrimary){
+      console.warn(`[Gemini] Model ${primaryModel} gagal (${errPrimary.message}), mencoba fallback ke ${fallbackModel}...`);
+      try {
+        return await sendGemini(fallbackModel);
+      } catch(errFallback){
+        throw new Error(`${errPrimary.message} (Fallback ke ${fallbackModel} juga gagal: ${errFallback.message})`);
+      }
+    }
   }
 
   if(p === 'claude'){
@@ -3165,14 +3203,32 @@ function openAISettings(){
     <select id="ai-model-sel" style="margin-bottom:14px" onchange="ai.model=this.value">
       ${(PROVIDERS[ai.provider].models||[]).map(m=>`<option${m===ai.model?' selected':''}>${m}</option>`).join('')}
     </select>
-    <div class="lbl">API Key</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+      <div class="lbl" style="margin:0">API Key</div>
+      <button class="btn sm" type="button" onclick="useDefaultGeminiKey()" style="padding:2px 8px;font-size:11px;border-color:var(--bda);color:var(--txa)">
+        <i class="ti ti-key"></i> Pasang Key Default Hermes
+      </button>
+    </div>
     <input type="password" id="ai-key-inp" value="${ai.apiKey}" placeholder="Paste API key di sini..." style="margin-bottom:6px"/>
-    <div style="font-size:12px;color:var(--txm);margin-bottom:14px">API key disimpan di localStorage browser kamu saja.</div>
+    <div style="font-size:12px;color:var(--txm);margin-bottom:14px;line-height:1.5">
+      Default terpasang: Gemini API Key Hermes (Profil WhatsApp Adamn). Model default: <code>gemini-3.1-flash-lite</code> (auto fallback ke <code>gemini-3.5-flash-lite</code>).
+    </div>
     <div class="row" style="justify-content:flex-end;gap:8px">
       <button class="btn" onclick="closeModal()">Batal</button>
       <button class="btn primary" onclick="saveAISettings()"><i class="ti ti-check"></i> Simpan</button>
     </div>
   `);
+}
+
+function useDefaultGeminiKey(){
+  selectProvider('gemini');
+  ai.apiKey = DEFAULT_GEMINI_KEY;
+  ai.model = 'gemini-3.1-flash-lite';
+  const inp = document.getElementById('ai-key-inp');
+  if(inp) inp.value = DEFAULT_GEMINI_KEY;
+  const sel = document.getElementById('ai-model-sel');
+  if(sel) sel.value = 'gemini-3.1-flash-lite';
+  showToast('✓ Menggunakan API Key & Model Default Hermes');
 }
 
 function selectProvider(p){
@@ -3617,8 +3673,8 @@ ${jurusList || '(belum ada jurus)'}
   } else if(currentTabIdx === 5){
     tabSpecificContext = `=== DETAIL TAB SETTING SAAT INI ===
 - AI Provider: ${ai.provider || 'gemini'}
-- Model: ${ai.model || 'gemini-1.5-flash'}
-- Status API Key: ${ai.apiKey ? 'Sudah terpasang' : 'Belum terpasang'}`;
+- Model Utama: ${ai.model || 'gemini-3.1-flash-lite'} (Dual Fallback: gemini-3.5-flash-lite)
+- Status API Key: ${ai.apiKey ? 'Sudah terpasang (Default Hermes Profile)' : 'Belum terpasang'}`;
   }
 
   // Active Jurus & Kaidah dari Tab Learn & Winner Bank
@@ -3660,7 +3716,10 @@ async function callAICopilot(history, systemPrompt){
   const cfg = PROVIDERS[p];
 
   if(p === 'gemini'){
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${ai.model}:generateContent?key=${ai.apiKey}`;
+    const primaryModel = ai.model || 'gemini-3.1-flash-lite';
+    const fallbackModel = (primaryModel === 'gemini-3.1-flash-lite') ? 'gemini-3.5-flash-lite' : 'gemini-3.1-flash-lite';
+    const activeKey = (ai.apiKey && ai.apiKey.trim()) ? ai.apiKey.trim() : DEFAULT_GEMINI_KEY;
+
     const contents = [];
     history.forEach(h => {
       contents.push({
@@ -3674,15 +3733,29 @@ async function callAICopilot(history, systemPrompt){
       contents: contents
     };
 
-    const r = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(bodyObj)
-    });
-    const d = await r.json();
-    if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
-    if(!d.candidates || !d.candidates[0] || !d.candidates[0].content) throw new Error('Tidak ada respon dari Gemini');
-    return d.candidates[0].content.parts[0].text;
+    async function sendGeminiCopilot(modelName){
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${activeKey}`;
+      const r = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bodyObj)
+      });
+      const d = await r.json();
+      if(d.error) throw new Error(d.error.message || JSON.stringify(d.error));
+      if(!d.candidates || !d.candidates[0] || !d.candidates[0].content) throw new Error('Tidak ada respon dari Gemini');
+      return d.candidates[0].content.parts[0].text;
+    }
+
+    try {
+      return await sendGeminiCopilot(primaryModel);
+    } catch(errPrimary){
+      console.warn(`[Copilot Gemini] Model ${primaryModel} gagal (${errPrimary.message}), mencoba fallback ke ${fallbackModel}...`);
+      try {
+        return await sendGeminiCopilot(fallbackModel);
+      } catch(errFallback){
+        throw new Error(`${errPrimary.message} (Fallback ke ${fallbackModel} juga gagal: ${errFallback.message})`);
+      }
+    }
   }
 
   if(p === 'claude'){
