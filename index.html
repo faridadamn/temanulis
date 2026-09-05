@@ -393,6 +393,75 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
   border-color:var(--bda);
   background:var(--s2);
 }
+.persona-card{
+  background:var(--s1);
+  border:1px solid var(--bd);
+  border-radius:var(--r);
+  padding:14px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  transition:border-color .15s, box-shadow .15s;
+  position:relative;
+}
+.persona-card:hover{
+  border-color:var(--bda);
+}
+.persona-card.active{
+  border-color:var(--txa);
+  background:linear-gradient(180deg, var(--s1) 0%, var(--s2) 100%);
+  box-shadow:0 0 0 1px var(--txa);
+}
+.persona-chip{
+  font-size:11px;
+  padding:2px 8px;
+  border-radius:4px;
+  background:var(--s2);
+  color:var(--tx2);
+  display:inline-flex;
+  align-items:center;
+  gap:4px;
+}
+.copilot-attachments{
+  display:flex;
+  gap:8px;
+  padding:6px 12px;
+  background:var(--s2);
+  border-top:1px solid var(--bd);
+  overflow-x:auto;
+  flex-shrink:0;
+}
+.copilot-attachment-item{
+  position:relative;
+  display:inline-block;
+  flex-shrink:0;
+}
+.copilot-attachment-item img{
+  width:44px;
+  height:44px;
+  object-fit:cover;
+  border-radius:6px;
+  border:1px solid var(--bd);
+  display:block;
+}
+.copilot-attachment-remove{
+  position:absolute;
+  top:-5px;
+  right:-5px;
+  background:#ef4444;
+  color:#fff;
+  border:none;
+  border-radius:50%;
+  width:16px;
+  height:16px;
+  font-size:10px;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  line-height:1;
+  padding:0;
+}
 </style>
 </head>
 <body>
@@ -423,8 +492,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
     <div class="tab" onclick="switchTab(1)"><i class="ti ti-arrows-shuffle"></i><span>Mixing</span></div>
     <div class="tab" onclick="switchTab(2)"><i class="ti ti-files"></i><span>Bank</span></div>
     <div class="tab" onclick="switchTab(3)"><i class="ti ti-school"></i><span>Learn</span></div>
-    <div class="tab" onclick="switchTab(4)"><i class="ti ti-chart-bar"></i><span>Stats</span></div>
-    <div class="tab" onclick="switchTab(5)"><i class="ti ti-settings"></i><span>Setting</span></div>
+    <div class="tab" onclick="switchTab(4)"><i class="ti ti-user-circle"></i><span>Persona</span></div>
+    <div class="tab" onclick="switchTab(5)"><i class="ti ti-chart-bar"></i><span>Stats</span></div>
+    <div class="tab" onclick="switchTab(6)"><i class="ti ti-settings"></i><span>Setting</span></div>
   </div>
   <div class="sidebar-bottom">
     <div class="tab" onclick="openAISettings()"><i class="ti ti-robot"></i><span>AI Settings</span></div>
@@ -435,6 +505,20 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 <!-- TAB INPUT -->
 <div id="p0" class="panel active">
   <div class="card">
+    <!-- PERSONA ACTIVE BAR -->
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--s2);border-radius:var(--r);border:1px solid var(--bd);flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:200px">
+        <span class="badge" style="background:var(--bga);color:var(--txa);font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px">
+          <i class="ti ti-user-circle"></i> Persona Brand
+        </span>
+        <strong id="input-persona-name" style="font-size:13px;color:var(--tx)">Memuat...</strong>
+        <span id="input-persona-tone" style="font-size:11px;color:var(--txm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px"></span>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <select id="input-persona-select" onchange="setActivePersona(this.value)" style="font-size:12px;padding:4px 8px;height:28px;width:auto"></select>
+        <button class="btn sm" type="button" onclick="switchTab(4)" title="Buka Tab Persona" style="padding:2px 8px;font-size:11px"><i class="ti ti-adjustments"></i> Kelola</button>
+      </div>
+    </div>
     <div class="row center" style="gap:10px;flex-wrap:wrap">
       <div class="flex1">
         <div class="lbl">Judul konten</div>
@@ -657,8 +741,60 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
   <div id="learn-list" style="display:flex;flex-direction:column;gap:12px"></div>
 </div>
 
-<!-- TAB STATS -->
+<!-- TAB PERSONA -->
 <div id="p4" class="panel">
+  <div class="card" style="background:linear-gradient(135deg, var(--s1) 0%, var(--s2) 100%);border-color:var(--bda)">
+    <div class="row" style="justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap">
+      <div style="max-width:560px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span class="badge" style="background:var(--bga);color:var(--txa);font-size:12px;font-weight:700">
+            <i class="ti ti-user-circle"></i> Brand Persona Engine
+          </span>
+          <span class="badge b-input" id="persona-count-badge">0 Persona</span>
+        </div>
+        <div style="font-size:13px;color:var(--tx2);line-height:1.5">
+          Definisikan profil target pembaca, karakter gaya bahasa (Tone of Voice), sapaan khas, dan jurus wajib yang otomatis mengunci saat AI menulis naskah atau saat Copilot diajak brainstorming.
+        </div>
+      </div>
+      <div class="row" style="gap:8px;flex-wrap:wrap">
+        <button class="btn primary sm" onclick="openCreatePersonaWithCopilot()"><i class="ti ti-sparkles"></i> Wawancara via Copilot</button>
+        <button class="btn sm" onclick="openEditPersonaModal()"><i class="ti ti-plus"></i> Tambah Manual</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIGHLIGHT ACTIVE PERSONA -->
+  <div class="card" id="persona-active-highlight" style="display:none;border-left:4px solid var(--txa)">
+    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--txa);background:var(--bga);padding:2px 8px;border-radius:4px;text-transform:uppercase">
+          <i class="ti ti-check"></i> Persona Aktif
+        </span>
+        <strong id="active-persona-title" style="font-size:16px;color:var(--tx)"></strong>
+      </div>
+      <div class="row" style="gap:6px">
+        <button class="btn sm" id="btn-edit-active-persona" style="padding:3px 10px;font-size:12px"><i class="ti ti-pencil"></i> Edit</button>
+        <button class="btn sm" onclick="switchTab(0)" style="padding:3px 10px;font-size:12px;border-color:var(--bda);color:var(--txa)"><i class="ti ti-pencil"></i> Pakai Nulis di Input</button>
+      </div>
+    </div>
+    <div id="active-persona-body" style="font-size:13px;color:var(--tx2);line-height:1.6"></div>
+  </div>
+
+  <!-- SEARCH & ACTIONS -->
+  <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+    <div class="sb" style="flex:1;min-width:180px">
+      <i class="ti ti-search"></i>
+      <input type="text" id="persona-search" placeholder="Cari persona brand..." oninput="renderPersona()">
+    </div>
+    <button class="btn sm" onclick="openLoadDefaultPersonasModal()" style="border-color:var(--bd)"><i class="ti ti-rotate-clockwise"></i> Reset Default Persona</button>
+  </div>
+
+  <!-- DAFTAR KARTU PERSONA -->
+  <div id="persona-list" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px"></div>
+</div>
+
+<!-- TAB STATS -->
+<div id="p5" class="panel">
   <div class="card">
     <div class="lbl">Ringkasan bank</div>
     <div class="stat-grid" id="stats-grid"></div>
@@ -674,7 +810,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 </div>
 
 <!-- TAB SETTING -->
-<div id="p5" class="panel">
+<div id="p6" class="panel">
   <div class="card">
     <div class="lbl">Master bagian</div>
     <div id="master-sections"></div>
@@ -758,9 +894,16 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
     <div class="copilot-chip" onclick="sendQuickCopilotPrompt('Tuliskan draft lengkap semua bagian sesuai template aktif!')"><i class="ti ti-pencil"></i> Tulis Full Draft</div>
   </div>
 
+  <!-- COPILOT ATTACHMENTS PREVIEW -->
+  <div id="copilot-attachments" class="copilot-attachments" style="display:none"></div>
+
   <div class="copilot-footer">
-    <textarea class="copilot-input" id="copilot-input" placeholder="Tanya / minta revisi (Enter untuk kirim)..." rows="1" onkeydown="handleCopilotKeyDown(event)" oninput="autoResizeCopilotInput(this)"></textarea>
-    <button class="btn primary sm" id="copilot-send-btn" onclick="sendCopilotMessage()" style="height:36px;width:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%">
+    <input type="file" id="copilot-file-inp" accept="image/*" multiple style="display:none" onchange="handleCopilotPhotosSelected(event)">
+    <button class="btn sm" id="copilot-upload-btn" type="button" onclick="triggerCopilotPhotoUpload()" title="Unggah screenshot akun/konten untuk dianalisis jadi Persona" style="height:36px;width:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;border-color:var(--bd);background:var(--s1);color:var(--tx2);flex-shrink:0">
+      <i class="ti ti-photo" style="font-size:17px"></i>
+    </button>
+    <textarea class="copilot-input" id="copilot-input" placeholder="Tanya / minta wawancara / drop screenshot..." rows="1" onkeydown="handleCopilotKeyDown(event)" oninput="autoResizeCopilotInput(this)"></textarea>
+    <button class="btn primary sm" id="copilot-send-btn" onclick="sendCopilotMessage()" style="height:36px;width:36px;padding:0;display:flex;align-items:center;justify-content:center;border-radius:50%;flex-shrink:0">
       <i class="ti ti-send"></i>
     </button>
   </div>
@@ -916,13 +1059,51 @@ const DEFAULT_LEARNS = [
   }
 ];
 
+const DEFAULT_PERSONAS = [
+  {
+    id: 'persona_affiliate_1',
+    name: 'Affiliate TikTok Racun Murah',
+    targetAudience: 'Ibu rumah tangga & Gen-Z (18-35 thn) pencari barang praktis, diskonan receh, dan solusi cepat tanpa ribet.',
+    toneOfVoice: 'Santai, ceplas-ceplos, seru ala teman curhat/tetangga sebelah, to-the-point tanpa istilah korporat kaku.',
+    greetingWords: 'Bunda, Sis, Rek, Guys, hemat parah, racun banget, wajib punya',
+    bannedWords: 'optimal, komprehensif, fleksibilitas, paradigma, sinergi, marilah',
+    recommendedJurus: ['Harga Jangkar', 'Pilihan Setan', 'Solusi Gratisan Dulu', 'B-A-P (Before - After - Pivot)'],
+    description: 'Fokus rekomendasi barang murah fungsional dengan formula pecah harga receh harian.',
+    active: true
+  },
+  {
+    id: 'persona_b2b_1',
+    name: 'Agensi & Jasa Profesional No-BS',
+    targetAudience: 'Founder startup, owner bisnis UMKM, dan profesional yang butuh hasil nyata, efisiensi waktu, dan ROI terukur.',
+    toneOfVoice: 'Tegas, solutif, berbasis data & studi kasus, lugas, percaya diri tinggi, kredibel.',
+    greetingWords: 'Rekan bisnis, Bos, Teman-teman founder, ROI, omzet, efisiensi',
+    bannedWords: 'mungkin, bisa jadi, murah meriah, gampang banget, asal-asalan',
+    recommendedJurus: ["It's Not About The Product", 'Testimoni Jujur & Flaw Disclosure', 'B-A-P (Before - After - Pivot)', 'Aturan 3 Detik Pertama'],
+    description: 'Copywriting bernilai tinggi untuk jasa atau B2B dengan pembuktian hasil dan transparansi flaw.',
+    active: false
+  },
+  {
+    id: 'persona_personal_1',
+    name: 'Kreator Personal Brand & Edukasi',
+    targetAudience: 'Freelancer, kreator pemula, dan pekerja muda yang ingin scale up skill digital, karier, dan income.',
+    toneOfVoice: 'Empatik, inspiratif, berbagi pengalaman gagal-bangkit, jujur, mengayomi seperti kakak tingkat.',
+    greetingWords: 'Teman-teman, Kawan, Bro, Sobat, jujurly, pengalaman gue',
+    bannedWords: 'pasti kaya mendadak, jaminan 100%, santai tanpa usaha',
+    recommendedJurus: ['Storytelling Berseri (Slow Burn)', 'Curiosity Gap Principle', 'Bahasa Mengobrol Santai (Gaya Ngopi)'],
+    description: 'Membangun trust dan otoritas jangka panjang lewat cerita otentik dan insight praktis.',
+    active: false
+  }
+];
+
 let data = {
   sections:['Hook','Problem','Agitate','Solution','Fitur','CTA','Testimoni','Offer','Guarantee','Closing'],
   categories:['Produk Digital','Jasa','Personal Brand','Affiliate','Edukasi'],
   topics:['Copywriting','Marketing','Mindset','Produktivitas','Bisnis'],
   tags:['#terbukti','#highCR','#instagram','#softSell','#hardSell','#video','#carousel'],
   contents:[],
-  learns:[]
+  learns:[],
+  personas:[],
+  activePersonaId:''
 };
 const DEFAULT_GEMINI_KEY = (function(){
   try {
@@ -1026,6 +1207,15 @@ function load(){
     save();
   }
 
+  // Sinkronkan data.personas jika belum ada
+  if(!data.personas || !data.personas.length){
+    data.personas = JSON.parse(JSON.stringify(DEFAULT_PERSONAS));
+    data.activePersonaId = data.personas[0].id;
+  }
+  if(!data.activePersonaId && data.personas.length){
+    data.activePersonaId = data.personas[0].id;
+  }
+
   // Merge custom templates ke TEMPLATES
   if(data.customTemplates && data.customTemplates.length){
     data.customTemplates.forEach(ct => {
@@ -1064,9 +1254,11 @@ function switchTab(i){
   if(i===1)initMixSlots();
   if(i===2)renderBank();
   if(i===3)renderLearn();
-  if(i===4)renderStats();
-  if(i===5)renderSettings();
+  if(i===4)renderPersona();
+  if(i===5)renderStats();
+  if(i===6)renderSettings();
   populateSelects();
+  updateInputPersonaBar();
   updateJurusBarSummary();
   if(typeof updateCopilotRibbon === 'function') updateCopilotRibbon();
   if(typeof renderCopilotChips === 'function') renderCopilotChips();
@@ -1084,6 +1276,7 @@ function populateSelects(){
   set('learn-filter','<option value="">Semua topik</option>'+data.topics.map(t=>`<option>${t}</option>`).join(''));
   renderTagPicker();
   renderTemplates();
+  updateInputPersonaBar();
 }
 
 // ===================== TEMPLATES =====================
@@ -1227,13 +1420,34 @@ function getJurusPrompt(category = '', contextType = 'general'){
 
   const blocks = [];
 
+  // 0. DNA Persona Brand Aktif (Tone of Voice, Target Audiens & Kosakata)
+  const activeP = getActivePersona();
+  if(activeP){
+    const pLines = [
+      `- Nama Persona / Brand: "${activeP.name}"`,
+      activeP.targetAudience ? `- Target Audiens: ${activeP.targetAudience}` : '',
+      activeP.toneOfVoice ? `- Karakter & Tone of Voice: ${activeP.toneOfVoice}` : '',
+      activeP.greetingWords ? `- Sapaan Khas / Kosakata Wajib: "${activeP.greetingWords}"` : '',
+      activeP.bannedWords ? `- Kata Terlarang (JANGAN PERNAH GUNAKAN): "${activeP.bannedWords}"` : '',
+      activeP.description ? `- Intisari DNA: ${activeP.description}` : ''
+    ].filter(Boolean).join('\n');
+    blocks.push(`=== DNA PERSONA BRAND AKTIF (WAJIB DITERAPKAN PADA PILIHAN KATA & RITME KALIMAT) ===\n${pLines}`);
+  }
+
   // 1. Ambil Catatan Kaidah/Jurus dari Tab Learn
   if(jurusConfig.useLearns && data.learns && data.learns.length > 0){
     let activeLearns = [];
     if(jurusConfig.selectedLearnIds && jurusConfig.selectedLearnIds.length > 0){
       activeLearns = data.learns.filter(l => jurusConfig.selectedLearnIds.includes(l.id));
     }
-    // Jika user belum memilih spesifik, cari yang paling relevan dengan kategori/topik atau ambil 3 terbaru
+    // Jika user belum memilih spesifik, prioritaskan jurus yang direkomendasikan Persona Aktif
+    if(!activeLearns.length && activeP && activeP.recommendedJurus && activeP.recommendedJurus.length > 0){
+      const recKeywords = activeP.recommendedJurus.map(k => k.toLowerCase().trim());
+      activeLearns = data.learns.filter(l => 
+        recKeywords.some(rk => (l.title || '').toLowerCase().includes(rk) || (l.topic || '').toLowerCase().includes(rk))
+      );
+    }
+    // Fallback: cari yang paling relevan dengan kategori/topik atau ambil 3 terbaru
     if(!activeLearns.length){
       const catLower = (category || '').toLowerCase();
       const matched = data.learns.filter(l => 
@@ -3357,6 +3571,349 @@ async function confirmLoadDefaultBank(){
   }
 }
 
+// ===================== PERSONA ENGINE =====================
+function getActivePersona(){
+  if(!data.personas || !data.personas.length) {
+    data.personas = JSON.parse(JSON.stringify(DEFAULT_PERSONAS));
+    data.activePersonaId = data.personas[0].id;
+  }
+  const p = data.personas.find(x => x.id === data.activePersonaId);
+  return p || data.personas[0] || null;
+}
+
+function setActivePersona(id){
+  if(!data.personas || !data.personas.length) return;
+  const target = data.personas.find(x => x.id === id);
+  if(!target) return;
+  data.activePersonaId = id;
+  data.personas.forEach(x => x.active = (x.id === id));
+  save();
+  renderPersona();
+  updateInputPersonaBar();
+  updateCopilotRibbon();
+  showToast(`✓ Persona aktif: "${target.name}"`);
+}
+
+function updateInputPersonaBar(){
+  const p = getActivePersona();
+  const nameEl = document.getElementById('input-persona-name');
+  const toneEl = document.getElementById('input-persona-tone');
+  const sel = document.getElementById('input-persona-select');
+  if(!p) return;
+
+  if(nameEl) nameEl.textContent = p.name;
+  if(toneEl) toneEl.textContent = p.toneOfVoice ? `• ${p.toneOfVoice.slice(0, 45)}...` : '';
+
+  if(sel && data.personas && data.personas.length){
+    sel.innerHTML = data.personas.map(item => `
+      <option value="${item.id}" ${item.id === p.id ? 'selected' : ''}>${escapeHtml(item.name)}</option>
+    `).join('');
+  }
+}
+
+function renderPersona(){
+  const listEl = document.getElementById('persona-list');
+  const badgeEl = document.getElementById('persona-count-badge');
+  const highlightCard = document.getElementById('persona-active-highlight');
+  const activeTitle = document.getElementById('active-persona-title');
+  const activeBody = document.getElementById('active-persona-body');
+  const btnEditActive = document.getElementById('btn-edit-active-persona');
+
+  if(!data.personas || !data.personas.length){
+    data.personas = JSON.parse(JSON.stringify(DEFAULT_PERSONAS));
+    data.activePersonaId = data.personas[0].id;
+  }
+
+  const activeP = getActivePersona();
+  if(badgeEl) badgeEl.textContent = `${data.personas.length} Persona`;
+
+  if(highlightCard && activeP){
+    highlightCard.style.display = 'block';
+    if(activeTitle) activeTitle.textContent = activeP.name;
+    if(btnEditActive) btnEditActive.onclick = () => openEditPersonaModal(activeP.id);
+    if(activeBody){
+      activeBody.innerHTML = `
+        <div style="margin-bottom:6px">🎯 <strong>Target Pembaca:</strong> ${escapeHtml(activeP.targetAudience || '-')}</div>
+        <div style="margin-bottom:6px">🗣️ <strong>Tone of Voice:</strong> ${escapeHtml(activeP.toneOfVoice || '-')}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px">
+          ${activeP.greetingWords ? `<span class="persona-chip"><i class="ti ti-message-dots"></i> Sapaan: ${escapeHtml(activeP.greetingWords)}</span>` : ''}
+          ${activeP.bannedWords ? `<span class="persona-chip" style="color:var(--txd);border-color:rgba(239,68,68,0.2)"><i class="ti ti-ban"></i> Dilarang: ${escapeHtml(activeP.bannedWords)}</span>` : ''}
+          ${(activeP.recommendedJurus || []).map(j => `<span class="persona-chip" style="color:var(--txa);border-color:var(--bda)"><i class="ti ti-bolt"></i> ${escapeHtml(j)}</span>`).join('')}
+        </div>
+      `;
+    }
+  }
+
+  if(!listEl) return;
+
+  const q = (document.getElementById('persona-search')?.value || '').toLowerCase().trim();
+  const filtered = data.personas.filter(p => {
+    if(!q) return true;
+    return (p.name || '').toLowerCase().includes(q) ||
+           (p.targetAudience || '').toLowerCase().includes(q) ||
+           (p.toneOfVoice || '').toLowerCase().includes(q) ||
+           (p.greetingWords || '').toLowerCase().includes(q);
+  });
+
+  if(!filtered.length){
+    listEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:30px;color:var(--txm)">Tidak ada persona yang sesuai pencarian.</div>`;
+    return;
+  }
+
+  let html = '';
+  filtered.forEach(p => {
+    const isActive = (p.id === (activeP ? activeP.id : null));
+    html += `
+      <div class="persona-card${isActive ? ' active' : ''}">
+        <div class="row" style="justify-content:space-between;align-items:flex-start">
+          <div>
+            <div style="font-weight:700;font-size:15px;color:var(--tx);margin-bottom:2px">${escapeHtml(p.name)}</div>
+            <div style="font-size:12px;color:var(--txm)">${escapeHtml(p.description || 'Persona Brand')}</div>
+          </div>
+          ${isActive ? `
+            <span class="badge" style="background:var(--bga);color:var(--txa);font-size:10px;font-weight:700"><i class="ti ti-check"></i> AKTIF</span>
+          ` : `
+            <button class="btn sm" onclick="setActivePersona('${p.id}')" style="padding:2px 8px;font-size:11px;border-color:var(--bd)"><i class="ti ti-check"></i> Gunakan</button>
+          `}
+        </div>
+
+        <div style="font-size:12px;color:var(--tx2);line-height:1.5">
+          <div style="margin-bottom:4px">🎯 <strong>Target:</strong> ${escapeHtml((p.targetAudience || '-').slice(0, 90))}${p.targetAudience && p.targetAudience.length > 90 ? '...' : ''}</div>
+          <div style="margin-bottom:4px">🗣️ <strong>Tone:</strong> ${escapeHtml((p.toneOfVoice || '-').slice(0, 90))}${p.toneOfVoice && p.toneOfVoice.length > 90 ? '...' : ''}</div>
+        </div>
+
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:auto;padding-top:6px;border-top:1px solid var(--bd)">
+          ${p.greetingWords ? `<span class="persona-chip" title="Sapaan Khas"><i class="ti ti-message-dots"></i> ${escapeHtml(p.greetingWords.slice(0, 24))}</span>` : ''}
+          ${(p.recommendedJurus || []).slice(0, 2).map(j => `<span class="persona-chip" style="color:var(--txa)"><i class="ti ti-bolt"></i> ${escapeHtml(j)}</span>`).join('')}
+        </div>
+
+        <div class="row" style="justify-content:flex-end;gap:6px;margin-top:4px">
+          <button class="btn sm" onclick="openEditPersonaModal('${p.id}')" title="Edit Persona" style="padding:3px 8px"><i class="ti ti-pencil"></i> Edit</button>
+          <button class="btn sm" onclick="duplicatePersona('${p.id}')" title="Duplikasi Persona" style="padding:3px 8px"><i class="ti ti-copy"></i> Duplikat</button>
+          ${data.personas.length > 1 ? `<button class="btn sm" onclick="deletePersona('${p.id}')" title="Hapus Persona" style="padding:3px 8px;color:var(--txd)"><i class="ti ti-trash"></i></button>` : ''}
+        </div>
+      </div>
+    `;
+  });
+
+  listEl.innerHTML = html;
+  updateInputPersonaBar();
+}
+
+function openEditPersonaModal(id = null){
+  const p = id ? data.personas.find(x => x.id === id) : null;
+  const isNew = !p;
+  const learnsList = (data.learns || []);
+
+  const jurusCheckboxes = learnsList.map(l => {
+    const isChecked = (p && p.recommendedJurus) ? p.recommendedJurus.some(rj => l.title.includes(rj) || rj.includes(l.title)) : false;
+    return `
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;cursor:pointer;padding:3px 0">
+        <input type="checkbox" name="persona-jurus-chk" value="${escapeHtml(l.title)}" ${isChecked ? 'checked' : ''}>
+        <span>${escapeHtml(l.title)} <span style="color:var(--txm)">(${escapeHtml(l.topic)})</span></span>
+      </label>
+    `;
+  }).join('');
+
+  openModal(`
+    <div class="modal-title"><i class="ti ti-user-circle" style="color:var(--txa)"></i> ${isNew ? 'Tambah Persona Baru' : 'Edit Persona Brand'}</div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:12px">
+      Atur profil target pembaca dan karakter gaya bahasa yang akan otomatis menjadi patokan AI setiap kali membuat konten.
+    </div>
+
+    <div class="lbl">Nama Persona / Brand *</div>
+    <input type="text" id="pmodal-name" value="${p ? escapeHtml(p.name) : ''}" placeholder="Contoh: Skincare Bunda Glowing / Affiliate TikTok Murah" style="margin-bottom:10px"/>
+
+    <div class="lbl">Target Pembaca / Demografi *</div>
+    <textarea id="pmodal-target" placeholder="Siapa audiensnya? Masalah utama mereka apa? Contoh: Ibu rumah tangga 25-40 tahun yang sensitif harga dan ingin solusi serba cepat..." style="min-height:55px;margin-bottom:10px">${p ? escapeHtml(p.targetAudience) : ''}</textarea>
+
+    <div class="lbl">Tone of Voice (Gaya Bahasa & Karakter) *</div>
+    <textarea id="pmodal-tone" placeholder="Contoh: Santai, ceplas-ceplos ala tetangga curhat, hangat, to the point, anti bahasa birokratis kaku..." style="min-height:55px;margin-bottom:10px">${p ? escapeHtml(p.toneOfVoice) : ''}</textarea>
+
+    <div class="row" style="gap:10px;margin-bottom:10px">
+      <div class="flex1">
+        <div class="lbl">Sapaan Khas / Kosakata Wajib</div>
+        <input type="text" id="pmodal-greeting" value="${p ? escapeHtml(p.greetingWords || '') : ''}" placeholder="Bunda, Sis, Rek, Guys, hemat parah, racun"/>
+      </div>
+      <div class="flex1">
+        <div class="lbl">Kata Terlarang (Banned Words)</div>
+        <input type="text" id="pmodal-banned" value="${p ? escapeHtml(p.bannedWords || '') : ''}" placeholder="optimal, sinergi, komprehensif"/>
+      </div>
+    </div>
+
+    <div class="lbl">Rekomendasi Jurus Copywriting (Pilih yang Selaras)</div>
+    <div style="max-height:120px;overflow-y:auto;background:var(--s1);padding:8px 10px;border-radius:var(--r);margin-bottom:10px;border:1px solid var(--bd)">
+      ${jurusCheckboxes || '<div style="color:var(--txm);font-size:12px">Belum ada jurus di Tab Learn</div>'}
+    </div>
+
+    <div class="lbl">Intisari / Deskripsi Singkat</div>
+    <input type="text" id="pmodal-desc" value="${p ? escapeHtml(p.description || '') : ''}" placeholder="1 kalimat rangkuman DNA persona ini" style="margin-bottom:14px"/>
+
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn primary" onclick="savePersonaFromModal('${p ? p.id : ''}')"><i class="ti ti-check"></i> Simpan Persona</button>
+    </div>
+  `);
+}
+
+function savePersonaFromModal(id = ''){
+  const name = (document.getElementById('pmodal-name')?.value || '').trim();
+  const target = (document.getElementById('pmodal-target')?.value || '').trim();
+  const tone = (document.getElementById('pmodal-tone')?.value || '').trim();
+  const greeting = (document.getElementById('pmodal-greeting')?.value || '').trim();
+  const banned = (document.getElementById('pmodal-banned')?.value || '').trim();
+  const desc = (document.getElementById('pmodal-desc')?.value || '').trim();
+
+  if(!name){
+    showToast('Nama Persona wajib diisi!', 'warn');
+    return;
+  }
+
+  const chk = document.querySelectorAll('input[name="persona-jurus-chk"]:checked');
+  const recJurus = Array.from(chk).map(c => c.value);
+
+  if(!data.personas) data.personas = [];
+
+  if(id){
+    const p = data.personas.find(x => x.id === id);
+    if(p){
+      p.name = name;
+      p.targetAudience = target;
+      p.toneOfVoice = tone;
+      p.greetingWords = greeting;
+      p.bannedWords = banned;
+      p.recommendedJurus = recJurus;
+      p.description = desc;
+    }
+  } else {
+    const newId = 'persona_' + Date.now();
+    const newP = {
+      id: newId,
+      name: name,
+      targetAudience: target,
+      toneOfVoice: tone,
+      greetingWords: greeting,
+      bannedWords: banned,
+      recommendedJurus: recJurus,
+      description: desc,
+      active: true
+    };
+    data.personas.forEach(x => x.active = false);
+    data.personas.push(newP);
+    data.activePersonaId = newId;
+  }
+
+  save();
+  closeModal();
+  renderPersona();
+  updateInputPersonaBar();
+  updateCopilotRibbon();
+  showToast('✓ Persona berhasil disimpan!');
+}
+
+function duplicatePersona(id){
+  const src = data.personas.find(x => x.id === id);
+  if(!src) return;
+  const clone = JSON.parse(JSON.stringify(src));
+  clone.id = 'persona_' + Date.now();
+  clone.name = clone.name + ' (Copy)';
+  clone.active = false;
+  data.personas.push(clone);
+  save();
+  renderPersona();
+  showToast(`✓ Persona "${clone.name}" diduplikasi!`);
+}
+
+function deletePersona(id){
+  if(data.personas.length <= 1){
+    showToast('Minimal harus ada 1 persona!', 'warn');
+    return;
+  }
+  const p = data.personas.find(x => x.id === id);
+  if(!confirm(`Hapus persona "${p ? p.name : ''}"?`)) return;
+
+  data.personas = data.personas.filter(x => x.id !== id);
+  if(data.activePersonaId === id){
+    data.activePersonaId = data.personas[0].id;
+    data.personas[0].active = true;
+  }
+  save();
+  renderPersona();
+  updateInputPersonaBar();
+  showToast('✓ Persona dihapus');
+}
+
+function openLoadDefaultPersonasModal(){
+  if(confirm('Reset daftar persona kembali ke setelan default bawaan?')){
+    data.personas = JSON.parse(JSON.stringify(DEFAULT_PERSONAS));
+    data.activePersonaId = data.personas[0].id;
+    save();
+    renderPersona();
+    updateInputPersonaBar();
+    showToast('✓ Persona berhasil di-reset ke default!');
+  }
+}
+
+function openCreatePersonaWithCopilot(){
+  toggleCopilot(true);
+  sendQuickCopilotPrompt("Halo Copilot! Wawancarai gue santai dengan 3 pertanyaan untuk bikin Persona Brand baru yang tajam dan otentik!");
+}
+
+function extractPersonaFromText(text){
+  if(!text) return null;
+  const match = text.match(/\[Persona\]([\s\S]+?)(?=\n\[|$)/i);
+  if(!match) return null;
+  const block = match[1];
+  const getField = (field) => {
+    const m = block.match(new RegExp(`(?:^|\\n)\\s*(?:•|-|\\*)?\\s*${field}\\s*[:=]\\s*(.+)`, 'i'));
+    return m ? m[1].trim() : '';
+  };
+  const name = getField('Nama') || getField('Brand') || getField('Nama Persona');
+  if(!name) return null;
+  const recJurusStr = getField('Jurus Rekomendasi') || getField('Jurus') || getField('Rekomendasi Jurus');
+  return {
+    name: name,
+    targetAudience: getField('Target') || getField('Target Audiens') || getField('Target Pembaca'),
+    toneOfVoice: getField('Tone') || getField('Tone of Voice') || getField('Gaya Bahasa'),
+    greetingWords: getField('Sapaan') || getField('Sapaan Khas') || getField('Kata Wajib'),
+    bannedWords: getField('Kata Dilarang') || getField('Banned Words') || getField('Kata Terlarang'),
+    recommendedJurus: recJurusStr ? recJurusStr.split(/[,;]/).map(s=>s.trim()).filter(Boolean) : [],
+    description: getField('Ringkasan') || getField('Deskripsi') || getField('DNA')
+  };
+}
+
+function applyPersonaFromChat(msgIdx){
+  const msg = window._copilotHistory[msgIdx];
+  if(!msg) return;
+  const pData = extractPersonaFromText(msg.content);
+  if(!pData){
+    showToast('Format persona tidak ditemukan', 'warn');
+    return;
+  }
+  const newId = 'persona_' + Date.now();
+  const newPersona = {
+    id: newId,
+    name: pData.name,
+    targetAudience: pData.targetAudience || '',
+    toneOfVoice: pData.toneOfVoice || '',
+    greetingWords: pData.greetingWords || '',
+    bannedWords: pData.bannedWords || '',
+    recommendedJurus: pData.recommendedJurus || [],
+    description: pData.description || '',
+    active: true
+  };
+  if(!data.personas) data.personas = [];
+  data.personas.forEach(p => p.active = false);
+  data.personas.push(newPersona);
+  data.activePersonaId = newId;
+  save();
+  renderPersona();
+  updateInputPersonaBar();
+  updateCopilotRibbon();
+  showToast(`✓ Persona "${newPersona.name}" berhasil dibuat dan diaktifkan!`);
+  switchTab(4);
+}
+
 // ===================== DEFAULT LEARNS (DATABASE SERVER) =====================
 let _defaultLearnsCache = null;
 
@@ -3451,6 +4008,87 @@ async function confirmLoadDefaultLearns(){
 // ===================== COPILOT SIDECAR SYSTEM =====================
 window._copilotHistory = [];
 let _copilotOpen = false;
+window._copilotAttachments = [];
+
+function triggerCopilotPhotoUpload(){
+  const inp = document.getElementById('copilot-file-inp');
+  if(inp) inp.click();
+}
+
+function handleCopilotPhotosSelected(e){
+  if(e.target.files && e.target.files.length){
+    processCopilotFiles(e.target.files);
+    e.target.value = '';
+  }
+}
+
+async function processCopilotFiles(files){
+  const validFiles = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if(!validFiles.length){
+    showToast('Pilih file gambar screenshot yang valid (JPG, PNG, WebP)', 'warn');
+    return;
+  }
+  for(const file of validFiles){
+    try {
+      const item = await processPhotoFile(file);
+      window._copilotAttachments.push(item);
+    } catch(err){
+      console.error(err);
+    }
+  }
+  renderCopilotAttachments();
+  toggleCopilot(true);
+  const inp = document.getElementById('copilot-input');
+  if(inp && !inp.value.trim()){
+    inp.value = 'Analisis screenshot akun/konten ini dan buatkan Persona Brand lengkap beserta rekomendasinya!';
+  }
+}
+
+function removeCopilotAttachment(idx){
+  window._copilotAttachments.splice(idx, 1);
+  renderCopilotAttachments();
+}
+
+function renderCopilotAttachments(){
+  const box = document.getElementById('copilot-attachments');
+  if(!box) return;
+  if(!window._copilotAttachments.length){
+    box.style.display = 'none';
+    box.innerHTML = '';
+    return;
+  }
+  box.style.display = 'flex';
+  box.innerHTML = window._copilotAttachments.map((att, idx) => `
+    <div class="copilot-attachment-item">
+      <img src="data:${att.type || 'image/jpeg'};base64,${att.base64}" alt="attachment">
+      <button type="button" class="copilot-attachment-remove" onclick="removeCopilotAttachment(${idx})" title="Hapus foto">×</button>
+    </div>
+  `).join('') + `
+    <button class="btn sm" type="button" onclick="triggerCopilotPhotoUpload()" style="height:44px;padding:0 8px;font-size:11px;border-color:var(--bd);flex-shrink:0" title="Tambah foto lain">
+      <i class="ti ti-plus"></i>
+    </button>
+  `;
+}
+
+function initCopilotDragAndDrop(){
+  const drawer = document.getElementById('copilot-drawer');
+  if(!drawer) return;
+  drawer.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    drawer.style.boxShadow = '0 0 0 2px var(--txa)';
+  });
+  drawer.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    drawer.style.boxShadow = '';
+  });
+  drawer.addEventListener('drop', (e) => {
+    e.preventDefault();
+    drawer.style.boxShadow = '';
+    if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+      processCopilotFiles(e.dataTransfer.files);
+    }
+  });
+}
 
 function loadCopilotHistory(){
   try{
@@ -3531,11 +4169,14 @@ function updateCopilotRibbon(){
     const learnCount = (data.learns || []).length;
     ribbonText.innerHTML = `<i class="ti ti-school"></i> Tab Learn: <strong>${learnCount} Jurus &amp; Kaidah</strong>`;
   } else if(tabIdx === 4){
-    ribbonText.innerHTML = `<i class="ti ti-chart-bar"></i> Tab Stats: <strong>Performa Konten</strong>`;
+    const activeP = getActivePersona();
+    ribbonText.innerHTML = `<i class="ti ti-user-circle"></i> Tab Persona: <strong>${escapeHtml(activeP ? activeP.name : 'Pilih Persona')}</strong>`;
   } else if(tabIdx === 5){
+    ribbonText.innerHTML = `<i class="ti ti-chart-bar"></i> Tab Stats: <strong>Performa Konten</strong>`;
+  } else if(tabIdx === 6){
     ribbonText.innerHTML = `<i class="ti ti-settings"></i> Tab Setting: <strong>AI &amp; Konfigurasi</strong>`;
   } else {
-    ribbonText.innerHTML = `<i class="ti ti-link"></i> Terhubung: 18 Jurus &amp; Editor`;
+    ribbonText.innerHTML = `<i class="ti ti-link"></i> Terhubung: Persona &amp; Editor`;
   }
 }
 
@@ -3575,12 +4216,20 @@ function renderCopilotChips(){
       { icon: 'ti-plus', label: 'Bantu Bikin Jurus Baru', prompt: 'Gue punya pola copywriting yang sering berhasil, bantu gue rumuskan jadi jurus baru lengkap dengan kaidah dan contohnya!' },
       { icon: 'ti-help', label: 'Kuis Copywriting', prompt: 'Kuis gue dong bre! Kasih satu skenario produk dan uji pemahaman gue tentang jurus mana yang harus dipakai.' }
     ];
-  } else if(tabIdx === 4){ // Tab Stats
+  } else if(tabIdx === 4){ // Tab Persona
+    chips = [
+      { icon: 'ti-sparkles', label: 'Wawancara Persona', prompt: 'Halo Copilot! Wawancarai gue santai dengan 3 pertanyaan untuk bikin Persona Brand baru yang tajam dan otentik!' },
+      { icon: 'ti-photo', label: 'Bedah Screenshot', prompt: 'Gue mau drop/upload screenshot akun medsos/konten gue, tolong bedah dan ekstrak DNA Persona-nya!' },
+      { icon: 'ti-shopping-cart', label: 'Persona Affiliate Murah', prompt: 'Bikinin Persona Brand lengkap untuk akun affiliate TikTok/Shopee spesialis racun barang murah dan diskonan!' },
+      { icon: 'ti-briefcase', label: 'Persona Jasa B2B', prompt: 'Bikinin Persona Brand profesional untuk agensi digital / freelance copywriting high-ticket!' },
+      { icon: 'ti-user-star', label: 'Persona Personal Brand', prompt: 'Bikinin Persona untuk kreator konten edukasi produktivitas & karir Gen-Z!' }
+    ];
+  } else if(tabIdx === 5){ // Tab Stats
     chips = [
       { icon: 'ti-chart-line', label: 'Analisis Rasio Winner', prompt: 'Bantu analisa rasio pemenang (winner) vs total konten di Tab Stats ini serta langkah strategis untuk meningkatkannya!' },
       { icon: 'ti-stack', label: 'Rekomendasi Format', prompt: 'Dari tren statistik yang ada, format atau kategori mana yang paling potensial untuk digandakan produksinya?' }
     ];
-  } else if(tabIdx === 5){ // Tab Setting
+  } else if(tabIdx === 6){ // Tab Setting
     chips = [
       { icon: 'ti-cpu', label: 'Cek Kapabilitas Model', prompt: 'Jelaskan kelebihan dan karakteristik model AI yang lagi gue pilih saat ini untuk kebutuhan copywriting!' },
       { icon: 'ti-notes', label: 'Tips Prompt Tajam', prompt: 'Kasih tips prompt terbaik supaya hasil naskah AI makin bernyawa, tajam, dan tidak terdengar seperti robot!' }
@@ -3608,7 +4257,7 @@ function confirmResetCopilotChat(){
 }
 
 function buildCopilotSystemContext(){
-  const tabNames = ['Input / Editor', 'Mixing', 'Bank Konten', 'Learn (Jurus & Kaidah)', 'Stats & Performa', 'Pengaturan'];
+  const tabNames = ['Input / Editor', 'Mixing', 'Bank Konten', 'Learn (Jurus & Kaidah)', 'Persona Brand', 'Stats & Performa', 'Pengaturan'];
   const currentTabIdx = (typeof window._currentTab === 'number') ? window._currentTab : 0;
   const currentTabName = tabNames[currentTabIdx] || 'Input / Editor';
 
@@ -3616,6 +4265,7 @@ function buildCopilotSystemContext(){
   const category = (document.getElementById('inp-cat')?.value || '').trim();
   const goal = (document.getElementById('inp-tujuan')?.value || '').trim();
   const tplName = window._activeTpl?.name || 'Kustom';
+  const activeP = getActivePersona();
 
   // Sections di Tab Input
   const secTexts = (currentSections || []).map(s => {
@@ -3631,6 +4281,9 @@ function buildCopilotSystemContext(){
 - Judul Draft: "${title || '(belum diisi)'}"
 - Kategori Draft: "${category || 'Copywriting'}"
 - Template Draft: "${tplName}"
+- Persona Brand Aktif: "${activeP ? activeP.name : 'Default'}" (Tone: ${activeP ? activeP.toneOfVoice : 'Persuasif'})
+- Sapaan Wajib Persona: "${activeP ? activeP.greetingWords : '-'}"
+- Kata Terlarang: "${activeP ? activeP.bannedWords : '-'}"
 - Tujuan / Brief: "${goal || '(belum diisi)'}"
 - Isi Bagian di Editor:
 ${secTexts || '(belum ada bagian)'}`;
@@ -3664,13 +4317,37 @@ ${recent || '(bank masih kosong)'}`;
 ${jurusList || '(belum ada jurus)'}
 (Catatan: User sedang mempelajari atau mengelola kaidah/jurus di Tab Learn. Berikan panduan mendalam tentang kaidah, bedah jurus, atau bantu merumuskan formula baru!)`;
   } else if(currentTabIdx === 4){
+    const personas = data.personas || [];
+    const pList = personas.map((p, i) => `${i + 1}. "${p.name}" (Target: ${p.targetAudience}, Tone: ${p.toneOfVoice}) [${p.id === (activeP ? activeP.id : null) ? 'AKTIF' : 'NONAKTIF'}]`).join('\n');
+    tabSpecificContext = `=== DETAIL TAB PERSONA SAAT INI (BRAND & TARGET AUDIENS) ===
+- Persona Aktif: "${activeP ? activeP.name : 'Belum dipilih'}"
+- Target Audiens: ${activeP ? activeP.targetAudience : '-'}
+- Tone of Voice: ${activeP ? activeP.toneOfVoice : '-'}
+- Sapaan / Kosakata Khas: ${activeP ? activeP.greetingWords : '-'}
+- Kata Dilarang: ${activeP ? activeP.bannedWords : '-'}
+- Jurus Rekomendasi: ${(activeP && activeP.recommendedJurus) ? activeP.recommendedJurus.join(', ') : '-'}
+- Total Persona Terdaftar (${personas.length}):
+${pList}
+
+(Instruksi Khusus Mode Persona):
+Jika user meminta bantuan membuat, mewawancarai, atau mengekstrak persona dari contoh teks/screenshot gambar, SELALU rumuskan hasil akhirnya dalam format tag blok berikut agar tombol 1-tap "Terapkan Jadi Persona Baru" muncul otomatis:
+
+[Persona]
+Nama: [Nama Persona/Brand]
+Target: [Target pembaca spesifik & problem utama mereka]
+Tone: [Karakter gaya bahasa & emosi]
+Sapaan: [Kata sapaan & kosakata wajib]
+Kata Dilarang: [Kata-kata kaku/klise yang dilarang]
+Jurus Rekomendasi: [Daftar 2-4 jurus copywriting dari Tab Learn yang paling pas]
+Ringkasan: [1 kalimat intisari DNA persona]`;
+  } else if(currentTabIdx === 5){
     const total = (data.contents || []).length;
     const winners = (data.contents || []).filter(c => c.winner).length;
     tabSpecificContext = `=== DETAIL TAB STATS SAAT INI ===
 - Total Konten di Bank: ${total}
 - Konten Winner: ${winners}
 - Rasio Pemenang: ${total > 0 ? Math.round((winners / total) * 100) : 0}%`;
-  } else if(currentTabIdx === 5){
+  } else if(currentTabIdx === 6){
     tabSpecificContext = `=== DETAIL TAB SETTING SAAT INI ===
 - AI Provider: ${ai.provider || 'gemini'}
 - Model Utama: ${ai.model || 'gemini-3.1-flash-lite'} (Dual Fallback: gemini-3.5-flash-lite)
@@ -3692,8 +4369,10 @@ ${tabSpecificContext}
 ${jurusPrompt}
 
 === TUGAS & INSTRUKSI COPILOT ===
-1. Jawab pertanyaan user dengan memprioritaskan kaidah & jurus copywriting (terutama 18 Jurus Kitab Rizal & Kaidah Emas di Tab Learn).
-2. Jika user berada di Tab Learn, diskusikan cara penerapan formula, cara menajamkan jurus, atau bantu ciptakan jurus baru.
+1. Jawab pertanyaan user dengan memprioritaskan kaidah & jurus copywriting (terutama 18 Jurus Kitab Rizal & Kaidah Emas di Tab Learn) dan DNA Persona Brand yang aktif.
+2. Jika user berada di Tab Persona atau meminta bantuan merumuskan persona:
+   - Wawancarai secara santai atau bedah contoh naskah/screenshot gambar yang dikirimkan.
+   - SELALU sertakan blok tag [Persona] lengkap seperti format di atas agar user bisa langsung menyimpannya ke database dengan 1 klik!
 3. Jika user meminta variasi hook, isi problem, atau copywriting lengkap:
    SELALU format bagian tersebut dengan format tag yang jelas, misalnya:
    [Hook]
@@ -3711,7 +4390,7 @@ ${jurusPrompt}
 5. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.`;
 }
 
-async function callAICopilot(history, systemPrompt){
+async function callAICopilot(history, systemPrompt, attachments = []){
   const p = ai.provider;
   const cfg = PROVIDERS[p];
 
@@ -3721,10 +4400,23 @@ async function callAICopilot(history, systemPrompt){
     const activeKey = (ai.apiKey && ai.apiKey.trim()) ? ai.apiKey.trim() : DEFAULT_GEMINI_KEY;
 
     const contents = [];
-    history.forEach(h => {
+    history.forEach((h, idx) => {
+      const isLastUser = (idx === history.length - 1 && h.role === 'user');
+      const parts = [];
+      if(isLastUser && attachments && attachments.length){
+        attachments.forEach(att => {
+          parts.push({
+            inline_data: {
+              mime_type: att.type || 'image/jpeg',
+              data: att.base64
+            }
+          });
+        });
+      }
+      parts.push({ text: h.content });
       contents.push({
         role: h.role === 'assistant' ? 'model' : 'user',
-        parts: [{ text: h.content }]
+        parts: parts
       });
     });
 
@@ -3832,10 +4524,14 @@ function renderCopilotMessages(){
   window._copilotHistory.forEach((msg, idx) => {
     const isUser = (msg.role === 'user');
     if(isUser){
+      let attBadge = '';
+      if(msg.hasImages){
+        attBadge = `<div style="display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;background:rgba(255,255,255,0.15);font-size:11px;margin-bottom:4px"><i class="ti ti-photo"></i> ${msg.hasImages} foto terlampir</div><br>`;
+      }
       html += `
         <div class="cmsg user">
           <div class="cmsg-bubble">
-            <span class="msg-text">${escapeHtml(msg.content)}</span>
+            ${attBadge}<span class="msg-text">${escapeHtml(msg.content)}</span>
           </div>
           <div class="cmsg-meta">Kamu</div>
         </div>
@@ -3844,23 +4540,22 @@ function renderCopilotMessages(){
       const parsedSections = extractSectionsFromText(msg.content);
       const secKeys = Object.keys(parsedSections);
       const hasSections = secKeys.length > 0;
+      const personaObj = extractPersonaFromText(msg.content);
 
-      let actionButtons = '';
+      let actionButtons = '<div class="cmsg-actions">';
+      if(personaObj){
+        actionButtons += `<button class="btn sm primary" onclick="applyPersonaFromChat(${idx})" style="padding:4px 10px;font-size:11px;background:#059669;border-color:#059669;color:#fff;font-weight:600"><i class="ti ti-user-plus"></i> Terapkan Jadi Persona: ${escapeHtml(personaObj.name)}</button>`;
+      }
       if(hasSections){
-        actionButtons = `<div class="cmsg-actions">`;
         secKeys.forEach(secName => {
           actionButtons += `<button class="btn sm" onclick="applySectionFromChat('${escapeJsStr(secName)}', ${idx})" style="padding:2px 8px;font-size:11px;border-color:var(--bda);color:var(--txa)"><i class="ti ti-arrow-left"></i> Terapkan ke ${secName}</button>`;
         });
         if(secKeys.length > 1){
           actionButtons += `<button class="btn sm primary" onclick="applyAllSectionsFromHistory(${idx})" style="padding:2px 8px;font-size:11px"><i class="ti ti-check-all"></i> Terapkan Semua</button>`;
         }
-        actionButtons += `<button class="btn sm" onclick="copyCopilotMsg(${idx})" style="padding:2px 8px;font-size:11px;border-color:var(--bd)"><i class="ti ti-copy"></i> Salin</button>`;
-        actionButtons += `</div>`;
-      } else {
-        actionButtons = `<div class="cmsg-actions">
-          <button class="btn sm" onclick="copyCopilotMsg(${idx})" style="padding:2px 8px;font-size:11px;border-color:var(--bd)"><i class="ti ti-copy"></i> Salin</button>
-        </div>`;
       }
+      actionButtons += `<button class="btn sm" onclick="copyCopilotMsg(${idx})" style="padding:2px 8px;font-size:11px;border-color:var(--bd)"><i class="ti ti-copy"></i> Salin</button>`;
+      actionButtons += `</div>`;
 
       html += `
         <div class="cmsg bot">
@@ -3976,15 +4671,27 @@ async function sendCopilotMessage(){
   const inp = document.getElementById('copilot-input');
   if(!inp) return;
   const text = inp.value.trim();
-  if(!text) return;
+  const hasAttachments = (window._copilotAttachments && window._copilotAttachments.length > 0);
+  if(!text && !hasAttachments) return;
 
-  if(!ai.apiKey){
+  const msgText = text || 'Analisis screenshot akun/konten ini dan buatkan Persona Brand lengkap beserta rekomendasinya!';
+
+  const activeKey = (ai.apiKey && ai.apiKey.trim()) ? ai.apiKey.trim() : ((ai.provider === 'gemini') ? DEFAULT_GEMINI_KEY : '');
+  if(!activeKey){
     showToast('API Key belum diisi! Silakan isi di menu AI Settings.', 'warn');
     openAISettings();
     return;
   }
 
-  window._copilotHistory.push({ role: 'user', content: text });
+  const attachmentsToSend = [...(window._copilotAttachments || [])];
+  window._copilotAttachments = [];
+  renderCopilotAttachments();
+
+  window._copilotHistory.push({
+    role: 'user',
+    content: msgText,
+    hasImages: attachmentsToSend.length
+  });
   inp.value = '';
   autoResizeCopilotInput(inp);
   renderCopilotMessages();
@@ -4008,7 +4715,7 @@ async function sendCopilotMessage(){
 
   try {
     const systemPrompt = buildCopilotSystemContext();
-    const reply = await callAICopilot(window._copilotHistory, systemPrompt);
+    const reply = await callAICopilot(window._copilotHistory, systemPrompt, attachmentsToSend);
     
     const loadEl = document.getElementById(tempId);
     if(loadEl) loadEl.remove();
@@ -4056,6 +4763,9 @@ loadCopilotHistory();
 populateSelects();
 renderSections();
 updateJurusBarSummary();
+renderPersona();
+updateInputPersonaBar();
+initCopilotDragAndDrop();
 updateCopilotRibbon();
 renderCopilotChips();
 
