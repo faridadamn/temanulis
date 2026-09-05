@@ -531,7 +531,12 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
     </div>
   </div>
   <div class="card">
-    <div class="lbl">Template cepat</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <div class="lbl" style="margin:0">Template cepat</div>
+      <button class="btn sm" type="button" onclick="openRepurposeModal()" style="border-color:var(--bda);color:var(--txa);background:var(--bga);font-weight:600" title="Repurpose atau paraphrase tulisan dari Teks Copas, Screenshot, atau Link URL">
+        <i class="ti ti-arrows-repeat"></i> Repurpose Konten (Teks / SS / Link)
+      </button>
+    </div>
     <div id="tpl-cat-tabs" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px"></div>
     <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px"></div>
   </div>
@@ -555,6 +560,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       </div>
       <button class="btn primary" id="ai-brainstorm-btn" onclick="aiBrainstormAll()">
         <i class="ti ti-sparkles"></i> AI Brainstorm Keseluruhan
+      </button>
+      <button class="btn" type="button" onclick="openRepurposeModal()" title="Repurpose dari teks copas, screenshot, atau link URL">
+        <i class="ti ti-arrows-repeat" style="color:var(--txa)"></i> Repurpose Materi
       </button>
       <button class="btn" onclick="openHookScorerModal()" title="Uji & perkuat daya tarik Hook (1-100)">
         <i class="ti ti-flame" style="color:#f59e0b"></i> Hook Scorer
@@ -2176,6 +2184,582 @@ function applyHookScoreSuggestion(idx){
   closeModal();
 }
 
+// ===================== REPURPOSE & PARAPHRASE AI =====================
+window._repurposeSourceMode = 'text'; // 'text', 'photo', 'url'
+window._repurposePhotos = [];
+window._repurposeLastResult = null;
+
+function openRepurposeModal(initialText = '', initialTitle = ''){
+  window._repurposePhotos = [];
+  window._repurposeLastResult = null;
+  window._repurposeSourceMode = initialText ? 'text' : (window._repurposeSourceMode || 'text');
+
+  const activeP = getActivePersona();
+  const currentTpl = window._activeTpl || TEMPLATES[0];
+
+  const personaOptions = (data.personas || []).map(p => `
+    <option value="${p.id}" ${activeP && p.id === activeP.id ? 'selected' : ''}>
+      ${escapeHtml(p.name)} (${escapeHtml(p.toneOfVoice || 'Persuasif')})
+    </option>
+  `).join('');
+
+  const tplOptions = TEMPLATES.map(t => `
+    <option value="${escapeHtml(t.name)}" ${t.name === currentTpl.name ? 'selected' : ''}>
+      [${t.cat}] ${escapeHtml(t.name)} (${t.sections.length} bagian)
+    </option>
+  `).join('');
+
+  openModal(`
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-arrows-repeat" style="color:var(--txa)"></i>
+      <span>Repurpose &amp; Paraphrase Konten</span>
+    </div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.5">
+      Ambil materi dari <strong>Copas Teks</strong>, <strong>Screenshot (SS)</strong>, atau <strong>Link Web</strong>. AI akan membedah ide intinya, menulis ulang dengan gaya Persona Brand lo, dan memetakan hasilnya langsung ke template editor!
+    </div>
+
+    <!-- PERSONA ACTIVE INFO -->
+    <div style="padding:8px 12px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+        <i class="ti ti-user-circle" style="color:var(--txa);font-size:16px"></i>
+        <span style="color:var(--tx2)">Gaya Persona:</span>
+        <strong style="color:var(--tx)" id="rep-active-p-name">${escapeHtml(activeP ? activeP.name : 'Default')}</strong>
+      </div>
+      <select id="repurpose-persona-sel" onchange="updateRepModalPersonaInfo(this.value)" style="font-size:11px;padding:3px 8px;width:auto;height:26px">
+        ${personaOptions}
+      </select>
+    </div>
+
+    <!-- SOURCE TABS -->
+    <div class="lbl">Pilih Sumber Materi</div>
+    <div style="display:flex;gap:6px;margin-bottom:10px">
+      <button type="button" class="btn sm" id="rep-tab-text" onclick="setRepurposeSourceMode('text')" style="flex:1;border-color:var(--bda);color:var(--txa);background:var(--bga);font-weight:600">
+        <i class="ti ti-clipboard"></i> Tempel Teks (Copas)
+      </button>
+      <button type="button" class="btn sm" id="rep-tab-photo" onclick="setRepurposeSourceMode('photo')" style="flex:1;border-color:var(--bd);color:var(--tx2);background:transparent">
+        <i class="ti ti-photo"></i> Upload Screenshot
+      </button>
+      <button type="button" class="btn sm" id="rep-tab-url" onclick="setRepurposeSourceMode('url')" style="flex:1;border-color:var(--bd);color:var(--tx2);background:transparent">
+        <i class="ti ti-link"></i> Link Web / URL
+      </button>
+    </div>
+
+    <!-- PANEL 1: TEXT COPAS -->
+    <div id="rep-panel-text" style="display:block;margin-bottom:12px">
+      <textarea id="repurpose-text-inp" placeholder="Paste draf tulisan, caption IG, thread Twitter/Threads, atau teks artikel orang lain di sini..." style="min-height:100px;font-size:12px;line-height:1.5" oninput="updateRepTextWordCount()">${escapeHtml(initialText)}</textarea>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txm);margin-top:4px">
+        <span id="rep-text-count">0 kata</span>
+        <span>Mendukung teks pendek maupun artikel panjang</span>
+      </div>
+    </div>
+
+    <!-- PANEL 2: SCREENSHOT VISION -->
+    <div id="rep-panel-photo" style="display:none;margin-bottom:12px">
+      <div id="rep-photo-dropzone" onclick="document.getElementById('rep-photo-inp').click()"
+        ondragover="handleRepPhotoDragOver(event)" ondragleave="handleRepPhotoDragLeave(event)" ondrop="handleRepPhotoDrop(event)"
+        style="border:2px dashed var(--bda);border-radius:8px;padding:16px 12px;text-align:center;cursor:pointer;background:var(--s2);transition:all .15s">
+        <i class="ti ti-photo-plus" style="font-size:24px;color:var(--txa);display:block;margin-bottom:4px"></i>
+        <div style="font-size:12px;font-weight:600;color:var(--tx)">Tarik atau Pilih Screenshot ke Sini</div>
+        <div style="font-size:11px;color:var(--txm);margin-top:2px">Bisa 1 atau banyak screenshot (carousel/thread). AI Vision akan membaca seluruh teks di foto.</div>
+        <input type="file" id="rep-photo-inp" accept="image/*" multiple style="display:none" onchange="handleRepPhotosSelected(event)">
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+        <span id="rep-photo-count" style="font-size:11px;color:var(--txm)">0 foto terpilih</span>
+        <button type="button" class="btn sm" onclick="clearRepPhotos()" style="padding:1px 6px;font-size:10px;color:var(--txd);border-color:var(--bd)"><i class="ti ti-trash"></i> Hapus Foto</button>
+      </div>
+      <div id="rep-photo-thumbs" style="display:flex;flex-wrap:wrap;gap:6px;max-height:100px;overflow-y:auto;margin-top:6px"></div>
+    </div>
+
+    <!-- PANEL 3: URL LINK -->
+    <div id="rep-panel-url" style="display:none;margin-bottom:12px">
+      <div style="display:flex;gap:6px;margin-bottom:6px">
+        <input type="url" id="repurpose-url-inp" placeholder="https://contoh.com/artikel-atau-postingan..." style="flex:1;font-size:12px"/>
+        <button type="button" class="btn primary sm" id="btn-fetch-url" onclick="fetchRepurposeUrl()" style="white-space:nowrap">
+          <i class="ti ti-download"></i> Tarik Konten
+        </button>
+      </div>
+      <textarea id="repurpose-url-preview" placeholder="Teks artikel hasil ekstraksi URL akan muncul di sini..." style="min-height:80px;font-size:12px;line-height:1.5" readonly></textarea>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--txm);margin-top:4px">
+        <span id="rep-url-count">0 kata</span>
+        <span>Ekstraksi otomatis via Jina AI Reader</span>
+      </div>
+    </div>
+
+    <!-- SETTINGS ROW -->
+    <div class="row" style="gap:10px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="flex:1;min-width:200px">
+        <div class="lbl">Tindakan Repurpose</div>
+        <select id="repurpose-action-sel" style="width:100%;font-size:12px">
+          <option value="paraphrase">Paraphrase &amp; Gaya Persona (Bebas Plagiat)</option>
+          <option value="map_sections">Petakan Otomatis ke Template Editor</option>
+          <option value="expand_longform">Ekspansi Jadi Tulisan Panjang / Tutorial</option>
+          <option value="compress_social">Rampingkan Jadi Hook &amp; Caption Sosmed</option>
+          <option value="contrarian">Sudut Pandang Berlawanan (Contrarian Angle)</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:180px">
+        <div class="lbl">Target Template</div>
+        <select id="repurpose-tpl-sel" style="width:100%;font-size:12px">
+          ${tplOptions}
+        </select>
+      </div>
+    </div>
+
+    <!-- EXECUTE BUTTON -->
+    <div style="display:flex;justify-content:flex-end;gap:8px;margin-bottom:14px">
+      <button class="btn" onclick="closeModal()">Batal</button>
+      <button class="btn primary" id="btn-run-repurpose" onclick="runRepurposeAI()">
+        <i class="ti ti-sparkles"></i> Mulai Repurpose AI
+      </button>
+    </div>
+
+    <!-- RESULT CONTAINER -->
+    <div id="repurpose-result-box" style="display:none;margin-top:14px;padding-top:12px;border-top:1px solid var(--bd)">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;flex-wrap:wrap;gap:6px">
+        <div style="font-weight:700;font-size:13px;color:var(--txs);display:flex;align-items:center;gap:6px">
+          <i class="ti ti-check"></i> Hasil Repurpose Siap Pakai
+        </div>
+        <div style="font-size:11px;color:var(--txm)" id="rep-result-stats">~0 kata</div>
+      </div>
+      <div class="lbl">Rekomendasi Judul Baru</div>
+      <input type="text" id="repurpose-res-title" style="margin-bottom:8px;font-weight:600;color:var(--tx)" placeholder="Judul baru..."/>
+      <div class="lbl">Naskah Hasil Repurpose</div>
+      <div id="repurpose-res-preview" style="max-height:220px;overflow-y:auto;background:var(--s1);padding:10px 12px;border-radius:var(--r);font-size:12px;line-height:1.6;border:1px solid var(--bd);white-space:pre-wrap;color:var(--tx)"></div>
+
+      <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+        <button type="button" class="btn sm" onclick="copyRepurposeResult()"><i class="ti ti-copy"></i> Salin Naskah</button>
+        <div style="display:flex;gap:6px">
+          <button type="button" class="btn sm" onclick="runRepurposeAI()"><i class="ti ti-refresh"></i> Buat Variasi Lain</button>
+          <button type="button" class="btn sm primary" onclick="applyRepurposeToEditor()" style="font-weight:600">
+            <i class="ti ti-arrow-left"></i> Terapkan ke Editor
+          </button>
+        </div>
+      </div>
+    </div>
+  `);
+
+  if(initialText){
+    updateRepTextWordCount();
+  }
+}
+
+function setRepurposeSourceMode(mode){
+  window._repurposeSourceMode = mode;
+  ['text', 'photo', 'url'].forEach(m => {
+    const tabBtn = document.getElementById(`rep-tab-${m}`);
+    const panel = document.getElementById(`rep-panel-${m}`);
+    if(tabBtn){
+      if(m === mode){
+        tabBtn.style.background = 'var(--bga)';
+        tabBtn.style.color = 'var(--txa)';
+        tabBtn.style.borderColor = 'var(--bda)';
+        tabBtn.style.fontWeight = '600';
+      } else {
+        tabBtn.style.background = 'transparent';
+        tabBtn.style.color = 'var(--tx2)';
+        tabBtn.style.borderColor = 'var(--bd)';
+        tabBtn.style.fontWeight = 'normal';
+      }
+    }
+    if(panel){
+      panel.style.display = (m === mode) ? 'block' : 'none';
+    }
+  });
+}
+
+function updateRepModalPersonaInfo(pId){
+  const p = (data.personas || []).find(x => x.id === pId);
+  const nameEl = document.getElementById('rep-active-p-name');
+  if(nameEl && p) nameEl.textContent = p.name;
+}
+
+function updateRepTextWordCount(){
+  const inp = document.getElementById('repurpose-text-inp');
+  const cnt = document.getElementById('rep-text-count');
+  if(!inp || !cnt) return;
+  const words = inp.value.trim() ? inp.value.trim().split(/\s+/).filter(Boolean).length : 0;
+  cnt.textContent = `${words} kata`;
+}
+
+function updateRepUrlWordCount(){
+  const prev = document.getElementById('repurpose-url-preview');
+  const cnt = document.getElementById('rep-url-count');
+  if(!prev || !cnt) return;
+  const words = prev.value.trim() ? prev.value.trim().split(/\s+/).filter(Boolean).length : 0;
+  cnt.textContent = `${words} kata`;
+}
+
+function handleRepPhotoDragOver(e){
+  e.preventDefault();
+  const dz = document.getElementById('rep-photo-dropzone');
+  if(dz) dz.style.borderColor = 'var(--txa)';
+}
+
+function handleRepPhotoDragLeave(e){
+  e.preventDefault();
+  const dz = document.getElementById('rep-photo-dropzone');
+  if(dz) dz.style.borderColor = 'var(--bda)';
+}
+
+function handleRepPhotoDrop(e){
+  e.preventDefault();
+  handleRepPhotoDragLeave(e);
+  if(e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length){
+    processRepPhotos(e.dataTransfer.files);
+  }
+}
+
+function handleRepPhotosSelected(e){
+  if(e.target.files && e.target.files.length){
+    processRepPhotos(e.target.files);
+    e.target.value = '';
+  }
+}
+
+async function processRepPhotos(files){
+  const valid = Array.from(files).filter(f => f.type.startsWith('image/'));
+  if(!valid.length){
+    showToast('Pilih gambar screenshot yang valid (JPG, PNG, WebP)', 'warn');
+    return;
+  }
+  for(const f of valid){
+    try {
+      const item = await processPhotoFile(f);
+      window._repurposePhotos.push(item);
+    } catch(e){
+      console.error(e);
+    }
+  }
+  renderRepPhotoThumbs();
+}
+
+function removeRepPhoto(id){
+  window._repurposePhotos = window._repurposePhotos.filter(p => p.id !== id);
+  renderRepPhotoThumbs();
+}
+
+function clearRepPhotos(){
+  window._repurposePhotos = [];
+  renderRepPhotoThumbs();
+}
+
+function renderRepPhotoThumbs(){
+  const box = document.getElementById('rep-photo-thumbs');
+  const countEl = document.getElementById('rep-photo-count');
+  if(!box) return;
+  if(countEl) countEl.textContent = `${window._repurposePhotos.length} foto terpilih`;
+  box.innerHTML = window._repurposePhotos.map(p => `
+    <div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;border:1px solid var(--bd)">
+      <img src="data:${p.type};base64,${p.base64}" style="width:100%;height:100%;object-fit:cover" alt="${escapeHtml(p.name)}">
+      <button type="button" onclick="removeRepPhoto('${p.id}')" title="Hapus foto" style="position:absolute;top:2px;right:2px;background:rgba(0,0,0,0.65);color:#fff;border:none;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer">×</button>
+    </div>
+  `).join('');
+}
+
+async function fetchRepurposeUrl(){
+  const urlInp = document.getElementById('repurpose-url-inp');
+  const prev = document.getElementById('repurpose-url-preview');
+  const btn = document.getElementById('btn-fetch-url');
+  if(!urlInp || !prev) return;
+
+  let url = urlInp.value.trim();
+  if(!url){
+    showToast('Masukkan link URL artikel/postingan dulu!', 'warn');
+    return;
+  }
+  if(!url.startsWith('http://') && !url.startsWith('https://')){
+    url = 'https://' + url;
+    urlInp.value = url;
+  }
+
+  const origText = btn ? btn.innerHTML : '';
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Menarik...';
+  }
+  prev.value = 'Sedang mengambil dan mengekstrak isi halaman web via Jina Reader...';
+
+  try {
+    const res = await fetch('https://r.jina.ai/' + encodeURI(url), {
+      headers: { 'Accept': 'text/plain' }
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    const raw = await res.text();
+    if(!raw || raw.trim().length < 50){
+      throw new Error('Halaman web tidak mengembalikan konten yang memadai.');
+    }
+    const clean = raw.replace(/^Title:.*?\n/i, '')
+                     .replace(/^URL Source:.*?\n/i, '')
+                     .replace(/^Published Time:.*?\n/i, '')
+                     .replace(/^Markdown Content:\s*\n/i, '')
+                     .trim();
+    prev.value = clean;
+    updateRepUrlWordCount();
+    showToast('✓ Konten artikel berhasil ditarik!');
+  } catch(err){
+    prev.value = '';
+    showToast('Gagal menarik web: ' + err.message + '. Kamu juga bisa copas langsung teksnya ke tab Tempel Teks (Copas).', 'warn');
+  } finally {
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = origText;
+    }
+  }
+}
+
+async function runRepurposeAI(){
+  if(!ai.apiKey && !DEFAULT_GEMINI_KEY){
+    showToast('API Key belum diisi! Silakan atur di AI Settings.', 'warn');
+    openAISettings();
+    return;
+  }
+
+  let sourceText = '';
+  let images = [];
+
+  if(window._repurposeSourceMode === 'text'){
+    sourceText = (document.getElementById('repurpose-text-inp')?.value || '').trim();
+    if(!sourceText){
+      showToast('Tempelkan teks materi sumber yang mau di-repurpose dulu bre!', 'warn');
+      return;
+    }
+  } else if(window._repurposeSourceMode === 'photo'){
+    images = window._repurposePhotos || [];
+    if(!images.length){
+      showToast('Pilih atau upload minimal 1 foto screenshot dulu bre!', 'warn');
+      return;
+    }
+  } else if(window._repurposeSourceMode === 'url'){
+    sourceText = (document.getElementById('repurpose-url-preview')?.value || '').trim();
+    if(!sourceText){
+      const url = (document.getElementById('repurpose-url-inp')?.value || '').trim();
+      if(url){
+        showToast('Klik tombol "Tarik Konten" dulu untuk mengambil teks dari URL!', 'warn');
+      } else {
+        showToast('Masukkan link URL artikel/postingan dulu bre!', 'warn');
+      }
+      return;
+    }
+  }
+
+  const pId = document.getElementById('repurpose-persona-sel')?.value;
+  const persona = (data.personas || []).find(p => p.id === pId) || getActivePersona();
+  const action = document.getElementById('repurpose-action-sel')?.value || 'paraphrase';
+  const tplName = document.getElementById('repurpose-tpl-sel')?.value;
+  const tpl = TEMPLATES.find(t => t.name === tplName) || window._activeTpl || TEMPLATES[0];
+  const sectionNames = tpl.sections || ['Hook', 'Problem', 'Solution', 'CTA'];
+
+  const btn = document.getElementById('btn-run-repurpose');
+  const origHtml = btn ? btn.innerHTML : '';
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> AI sedang merepurpose...';
+  }
+
+  const resBox = document.getElementById('repurpose-result-box');
+  if(resBox) resBox.style.display = 'none';
+
+  let actionInstruction = '';
+  if(action === 'paraphrase'){
+    actionInstruction = `=== TUGAS: PARAPHRASE TOTAL & ADAPTASI GAYA PERSONA BRAND ===
+1. Ambil inti pesan, ide pokok, dan argumen penting dari materi sumber.
+2. Tulis ulang secara TOTAL dan SEGAR dengan gaya bahasa, nada bicara, dan sapaan khas Persona ("${persona ? persona.name : 'Default'}").
+3. 100% BEBAS PLAGIARISME! Jangan menjiplak kalimat aslinya. Gunakan analogi baru, ritme kalimat yang enak, dan sudut pandang otentik.
+4. Petakan tulisan ke dalam format bagian template: ${tpl.name} (${sectionNames.join(', ')}).`;
+  } else if(action === 'map_sections'){
+    actionInstruction = `=== TUGAS: PETAKAN OTOMATIS KE TEMPLATE EDITOR (${tpl.name}) ===
+1. Bedah struktur materi sumber dan distribusikan ide-idenya ke dalam bagian-bagian: ${sectionNames.join(', ')}.
+2. Pastikan setiap bagian saling menyambung dengan transisi alami dan tidak terputus.
+3. Selaraskan dengan karakter Persona Brand ("${persona ? persona.name : 'Default'}").`;
+  } else if(action === 'expand_longform'){
+    actionInstruction = `=== TUGAS: EKSPANSI MENJADI TULISAN PANJANG / TUTORIAL MENDALAM ===
+1. Materi sumber mungkin singkat atau sekadar rangkuman. KEMBANGKAN secara mendalam, elaboratif, dan komprehensif (minimal 3-5 paragraf per bagian)!
+2. Tambahkan langkah teknis, analogi mencerahkan, studi kasus nyata, framework teruji, dan tips praktis agar naskah berbobot tinggi setara panduan 10-15 menit baca.
+3. Petakan ke bagian-bagian template: ${sectionNames.join(', ')}.`;
+  } else if(action === 'compress_social'){
+    actionInstruction = `=== TUGAS: RAMPINGKAN JADI HOOK & CAPTION SOSMED PADAT (SHORT-FORM) ===
+1. Ambil saripati paling tajam dan memikat dari materi sumber.
+2. Buat hook pembuka yang kontras/menusuk, pangkas semua bagian bertele-tele, dan susun menjadi konten ringkas 2-4 kalimat per bagian yang sangat punchy untuk Reels/TikTok/Thread.
+3. Petakan ke bagian-bagian template: ${sectionNames.join(', ')}.`;
+  } else if(action === 'contrarian'){
+    actionInstruction = `=== TUGAS: SUDUT PANDANG BERLAWANAN / CONTRARIAN ANGLE ===
+1. Bedah premis atau opini umum yang ada di materi sumber.
+2. Ambil sudut pandang yang 'menentang' atau kontra-intuitif yang membalikkan asumsi umum audiens.
+3. Berikan argumen logis dan solusi alternatif yang lebih cerdas dengan gaya Persona Brand lo.
+4. Petakan ke bagian-bagian template: ${sectionNames.join(', ')}.`;
+  }
+
+  const jurusContext = getJurusPrompt(tpl.cat, 'repurpose');
+
+  const prompt = `Kamu adalah pakar content repurposing dan copywriter elit Indonesia.
+
+=== MATERI SUMBER (UNTUK DI-REPURPOSE / DI-PARAPHRASE) ===
+${images.length ? `[Terlampir ${images.length} foto/screenshot materi konten sumber]` : sourceText}
+
+=== TARGET STRUKTUR & TEMPLATE ===
+Template: ${tpl.name} (${tpl.cat})
+Bagian yang wajib diisi: ${sectionNames.join(', ')}
+
+${jurusContext}
+
+${actionInstruction}
+
+FORMAT OUTPUT WAJIB PERSIS SEPERTI INI (AGAR DAPAT DIPETAKAN OTOMATIS KE EDITOR):
+### Judul
+[Judul Baru yang Catchy, Menusuk & Relevan]
+
+### Tujuan
+[1 kalimat ringkasan inti pesan & tujuan tulisan ini]
+
+${sectionNames.map(s => `### ${s}\n[isi bagian ${s} hasil repurpose di sini]`).join('\n\n')}
+
+Pastikan:
+- Bebas dari plagiasi, bahasa Indonesia yang mengalir, natural, dan bernyawa
+- Terapkan sapaan khas persona dan hindari kata terlarang (banned words)
+- Setiap bagian saling menyambung dengan transisi mulus`;
+
+  try {
+    const raw = await callAI(prompt, images);
+    const parsed = parseRepurposeResponse(raw, sectionNames);
+
+    window._repurposeLastResult = {
+      title: parsed.title || 'Naskah Repurpose Baru',
+      goal: parsed.goal || 'Hasil repurpose materi sumber',
+      sections: parsed.sections,
+      rawText: raw,
+      tpl: tpl
+    };
+
+    if(resBox){
+      resBox.style.display = 'block';
+      const titleInp = document.getElementById('repurpose-res-title');
+      const prevEl = document.getElementById('repurpose-res-preview');
+      const statsEl = document.getElementById('rep-result-stats');
+
+      if(titleInp) titleInp.value = window._repurposeLastResult.title;
+      if(prevEl){
+        const fullBody = parsed.sections.map(s => `### ${s.name}\n${s.content}`).join('\n\n');
+        prevEl.innerHTML = formatMarkdown(fullBody || raw);
+      }
+      if(statsEl){
+        const words = raw.trim().split(/\s+/).filter(Boolean).length;
+        const mins = Math.max(1, Math.round(words / 200));
+        statsEl.textContent = `~${words} kata • ±${mins} menit baca`;
+      }
+      resBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    showToast('✓ Repurpose berhasil diracik AI!');
+
+  } catch(err){
+    showToast('Error repurpose: ' + err.message, 'warn');
+  } finally {
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  }
+}
+
+function parseRepurposeResponse(rawText, expectedSections = []){
+  let title = '';
+  let goal = '';
+  const sections = [];
+
+  const titleMatch = rawText.match(/###\s*(?:Judul|Headline|Title)\s*\n([\s\S]*?)(?=###|$)/i);
+  if(titleMatch && titleMatch[1].trim()){
+    title = titleMatch[1].trim().replace(/^["']|["']$/g, '');
+  }
+
+  const goalMatch = rawText.match(/###\s*(?:Tujuan|Goal|Ringkasan)\s*\n([\s\S]*?)(?=###|$)/i);
+  if(goalMatch && goalMatch[1].trim()){
+    goal = goalMatch[1].trim();
+  }
+
+  expectedSections.forEach(secName => {
+    const secRegex = new RegExp(`###\\s*${secName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*\\n([\\s\\S]*?)(?=###|$)`, 'i');
+    const m = rawText.match(secRegex);
+    if(m && m[1].trim()){
+      sections.push({ name: secName, content: m[1].trim() });
+    }
+  });
+
+  if(!sections.length){
+    const generalRegex = /###\s*([^#\n]+)\n([\s\S]*?)(?=###|$)/g;
+    let gm;
+    while((gm = generalRegex.exec(rawText)) !== null){
+      const sName = gm[1].trim();
+      const sContent = gm[2].trim();
+      if(sName.toLowerCase() !== 'judul' && sName.toLowerCase() !== 'tujuan' && sContent){
+        sections.push({ name: sName, content: sContent });
+      }
+    }
+  }
+
+  return { title, goal, sections, rawText };
+}
+
+function copyRepurposeResult(){
+  if(!window._repurposeLastResult) return;
+  const title = (document.getElementById('repurpose-res-title')?.value || window._repurposeLastResult.title || '').trim();
+  const full = `# ${title}\n\n` + window._repurposeLastResult.sections.map(s => `### ${s.name}\n${s.content}`).join('\n\n');
+  navigator.clipboard.writeText(full).then(() => {
+    showToast('✓ Naskah hasil repurpose disalin ke clipboard!');
+  }).catch(() => {
+    showToast('Gagal menyalin naskah', 'warn');
+  });
+}
+
+function applyRepurposeToEditor(){
+  if(!window._repurposeLastResult) return;
+  const { goal, sections, tpl } = window._repurposeLastResult;
+  const title = (document.getElementById('repurpose-res-title')?.value || window._repurposeLastResult.title || '').trim();
+
+  if(title){
+    const titleInp = document.getElementById('inp-title');
+    if(titleInp) titleInp.value = title;
+  }
+  if(goal){
+    const goalInp = document.getElementById('inp-tujuan');
+    if(goalInp) goalInp.value = goal;
+  }
+
+  if(tpl){
+    window._activeTpl = tpl;
+    const tplActiveName = document.getElementById('tpl-active-name');
+    if(tplActiveName) tplActiveName.textContent = tpl.name;
+    const tujuanCard = document.getElementById('tujuan-card');
+    if(tujuanCard) tujuanCard.style.display = 'block';
+  }
+
+  if(sections && sections.length){
+    currentSections = sections.map(s => ({
+      id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      name: s.name,
+      items: [s.content.trim()]
+    }));
+  }
+
+  renderSections();
+  closeModal();
+  switchTab(0);
+  showToast('✓ Berhasil di-repurpose dan diterapkan ke Editor!');
+
+  const secCard = document.getElementById('sections-list');
+  if(secCard) secCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function repurposeBankContent(id){
+  const c = data.contents.find(x => x.id === id);
+  if(!c) return;
+  const fullText = (c.sections || []).map(s => {
+    const it = (s.items || []).join('\n\n');
+    return it ? `### ${s.name}\n${it}` : '';
+  }).filter(Boolean).join('\n\n');
+  closeModal();
+  openRepurposeModal(fullText, c.title);
+}
+
 // ===================== TAGS =====================
 function renderTagPicker(){
   const el=document.getElementById('tag-picker');
@@ -2666,6 +3250,7 @@ function viewContent(id){
     <div style="margin-top:14px;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
       <div style="display:flex;gap:6px;flex-wrap:wrap">
         <button class="btn sm" onclick="loadContentToEditor(${id});closeModal()" style="border-color:var(--bda);color:var(--txa)"><i class="ti ti-pencil"></i> Edit di Tab Input</button>
+        <button class="btn sm" onclick="repurposeBankContent(${id})" style="border-color:#2563eb;color:#2563eb;background:rgba(37,99,235,0.06)" title="Repurpose atau tulis ulang konten ini dengan gaya baru"><i class="ti ti-arrows-repeat"></i> Repurpose</button>
         <button class="btn sm" onclick="openEditBankModal(${id})"><i class="ti ti-edit"></i> Edit Langsung</button>
       </div>
       <div style="display:flex;gap:6px">
@@ -4487,6 +5072,7 @@ function renderCopilotChips(){
 
   if(tabIdx === 0){ // Tab Input
     chips = [
+      { icon: 'ti-arrows-repeat', label: 'Repurpose Konten', prompt: 'Gue mau repurpose naskah/postingan ini dengan gaya persona aktif gue. Tolong bedah intisarinya dan tulis ulang menjadi naskah baru yang segar dan bebas plagiasi!' },
       { icon: 'ti-bulb', label: 'Bedah Angle', prompt: 'Bedah angle tulisan ini dan carikan sudut pandang paling menusuk!' },
       { icon: 'ti-flame', label: '3 Hook Rizal', prompt: 'Bikinin 3 alternatif hook viral dengan pola Kitab Rizal!' },
       { icon: 'ti-git-fork', label: 'Pilihan Setan', prompt: 'Buat bagian penutup dengan Jurus Pilihan Setan!' },
