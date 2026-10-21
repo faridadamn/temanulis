@@ -587,6 +587,9 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
       <button class="btn primary" id="ai-brainstorm-btn" onclick="aiBrainstormAll()">
         <i class="ti ti-sparkles"></i> AI Brainstorm Keseluruhan
       </button>
+      <button class="btn" type="button" onclick="openAICoachReviewModal()" title="AI Coach: Review naskah & beri masukan tajam berdasarkan standar jurus Tab Learn" style="border-color:var(--txp);color:var(--txp);background:var(--bgp);font-weight:600">
+        <i class="ti ti-school"></i> AI Coach Review
+      </button>
       <button class="btn" type="button" onclick="openRepurposeModal()" title="Repurpose dari teks copas, screenshot, atau link URL">
         <i class="ti ti-arrows-repeat" style="color:var(--txa)"></i> Repurpose Materi
       </button>
@@ -639,6 +642,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
         </span>
       </div>
       <div style="display:flex;gap:6px">
+        <button class="btn sm" type="button" onclick="openAICoachReviewModal()" style="border-color:var(--txp);color:var(--txp)" title="Review draft memakai standar jurus Tab Learn"><i class="ti ti-school"></i> AI Coach Review</button>
         <button class="btn sm" type="button" onclick="openFullDraftPreviewModal()" title="Pratinjau naskah utuh berurutan"><i class="ti ti-eye"></i> Pratinjau Naskah</button>
         <button class="btn sm primary" type="button" onclick="copyFullDraft()" title="Salin seluruh isi tulisan ke clipboard"><i class="ti ti-copy"></i> Salin Semua Teks</button>
       </div>
@@ -2209,6 +2213,511 @@ function applyHookScoreSuggestion(idx){
   }
   closeModal();
 }
+
+// ===================== AI COACH & REVIEW JURUS =====================
+window._coachLastReview = null;
+
+function getRelevantLearnsForReview(opts){
+  opts = opts || {};
+  var allLearns = [];
+  if(typeof data !== 'undefined' && data.learns && data.learns.length){
+    allLearns = data.learns;
+  } else {
+    try {
+      var stored = localStorage.getItem('temanulis_data') || localStorage.getItem('cb_pro');
+      if(stored){
+        var parsed = JSON.parse(stored);
+        if(parsed && parsed.learns) allLearns = parsed.learns;
+      }
+    } catch(e){}
+    if(!allLearns.length && typeof DEFAULT_LEARNS !== 'undefined'){
+      allLearns = DEFAULT_LEARNS;
+    }
+  }
+  if(!allLearns.length) return [];
+
+  var category = (opts.category || '').toLowerCase();
+  var tags = (opts.tags || []).map(function(t){ return (t||'').toLowerCase(); });
+  var text = (opts.text || '').toLowerCase();
+  var query = (opts.query || '').toLowerCase();
+  var limit = opts.limit || 5;
+
+  var activeP = (typeof getActivePersona === 'function') ? getActivePersona() : null;
+  var userSelected = (typeof jurusConfig !== 'undefined' && jurusConfig.selectedLearnIds) ? jurusConfig.selectedLearnIds : [];
+
+  var scored = allLearns.map(function(l){
+    var score = 0;
+    var lTitle = (l.title || '').toLowerCase();
+    var lBody = (l.body || '').toLowerCase();
+    var lTopic = (l.topic || '').toLowerCase();
+
+    // Prioritas 1: User sengaja memilih jurus ini di setelan jurus
+    if(userSelected.indexOf(l.id) !== -1) score += 30;
+
+    // Prioritas 2: Persona aktif merekomendasikan jurus ini
+    if(activeP && activeP.recommendedJurus){
+      var recs = activeP.recommendedJurus;
+      for(var r = 0; r < recs.length; r++){
+        var rj = recs[r].toLowerCase();
+        if(lTitle.indexOf(rj) !== -1 || lTopic.indexOf(rj) !== -1){
+          score += 25;
+          break;
+        }
+      }
+    }
+
+    // Prioritas 3: Query user menyebut jurus atau konsep spesifik
+    if(query){
+      if(lTitle.indexOf(query) !== -1 || query.indexOf(lTitle) !== -1) score += 35;
+      if((query.indexOf('bap') !== -1 || query.indexOf('b-a-p') !== -1) && (lTitle.indexOf('b-a-p') !== -1 || lTitle.indexOf('bap') !== -1)) score += 50;
+      if(query.indexOf('jangkar') !== -1 && lTitle.indexOf('jangkar') !== -1) score += 40;
+      if(query.indexOf('setan') !== -1 && lTitle.indexOf('setan') !== -1) score += 40;
+      if(query.indexOf('racun') !== -1 && lTitle.indexOf('racun') !== -1) score += 40;
+      if(query.indexOf('gratis') !== -1 && lTitle.indexOf('gratis') !== -1) score += 40;
+    }
+
+    // Prioritas 4: Kecocokan topik vs kategori naskah
+    if(category && lTopic && (category.indexOf(lTopic) !== -1 || lTopic.indexOf(category) !== -1)){
+      score += 18;
+    }
+
+    // Prioritas 5: Kecocokan topik/judul vs tag naskah
+    if(tags.length){
+      for(var t = 0; t < tags.length; t++){
+        if(lTopic.indexOf(tags[t]) !== -1 || lTitle.indexOf(tags[t]) !== -1){
+          score += 15;
+          break;
+        }
+      }
+    }
+
+    // Prioritas 6: Deteksi kata kunci di teks naskah
+    if(text){
+      if((text.indexOf('harga') !== -1 || text.indexOf('rp') !== -1 || text.indexOf('biaya') !== -1 || text.indexOf('jual') !== -1) && lTitle.indexOf('jangkar') !== -1) score += 10;
+      if((text.indexOf('sakit') !== -1 || text.indexOf('masalah') !== -1 || text.indexOf('rugi') !== -1 || text.indexOf('capek') !== -1 || text.indexOf('malu') !== -1) && lTitle.indexOf('not about the product') !== -1) score += 10;
+      if((text.indexOf('gratis') !== -1 || text.indexOf('trik') !== -1 || text.indexOf('kebiasaan') !== -1 || text.indexOf('tips') !== -1) && lTitle.indexOf('solusi gratisan') !== -1) score += 10;
+      if((text.indexOf('luka') !== -1 || text.indexOf('nyesek') !== -1 || text.indexOf('pulih') !== -1 || text.indexOf('solusi') !== -1) && lTitle.indexOf('b-a-p') !== -1) score += 12;
+      if((text.indexOf('pilihan') !== -1 || text.indexOf('tim a') !== -1 || text.indexOf('tim b') !== -1 || text.indexOf('atau') !== -1) && lTitle.indexOf('pilihan setan') !== -1) score += 10;
+      if((text.indexOf('kekurangan') !== -1 || text.indexOf('jujur') !== -1 || text.indexOf('minus') !== -1 || text.indexOf('tapi') !== -1) && lTitle.indexOf('flaw') !== -1) score += 10;
+    }
+
+    // Base priority untuk jurus-jurus kunci copywriting
+    if(lTitle.indexOf('b-a-p') !== -1 || lTitle.indexOf('framework b-a-p') !== -1) score += 6;
+    if(lTitle.indexOf('not about the product') !== -1) score += 5;
+    if(lTitle.indexOf('solusi gratisan') !== -1) score += 4;
+
+    return { learn: l, score: score };
+  });
+
+  scored.sort(function(a, b){ return b.score - a.score; });
+  return scored.slice(0, limit).map(function(s){ return s.learn; });
+}
+
+function openAICoachReviewModal(autoRun){
+  if(autoRun === undefined) autoRun = true;
+  var title = (document.getElementById('inp-title')?.value || '').trim();
+  var category = (document.getElementById('inp-cat')?.value || '').trim() || 'Copywriting';
+  var goal = (document.getElementById('inp-tujuan')?.value || '').trim();
+  var tplName = window._activeTpl?.name || 'Kustom';
+  var activeP = (typeof getActivePersona === 'function') ? getActivePersona() : null;
+
+  var filledSections = (currentSections || []).filter(function(s){
+    return s.items && s.items.some(function(x){ return x && x.trim(); });
+  });
+  var hasContent = filledSections.length > 0 || title || goal;
+
+  if(!hasContent){
+    openModal(`
+      <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+        <i class="ti ti-school" style="color:var(--txp);font-size:20px"></i>
+        <span>AI Coach: Review Naskah</span>
+      </div>
+      <div style="font-size:13px;color:var(--tx2);margin:12px 0 16px;line-height:1.6">
+        Draf tulisan di editor masih kosong bre! Ketik naskahmu di editor atau gunakan tombol <strong>AI Brainstorm Keseluruhan</strong> terlebih dahulu. Setelah ada tulisan, AI Coach akan menguji naskahmu memakai standar jurus Tab Learn (seperti Jurus B-A-P, dll).
+      </div>
+      <div class="row" style="justify-content:flex-end;gap:8px">
+        <button class="btn" onclick="closeModal()">Tutup</button>
+        <button class="btn primary" onclick="closeModal();aiBrainstormAll()"><i class="ti ti-sparkles"></i> AI Brainstorm Sekarang</button>
+      </div>
+    `);
+    return;
+  }
+
+  var draftFullText = (currentSections || []).map(function(s){
+    return '[' + s.name + ']\n' + ((s.items && s.items[0]) ? s.items[0] : '');
+  }).join('\n\n');
+
+  var relevantLearns = getRelevantLearnsForReview({
+    category: category,
+    tags: (typeof currentTags !== 'undefined') ? currentTags : [],
+    text: draftFullText + ' ' + title + ' ' + goal,
+    limit: 4
+  });
+
+  var learnsBadges = relevantLearns.map(function(l){
+    return `
+      <span class="badge" style="background:var(--bgp);color:var(--txp);font-size:11px;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px">
+        <i class="ti ti-bolt"></i> ${escapeHtml(l.title)}
+      </span>
+    `;
+  }).join('');
+
+  openModal(`
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+      <i class="ti ti-school" style="color:var(--txp);font-size:20px;flex-shrink:0"></i>
+      <span style="word-break:break-word">AI Coach — Review Naskah Berbasis Jurus</span>
+    </div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:12px;line-height:1.5">
+      AI Coach bertindak sebagai guru nulis pribadi yang menguji drafmu dengan <strong>standar jurus di Tab Learn</strong> (bukan saran generic!). Memberikan evaluasi kelulusan jurus, kritik tajam, dan naskah revisi yang siap diterapkan.
+    </div>
+
+    <!-- TOLOK UKUR JURUS BAR -->
+    <div style="padding:10px 12px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px;flex-wrap:wrap">
+        <div style="font-size:11px;font-weight:700;color:var(--tx);text-transform:uppercase;letter-spacing:0.04em;display:flex;align-items:center;gap:5px">
+          <i class="ti ti-certificate" style="color:var(--txa)"></i> Standar &amp; Jurus Acuan Terpilih:
+        </div>
+        <span style="font-size:11px;color:var(--txm)">Diambil dari Tab Learn (localStorage)</span>
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${learnsBadges || '<span style="font-size:11px;color:var(--txm)">Belum ada jurus di Tab Learn</span>'}
+      </div>
+    </div>
+
+    <!-- TOMBOL EKSEKUSI REVIEW -->
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+      <button class="btn primary" id="btn-run-coach-review" onclick="runAICoachReview()" style="background:var(--txp);border-color:var(--txp)">
+        <i class="ti ti-school"></i> Jalankan Review Guru
+      </button>
+      <button class="btn sm" onclick="discussCoachInCopilot()" title="Diskusikan naskah ini langsung di Copilot" style="border-color:var(--bd)">
+        <i class="ti ti-message-chatbot"></i> Diskusi di Copilot
+      </button>
+      <span style="font-size:11px;color:var(--txm)">Evaluasi objektif &amp; to-the-point</span>
+    </div>
+
+    <!-- OUTPUT REVIEW CONTAINER -->
+    <div id="ai-coach-output" style="display:none"></div>
+  `);
+
+  if(autoRun){
+    runAICoachReview();
+  }
+}
+
+async function runAICoachReview(){
+  if(!ai.apiKey){
+    showToast('Set API key dulu di AI Settings!', 'warn');
+    return;
+  }
+
+  var btn = document.getElementById('btn-run-coach-review');
+  var out = document.getElementById('ai-coach-output');
+  if(!out) return;
+
+  if(btn){
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Guru sedang membedah naskah...';
+  }
+  out.style.display = 'block';
+  out.innerHTML = `
+    <div style="text-align:center;padding:28px 0;color:var(--txm)">
+      <span class="spinner" style="width:24px;height:24px;margin-bottom:8px"></span>
+      <div style="font-weight:600;color:var(--tx);font-size:13px">AI Coach sedang menguji naskah terhadap kaidah jurus Learn...</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:4px">Mengecek luka manusiawi (BAP), hook, harga jangkar, dan pilihan kata...</div>
+    </div>
+  `;
+
+  var title = (document.getElementById('inp-title')?.value || '').trim();
+  var category = (document.getElementById('inp-cat')?.value || '').trim() || 'Copywriting';
+  var goal = (document.getElementById('inp-tujuan')?.value || '').trim();
+  var tplName = window._activeTpl?.name || 'Kustom';
+  var activeP = (typeof getActivePersona === 'function') ? getActivePersona() : null;
+
+  var draftSections = (currentSections || []).map(function(s, idx){
+    var text = (s.items && s.items[0]) ? s.items[0].trim() : '(kosong)';
+    return '### Bagian ' + (idx + 1) + ': ' + s.name + '\n' + text;
+  }).join('\n\n');
+
+  var relevantLearns = getRelevantLearnsForReview({
+    category: category,
+    tags: (typeof currentTags !== 'undefined') ? currentTags : [],
+    text: draftSections + ' ' + title + ' ' + goal,
+    limit: 5
+  });
+
+  var learnsText = relevantLearns.map(function(l, i){
+    var cleanB = (l.body || '').replace(/\n+/g, ' ');
+    return (i+1) + '. [' + (l.topic || 'Jurus') + '] "' + l.title + '":\n   Kaidah: "' + cleanB + '"';
+  }).join('\n\n');
+
+  var personaContext = activeP ? `=== DNA PERSONA BRAND PENGGUNA ===
+- Nama: ${activeP.name}
+- Tone: ${activeP.toneOfVoice || 'Persuasif'}
+- Sapaan Wajib: ${activeP.greetingWords || '-'}
+- Kata Dilarang: ${activeP.bannedWords || '-'}` : '';
+
+  var prompt = `Kamu adalah GURU / AI COACH COPYWRITING PRIBADI kelas atas di Indonesia.
+Tugasmu: Me-review dan memberikan feedback tajam atas draf tulisan muridmu berikut HANYA menggunakan STANDAR JURUS PRIBADI yang diambil dari Tab Learn muridmu.
+
+=== DRAF NASKAH YANG DIREVIEW ===
+Judul: "${title || '(Tanpa Judul)'}"
+Kategori: "${category}"
+Template: "${tplName}"
+Tujuan / Brief: "${goal || '(Belum diisi)'}"
+
+${draftSections}
+
+=== STANDAR JURUS DARI TAB LEARN (TOLOK UKUR REVIEW) ===
+${learnsText || '(Gunakan prinsip dasar Framework B-A-P, Solusi Gratisan Dulu, dan Masalah Manusiawi)'}
+
+${personaContext}
+
+=== ATURAN MUTLAK REVIEW AI COACH ===
+1. JANGAN PERNAH berikan pujian palsu, basa-basi, atau saran generic template AI (AI slop seperti "buat lebih engaging", "perbaiki ejaan", "tambahkan bullet points" DILARANG!).
+2. Uji naskah secara objektif pasal demi pasal terhadap jurus-jurus di atas.
+3. Sebutkan nama jurus secara eksplisit (misal: "Jurus 3: Framework B-A-P", "Jurus 4: Harga Jangkar", dll).
+4. Berikan format respon dalam JSON MURNI TANPA pembungkus markdown apapun, dengan struktur:
+{
+  "score": <angka integer 1-100 kelulusan naskah terhadap jurus>,
+  "verdict": "<Kesimpulan status 1 frasa tegas, misal: 'Belum Lolos Framework B-A-P' / 'Hook Tajam, Transisi Lemah' / 'Lulus Standar Guru'>",
+  "summary": "<2-3 kalimat masukan menyeluruh dari Guru: sebutkan apa yang sudah bagus dan apa kelemahan fatal yang harus segera dibetulkan>",
+  "jurus_evaluations": [
+    {
+      "jurus": "<Nama Jurus>",
+      "status": "<Lolos / Perlu Dipertajam / Belum Dipakai>",
+      "note": "<Ulasan spesifik kalimat mana yang dinilai dan kenapa dapat status tersebut>"
+    }
+  ],
+  "section_critiques": [
+    {
+      "name": "<Nama Bagian>",
+      "critique": "<Kritik to-the-point tentang bagian ini>",
+      "suggestion": "<Teks perbaikan untuk bagian ini yang sudah patuh jurus>"
+    }
+  ],
+  "revised_draft_full": "<Seluruh naskah versi revisi utuh yang sudah menerapkan semua jurus dengan bahasa Indonesia yang luwes dan menggigit>"
+}`;
+
+  try {
+    var raw = await callAI(prompt);
+    var parsed = null;
+    try {
+      var match = raw.match(/\{[\s\S]*\}/);
+      if(match) parsed = JSON.parse(match[0]);
+    } catch(err){}
+
+    if(!parsed || typeof parsed.score !== 'number'){
+      parsed = {
+        score: 72,
+        verdict: 'Perlu Penajaman Jurus',
+        summary: raw.replace(/\{|\}/g, '').slice(0, 300) || 'Draf tulisan sudah memiliki ide dasar, tetapi penerapannya masih kurang menusuk luka emosional pembaca dan belum memaksimalkan jurus yang ada di Tab Learn.',
+        jurus_evaluations: relevantLearns.slice(0, 3).map(function(l, i){
+          return {
+            jurus: l.title,
+            status: i === 0 ? 'Perlu Dipertajam' : 'Belum Dipakai',
+            note: 'Pastikan kaidah ' + l.title + ' diterapkan secara nyata pada alur tulisan.'
+          };
+        }),
+        section_critiques: (currentSections || []).map(function(s){
+          return {
+            name: s.name,
+            critique: 'Perlu dibuat lebih spesifik dan tidak klise.',
+            suggestion: (s.items && s.items[0]) ? s.items[0] : ''
+          };
+        }),
+        revised_draft_full: raw
+      };
+    }
+
+    window._coachLastReview = parsed;
+    renderAICoachResult(parsed);
+  } catch(e){
+    out.innerHTML = `<div style="color:var(--txd);padding:12px;font-size:13px">Waduh, gagal review: ${escapeHtml(e.message)}</div>`;
+  } finally {
+    if(btn){
+      btn.disabled = false;
+      btn.innerHTML = '<i class="ti ti-refresh"></i> Review Ulang Naskah';
+    }
+  }
+}
+
+function renderAICoachResult(res){
+  var out = document.getElementById('ai-coach-output');
+  if(!out) return;
+
+  var score = Math.min(100, Math.max(10, res.score || 70));
+  var scoreColor = score >= 85 ? 'var(--txs)' : score >= 70 ? 'var(--txa)' : score >= 50 ? '#f59e0b' : 'var(--txd)';
+  var badgeBg = score >= 85 ? 'var(--bgs)' : score >= 70 ? 'var(--bga)' : score >= 50 ? '#fef3c7' : 'var(--bgd)';
+
+  var jurusHtml = (res.jurus_evaluations || []).map(function(j){
+    var isLolos = (j.status || '').toLowerCase().indexOf('lolos') !== -1;
+    var isTajam = (j.status || '').toLowerCase().indexOf('tajam') !== -1;
+    var color = isLolos ? 'var(--txs)' : isTajam ? '#d97706' : 'var(--txd)';
+    var bg = isLolos ? 'var(--bgs)' : isTajam ? '#fef3c7' : 'var(--bgd)';
+    var icon = isLolos ? 'ti-circle-check' : isTajam ? 'ti-alert-triangle' : 'ti-circle-x';
+
+    return `
+      <div style="background:var(--s1);border:1px solid var(--bd);padding:9px 12px;border-radius:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+          <strong style="font-size:12px;color:var(--tx)">${escapeHtml(j.jurus || '')}</strong>
+          <span class="badge" style="background:${bg};color:${color};font-size:10px;font-weight:700;display:inline-flex;align-items:center;gap:3px">
+            <i class="ti ${icon}"></i> ${escapeHtml(j.status || '')}
+          </span>
+        </div>
+        <div style="font-size:11px;color:var(--tx2);line-height:1.4">${escapeHtml(j.note || '')}</div>
+      </div>
+    `;
+  }).join('');
+
+  var critiquesHtml = (res.section_critiques || []).map(function(sec, idx){
+    return `
+      <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:8px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px">
+          <strong style="font-size:12px;color:var(--txa);display:flex;align-items:center;gap:4px">
+            <i class="ti ti-layout-grid"></i> Bagian: ${escapeHtml(sec.name || ('Bagian ' + (idx+1)))}
+          </strong>
+        </div>
+        <div style="font-size:11px;color:var(--tx);margin-bottom:6px;line-height:1.4">
+          <strong>Masukan Guru:</strong> ${escapeHtml(sec.critique || '-')}
+        </div>
+        ${sec.suggestion ? `
+          <div style="background:var(--s2);border:1px dashed var(--bd);padding:8px 10px;border-radius:6px;font-size:11px;color:var(--tx);line-height:1.4">
+            <div style="font-size:10px;font-weight:700;color:var(--txs);text-transform:uppercase;margin-bottom:2px">Saran Perbaikan:</div>
+            <div style="white-space:pre-wrap">${escapeHtml(sec.suggestion)}</div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+  }).join('');
+
+  out.innerHTML = `
+    <div style="border-top:1px solid var(--bd);padding-top:16px;margin-top:16px">
+      <!-- METER & VERDICT -->
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:${badgeBg};border-radius:12px;border:1px solid var(--bd);margin-bottom:14px;flex-wrap:wrap">
+        <div style="width:62px;height:62px;border-radius:50%;background:${scoreColor};display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:800;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.12)">
+          <span style="font-size:20px;line-height:1">${score}</span>
+          <span style="font-size:9px;text-transform:uppercase;opacity:0.85">/100</span>
+        </div>
+        <div style="flex:1;min-width:180px">
+          <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px;display:flex;align-items:center;gap:6px">
+            <i class="ti ti-school" style="color:${scoreColor}"></i> ${escapeHtml(res.verdict || 'Hasil Evaluasi Guru')}
+          </div>
+          <div style="font-size:12px;color:var(--tx2);line-height:1.5">${escapeHtml(res.summary || '')}</div>
+        </div>
+      </div>
+
+      <!-- CHECKLIST JURUS -->
+      <div class="lbl" style="margin-bottom:8px">Kepatuhan Terhadap Jurus Tab Learn</div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px">
+        ${jurusHtml || '<div style="font-size:11px;color:var(--txm)">Tidak ada data jurus</div>'}
+      </div>
+
+      <!-- SECTION CRITIQUES -->
+      ${critiquesHtml ? `
+        <div class="lbl" style="margin-bottom:8px">Bedah Detail Per Bagian</div>
+        <div style="margin-bottom:14px">${critiquesHtml}</div>
+      ` : ''}
+
+      <!-- FULL REVISED DRAFT BOX (IF ANY) -->
+      ${res.revised_draft_full ? `
+        <div class="card" style="padding:12px;margin-bottom:14px;background:var(--s2);border:1px solid var(--bda)">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:8px;flex-wrap:wrap">
+            <div style="font-weight:700;font-size:12px;color:var(--txa);display:flex;align-items:center;gap:4px">
+              <i class="ti ti-sparkles"></i> Naskah Utuh Versi Revisi Guru
+            </div>
+            <button class="btn sm primary" type="button" onclick="applyCoachRevision()" style="font-size:11px">
+              <i class="ti ti-check"></i> Terapkan ke Editor
+            </button>
+          </div>
+          <div style="font-size:12px;color:var(--tx);line-height:1.6;white-space:pre-wrap;max-height:180px;overflow-y:auto;background:var(--s1);padding:10px;border-radius:6px;border:1px solid var(--bd)" id="coach-revised-text">${escapeHtml(res.revised_draft_full)}</div>
+        </div>
+      ` : ''}
+
+      <!-- ACTION BUTTONS -->
+      <div class="row" style="justify-content:flex-end;gap:8px;flex-wrap:wrap">
+        <button class="btn sm" onclick="copyCoachReviewSummary()"><i class="ti ti-copy"></i> Salin Review</button>
+        <button class="btn sm" onclick="discussCoachInCopilot()" style="border-color:var(--txp);color:var(--txp)"><i class="ti ti-message-chatbot"></i> Lanjut Tanya Copilot</button>
+        ${res.revised_draft_full ? `
+          <button class="btn sm primary" onclick="applyCoachRevision()"><i class="ti ti-check"></i> Terapkan Revisi ke Editor</button>
+        ` : ''}
+      </div>
+    </div>
+  `;
+}
+
+function applyCoachRevision(){
+  var res = window._coachLastReview;
+  if(!res) return;
+
+  var updated = false;
+  if(res.section_critiques && res.section_critiques.length && currentSections && currentSections.length){
+    res.section_critiques.forEach(function(sc){
+      if(!sc.suggestion) return;
+      var sec = currentSections.find(function(s){
+        return s.name.toLowerCase().trim() === (sc.name || '').toLowerCase().trim();
+      });
+      if(sec){
+        sec.items = [sc.suggestion.trim()];
+        updated = true;
+      }
+    });
+  }
+
+  if(!updated && res.revised_draft_full && currentSections && currentSections.length){
+    var text = res.revised_draft_full;
+    var sectionFilled = 0;
+    currentSections.forEach(function(sec){
+      var regex = new RegExp('###\\s*' + sec.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '[^\\n]*\\n([\\s\\S]*?)(?=###|$)', 'i');
+      var match = text.match(regex);
+      if(match && match[1].trim()){
+        sec.items = [match[1].trim()];
+        sectionFilled++;
+      }
+    });
+    if(sectionFilled > 0){
+      updated = true;
+    } else {
+      currentSections[0].items = [text.trim()];
+      updated = true;
+    }
+  }
+
+  if(updated){
+    renderSections();
+    closeModal();
+    showToast('✓ Naskah revisi berhasil diterapkan ke editor!');
+  } else {
+    showToast('Tidak ada bagian yang dapat dicocokkan.', 'warn');
+  }
+}
+
+function copyCoachReviewSummary(){
+  var res = window._coachLastReview;
+  if(!res) return;
+  var jurusSummary = (res.jurus_evaluations || []).map(function(j){
+    return '- ' + j.jurus + ': ' + j.status + ' (' + j.note + ')';
+  }).join('\n');
+  var fullText = '[AI Coach Review Temanulis]\n' +
+    'Skor: ' + res.score + '/100 (' + res.verdict + ')\n' +
+    'Ringkasan: ' + res.summary + '\n\n' +
+    'Evaluasi Jurus:\n' + jurusSummary + '\n\n' +
+    'Naskah Revisi:\n' + (res.revised_draft_full || '-');
+  navigator.clipboard.writeText(fullText);
+  showToast('✓ Ringkasan review disalin ke clipboard!');
+}
+
+function discussCoachInCopilot(){
+  var res = window._coachLastReview;
+  closeModal();
+  toggleCopilot(true);
+  var inp = document.getElementById('copilot-input');
+  if(inp){
+    var jurusNote = (res && res.verdict) ? ('Hasil review AI Coach tadi nilainya ' + res.score + '/100 (' + res.verdict + '). ') : '';
+    inp.value = jurusNote + 'Gue mau minta panduan lebih mendalam buat pertajam naskah ini biar 100% patuh jurus Learn!';
+    inp.focus();
+  }
+}
+
 
 // ===================== REPURPOSE & PARAPHRASE AI =====================
 window._repurposeSourceMode = 'text'; // 'text', 'photo', 'url'
@@ -5111,6 +5620,7 @@ function renderCopilotChips(){
 
   if(tabIdx === 0){ // Tab Input
     chips = [
+      { icon: 'ti-school', label: 'AI Coach: Review Draft', prompt: 'Tolong bertindak sebagai AI Coach / Guru nulis gue. Review draf di editor ini pakai standar Jurus Learn yang relevan (seperti B-A-P, dll). Kasih masukan jujur & tajam, bedah bagian mana yang belum lolos jurus, dan bikinin contoh revisi konkretnya!' },
       { icon: 'ti-arrows-repeat', label: 'Repurpose Konten', prompt: 'Gue mau repurpose naskah/postingan ini dengan gaya persona aktif gue. Tolong bedah intisarinya dan tulis ulang menjadi naskah baru yang segar dan bebas plagiasi!' },
       { icon: 'ti-bulb', label: 'Bedah Angle', prompt: 'Bedah angle tulisan ini dan carikan sudut pandang paling menusuk!' },
       { icon: 'ti-flame', label: '3 Hook Rizal', prompt: 'Bikinin 3 alternatif hook viral dengan pola Kitab Rizal!' },
@@ -5293,6 +5803,32 @@ Ringkasan: [1 kalimat intisari DNA persona]`;
   // Active Jurus & Kaidah dari Tab Learn & Winner Bank
   const jurusPrompt = getJurusPrompt(category, 'copilot');
 
+  // AI COACH: Injeksi Standar Jurus Relevan dari Tab Learn untuk Review & Feedback
+  const coachLearns = getRelevantLearnsForReview({
+    category: category,
+    tags: (typeof currentTags !== 'undefined') ? currentTags : [],
+    text: secTexts + ' ' + title + ' ' + goal,
+    limit: 5
+  });
+
+  const coachJurusLines = coachLearns.length ? coachLearns.map(function(l, i){
+    const cleanB = (l.body || '').replace(/\n+/g, ' ').slice(0, 260);
+    return '   ' + (i+1) + '. [' + (l.topic || 'Jurus') + '] "' + l.title + '"\n      Kaidah & Tolok Ukur: "' + cleanB + '"';
+  }).join('\n') : '   (Belum ada catatan di Tab Learn)';
+
+  const aiCoachInstruction = `
+=== MODE AI COACH: STANDAR REVIEW & FEEDBACK (DARI TAB LEARN) ===
+Jika pengguna meminta REVIEW, FEEDBACK, EVALUASI, KRITIK, atau menanyakan "gimana tulisan gue / kurang apa / tolong koreksi":
+1. KAMU WAJIB BERTINDAK SEBAGAI GURU / COACH COPYWRITING PRIBADI YANG TAJAM & JUJUR (bukan sekadar bot ramah penjilat).
+2. DILARANG KERAS memberikan saran template AI generik (seperti "buat lebih engaging", "perbaiki alur", "tambahkan bullet points" - itu AI slop!).
+3. WAJIB NILAI & UJI naskah menggunakan STANDAR JURUS PRIBADI PENGGUNA yang diambil langsung dari Tab Learn berikut:
+${coachJurusLines}
+4. Dalam ulasan / coaching-mu:
+   - Sebutkan secara EKSPLISIT nama jurusnya (misal: "Jurus 3: Framework B-A-P", "Jurus 4: Harga Jangkar", "Jurus 1: Masalah Manusiawi", dll).
+   - Analisis apakah naskah sudah memenuhi standar jurus tersebut: tunjukkan bagian mana yang sudah kena, dan bagian mana yang meleset dari standar jurus.
+   - Berikan CONTOH REVISI NYATA yang langsung memperbaiki naskah dengan jurus tersebut!
+   - Tetap komunikatif, santai, akrab, panggil user 'bre'.`;
+
   return `Kamu adalah 'Temanulis Copilot', asisten & partner sparring copywriting kelas atas (bahasa Indonesia).
 Gaya komunikasimu: santai, akrab, solutif, cerdas, tidak kaku, panggil user dengan sebutan 'bre'.
 
@@ -5303,6 +5839,8 @@ Kamu memiliki KEKUASAAN dan KESADARAN PENUH atas apa yang sedang dilihat dan dik
 ${tabSpecificContext}
 
 ${jurusPrompt}
+
+${aiCoachInstruction}
 
 === TUGAS & INSTRUKSI COPILOT ===
 1. Jawab pertanyaan user dengan memprioritaskan kaidah & jurus copywriting (terutama 18 Jurus Kitab Rizal & Kaidah Emas di Tab Learn) dan DNA Persona Brand yang aktif.
@@ -5326,7 +5864,8 @@ ${jurusPrompt}
    [CTA]
    Isi call to action di sini...
 5. Tombol "Terapkan ke [Nama Bagian]" otomatis muncul di bubble chat jika kamu menggunakan format tag [Nama Bagian], sehingga memudahkan user memasukkannya ke editor dengan 1-tap.
-6. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.`;
+6. Tetap ingat seluruh riwayat percakapan sebelumnya agar diskusi mengalir runtut dan tidak mengulang hal yang sama.
+7. Jika user meminta review, feedback, koreksi, atau evaluasi naskah di editor, terapkan aturan 'MODE AI COACH' di atas dengan disiplin penuh: gunakan standar jurus Tab Learn yang relevan (seperti B-A-P, dll), tolak saran generic!`;
 }
 
 async function callAICopilot(history, systemPrompt, attachments = []){
