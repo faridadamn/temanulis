@@ -606,7 +606,7 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
   </div>
 
   <!-- JURUS AI CONTEXT WIDGET -->
-  <div class="card" style="padding:10px 14px;margin-bottom:14px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+  <div class="card" style="padding:10px 14px;margin-bottom:10px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:140px;overflow:hidden">
       <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:var(--txp);background:var(--bgp);padding:3px 8px;border-radius:6px;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0">
         <i class="ti ti-bolt"></i> Jurus AI
@@ -621,6 +621,26 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
         <input type="checkbox" id="jurus-checkbox" onchange="toggleJurusActive(this.checked)" checked style="width:auto;cursor:pointer">
         <span id="jurus-toggle-lbl">Aktif</span>
       </label>
+    </div>
+  </div>
+
+  <!-- PLAYBOOK RAHASIA USER WIDGET -->
+  <div class="card" style="padding:10px 14px;margin-bottom:14px;background:var(--s2);border:1px solid var(--bd);display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:160px;overflow:hidden">
+      <span style="display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;color:#2563eb;background:rgba(37,99,235,0.1);padding:3px 8px;border-radius:6px;letter-spacing:0.04em;text-transform:uppercase;flex-shrink:0">
+        <i class="ti ti-notebook"></i> Playbook Aktif
+      </span>
+      <span id="playbook-summary" style="font-size:12px;color:var(--tx);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1">
+        Memuat playbook...
+      </span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;margin-left:auto;flex-wrap:wrap">
+      <button class="btn sm" type="button" onclick="openPlaybookModal()" title="Ganti atau kelola framework playbook rahasia user" style="border-color:#2563eb;color:#2563eb">
+        <i class="ti ti-adjustments-horizontal"></i> Ganti Playbook
+      </button>
+      <button class="btn sm" type="button" onclick="openAddPlaybookModal()" title="Buat playbook rahasia baru" style="border-color:var(--bd)">
+        <i class="ti ti-plus"></i> Buat Playbook
+      </button>
     </div>
   </div>
 
@@ -1295,6 +1315,45 @@ const DEFAULT_PERSONAS = [
   }
 ];
 
+const DEFAULT_PLAYBOOKS = [
+  {
+    id: 'bap',
+    name: 'Framework B-A-P',
+    tagline: 'Before - After - Painkiller',
+    desc: 'Bongkar luka lama (Before) -> Visualisasikan harapan baru (After) -> Posisikan solusi sebagai obat penawar luka (Painkiller) tanpa kesan hard-selling.',
+    steps: '1. Before: Validasi luka emosional & frustrasi pembaca tanpa menyalahkan\n2. After: Tunjukkan realita baru yang mungkin dicapai setelah masalah teratasi\n3. Bridge: Mengapa jalan lama selalu menemui jalan buntu\n4. Painkiller: Tawarkan solusi konkret sebagai jembatan penawar luka',
+    rules: 'Validasi penderitaan pembaca terlebih dahulu. Dilarang jualan di awal. Kontraskan before vs after secara dramatis namun realistis.',
+    isCustom: false
+  },
+  {
+    id: 'pilihan-setan',
+    name: 'Pilihan Setan',
+    tagline: 'The Devil\'s Choice (Binary Dilemma)',
+    desc: 'Benturkan audiens pada 2 pilihan ekstrem: Opsi A yang melelahkan dan boros biaya vs Opsi B (solusi kita) yang rasional dan cerdas.',
+    steps: '1. Polarizing Opening: Pertanyaan tajam yang membelah kubu\n2. Opsi A: Sengsara di Status Quo (hitung kerugian nyata jika bertahan)\n3. Opsi B: Jalan Pintas Cerdas (solusi logis kita)\n4. Verdict: Ajakan bertindak bagi audiens yang berpikir waras',
+    rules: 'Deskripsikan opsi A sejelas mungkin agar terasa menyiksa jika dibiarkan. Jadikan opsi B satu-satunya kesimpulan yang logis dan bermartabat.',
+    isCustom: false
+  },
+  {
+    id: 'harga-jangkar',
+    name: 'Harga Jangkar',
+    tagline: 'Anchor Price & Value Stacking',
+    desc: 'Tanamkan jangkar harga mahal di awal (biaya staf, agensi, coba-coba sendiri), lalu tawarkan harga sebenarnya yang terasa sangat murah.',
+    steps: '1. Hitung kerugian finansial / waktu tanpa sistem yang benar\n2. Value Stacking: Tumpuk semua nilai modul, materi, dan pendampingan\n3. Shocking Price Reveal: Buka harga yang memecahkan ekspektasi audiens\n4. Reversal Guarantee & Urgensi: Garansi aman dan batas waktu',
+    rules: 'Jangkar pembanding harus realistis dan dapat dinalar. Gunakan metafora pengeluaran harian (misal setara segelas kopi harian).',
+    isCustom: false
+  },
+  {
+    id: 'solusi-gratisan',
+    name: 'Solusi Gratisan Dulu',
+    tagline: 'Freemium Value Upfront',
+    desc: 'Beri 1 trik atau tips yang 100% langsung bisa dipraktikkan secara gratis dan terbukti bekerja. Setelah mereka percaya, tawarkan sistem lengkapnya.',
+    steps: '1. Daging Gratisan: Trik instan berfaedah tinggi tanpa syarat\n2. Quick Win: Pembaca merasakan hasilnya dalam hitungan menit\n3. The Real Bottleneck: Masalah lanjutan yang butuh sistem menyeluruh\n4. Penawaran Pintu Masuk: Akses ke produk / layanan berbayar komplit',
+    rules: 'Free value dilarang setengah-setengah atau sekadar teori. Harus memicu reaksi: "Yang gratis aja sedaging ini, gimana yang berbayar!"',
+    isCustom: false
+  }
+];
+
 let data = {
   sections:['Hook','Problem','Agitate','Solution','Fitur','CTA','Testimoni','Offer','Guarantee','Closing'],
   categories:['Produk Digital','Jasa','Personal Brand','Affiliate','Edukasi'],
@@ -1303,7 +1362,9 @@ let data = {
   contents:[],
   learns:[],
   personas:[],
-  activePersonaId:''
+  activePersonaId:'',
+  playbooks:[],
+  activePlaybookId:'bap'
 };
 const DEFAULT_GEMINI_KEY = (function(){
   try {
@@ -1370,6 +1431,7 @@ function save(){
     localStorage.setItem('cb_ai', aStr);
   }catch(e){}
   updateJurusBarSummary();
+  if(typeof updatePlaybookBarSummary === 'function') updatePlaybookBarSummary();
 }
 function load(){
   try{
@@ -1454,6 +1516,15 @@ function load(){
   }
   if(!data.activePersonaId && data.personas.length){
     data.activePersonaId = data.personas[0].id;
+  }
+
+  // Sinkronkan data.playbooks jika belum ada
+  if(!data.playbooks || !data.playbooks.length){
+    data.playbooks = JSON.parse(JSON.stringify(DEFAULT_PLAYBOOKS));
+    data.activePlaybookId = 'bap';
+  }
+  if(!data.activePlaybookId && data.playbooks.length){
+    data.activePlaybookId = data.playbooks[0].id;
   }
 
   // Merge custom templates ke TEMPLATES
@@ -1676,7 +1747,7 @@ function getJurusPrompt(category = '', contextType = 'general'){
   const blocks = [];
 
   // 0. DNA Persona Brand Aktif (Tone of Voice, Target Audiens & Kosakata)
-  const activeP = getActivePersona();
+  const activeP = (typeof getActivePersona === 'function') ? getActivePersona() : null;
   if(activeP){
     const pLines = [
       `- Nama Persona / Brand: "${activeP.name}"`,
@@ -1687,6 +1758,18 @@ function getJurusPrompt(category = '', contextType = 'general'){
       activeP.description ? `- Intisari DNA: ${activeP.description}` : ''
     ].filter(Boolean).join('\n');
     blocks.push(`=== DNA PERSONA BRAND AKTIF (WAJIB DITERAPKAN PADA PILIHAN KATA & RITME KALIMAT) ===\n${pLines}`);
+  }
+
+  // 0.5. Framework Playbook Rahasia Pengguna Aktif (B-A-P, Pilihan Setan, Harga Jangkar, dll)
+  const activePb = (typeof getActivePlaybook === 'function') ? getActivePlaybook() : null;
+  if(activePb && jurusConfig.usePlaybook !== false){
+    const pbLines = [
+      `- Nama Framework: "${activePb.name}" (${activePb.tagline || ''})`,
+      activePb.desc ? `- Filosofi & Konsep: ${activePb.desc}` : '',
+      activePb.steps ? `- Urutan Alur Tulisan:\n${activePb.steps}` : '',
+      activePb.rules ? `- Kaidah Wajib: ${activePb.rules}` : ''
+    ].filter(Boolean).join('\n');
+    blocks.push(`=== FRAMEWORK PLAYBOOK RAHASIA PENGGUNA (WAJIB DIIKUTI PADA STRUKTUR PENULISAN) ===\n${pbLines}\n(Instruksi AI: Susun dan kembangkan draf naskah dengan patuh mengikuti urutan alur & kaidah playbook rahasia ini!)`);
   }
 
   // 1. Ambil Catatan Kaidah/Jurus dari Tab Learn
@@ -1722,30 +1805,65 @@ function getJurusPrompt(category = '', contextType = 'general'){
     }
   }
 
-  // 2. Ambil Contoh Konten Terbukti (Winner) dari Bank Konten
+  // 2. Ambil Contoh Konten Terbukti (Winner / Tested) dari Bank Konten sebagai Few-Shot Memory (2-3 Konten)
   if(jurusConfig.useWinners && data.contents && data.contents.length > 0){
-    let winner = null;
+    let fewShotWinners = [];
     if(jurusConfig.selectedWinnerId){
-      winner = data.contents.find(c => c.id === jurusConfig.selectedWinnerId);
+      const specific = data.contents.find(c => c.id === jurusConfig.selectedWinnerId);
+      if(specific) fewShotWinners.push(specific);
     }
-    if(!winner){
-      const catLower = (category || '').toLowerCase();
-      const catWinners = data.contents.filter(c => (c.status === 'Winner' || c.stars >= 5) && (c.category || '').toLowerCase() === catLower);
-      if(catWinners.length){
-        winner = catWinners[catWinners.length - 1];
-      } else {
-        const anyWinners = data.contents.filter(c => c.status === 'Winner' || c.stars >= 5);
-        if(anyWinners.length) winner = anyWinners[anyWinners.length - 1];
-      }
+    const catLower = (category || '').toLowerCase();
+    
+    // Cari konten kategori sama yang statusnya Winner atau Tested
+    const catWinners = data.contents.filter(c => 
+      c.id !== jurusConfig.selectedWinnerId &&
+      (c.status === 'Winner' || c.status === 'Tested' || c.stars >= 4) &&
+      (c.category || '').toLowerCase() === catLower
+    );
+    
+    // Urutkan yang punya metrics views/leads tertinggi dulu
+    catWinners.sort((a,b) => {
+      const aV = (a.metrics && a.metrics.views) ? a.metrics.views : (a.stars * 1000);
+      const bV = (b.metrics && b.metrics.views) ? b.metrics.views : (b.stars * 1000);
+      return bV - aV;
+    });
+
+    fewShotWinners = fewShotWinners.concat(catWinners);
+
+    // Jika masih kurang dari 3, ambil dari kategori lain yang Winner/Tested
+    if(fewShotWinners.length < 3){
+      const otherWinners = data.contents.filter(c => 
+        !fewShotWinners.some(fw => fw.id === c.id) &&
+        (c.status === 'Winner' || c.status === 'Tested' || c.stars >= 4)
+      );
+      otherWinners.sort((a,b) => {
+        const aV = (a.metrics && a.metrics.views) ? a.metrics.views : (a.stars * 1000);
+        const bV = (b.metrics && b.metrics.views) ? b.metrics.views : (b.stars * 1000);
+        return bV - aV;
+      });
+      fewShotWinners = fewShotWinners.concat(otherWinners);
     }
 
-    if(winner && winner.sections && winner.sections.length){
-      const sampleSections = winner.sections.slice(0, 4).map(s => {
-        const itemText = (s.items && s.items[0]) ? s.items[0].replace(/\n+/g, ' ').slice(0, 120) : '';
-        return `  - ${s.name}: "${itemText}"`;
-      }).join('\n');
+    fewShotWinners = fewShotWinners.slice(0, 3);
 
-      blocks.push(`=== INSPIRASI GAYA DARI KONTEN PEMENANG (STATUS: WINNER) ===\nReferensi Konten Terbukti: "${winner.title}" (${winner.category})\n${sampleSections}\n(Catatan AI: Tiru ritme kalimat, keluwesan bahasa, dan daya pikatnya tapi sesuaikan dengan topik baru)`);
+    if(fewShotWinners.length > 0){
+      const samplesText = fewShotWinners.map((w, idx) => {
+        let metricsStr = '';
+        if(w.metrics && (w.metrics.views || w.metrics.leads || w.metrics.orders)){
+          const mParts = [];
+          if(w.metrics.views) mParts.push(w.metrics.views.toLocaleString() + ' views');
+          if(w.metrics.leads) mParts.push(w.metrics.leads.toLocaleString() + ' leads');
+          if(w.metrics.orders) mParts.push(w.metrics.orders.toLocaleString() + ' order');
+          metricsStr = ' | Hasil Lapangan: ' + mParts.join(', ');
+        }
+        const sampleSecs = (w.sections || []).slice(0, 3).map(s => {
+          const itemText = (s.items && s.items[0]) ? s.items[0].replace(/\n+/g, ' ').slice(0, 160) : '';
+          return `    - [${s.name}]: "${itemText}"`;
+        }).join('\n');
+        return `Contoh ${idx + 1}: "${w.title}" (Kategori: ${w.category || '-'} | Status: ${w.status || 'Winner'}${metricsStr})\n${sampleSecs}`;
+      }).join('\n\n');
+
+      blocks.push(`=== CONTOH NYATA KONTEN WINNER & TERUJI (FEW-SHOT GAYA PENGGUNA) ===\nBerikut 2-3 contoh naskah terbukti dari Bank Konten pengguna. Tiru ritme kalimat, keluwesan bahasa, cara menusuk luka, dan pola penawarannya (jangan tiru topik secara mentah, tiru gaya keberhasilannya):\n\n${samplesText}`);
     }
   }
 
@@ -2193,26 +2311,64 @@ async function runHookScore(){
   const btn = document.getElementById('btn-run-hook-score');
   const out = document.getElementById('hook-score-output');
   btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span> Menganalisis...';
+  btn.innerHTML = '<span class="spinner"></span> Guru sedang membedah hook...';
   out.style.display = 'block';
   out.innerHTML = `
     <div style="text-align:center;padding:24px 0;color:var(--txm)">
       <span class="spinner" style="width:20px;height:20px;margin-bottom:8px"></span>
-      <div>Mengevaluasi daya pikat & curiosity gap...</div>
+      <div style="font-weight:600;color:var(--tx);font-size:13px">Guru sedang menganalisis hook terhadap Jurus Learn &amp; Pola Winner...</div>
+      <div style="font-size:11px;color:var(--tx2);margin-top:4px">Mengecek riwayat FYP masa lalu, angka konkret, dan konfrontasi opini...</div>
     </div>
   `;
 
-  const cat = document.getElementById('inp-cat')?.value || '';
+  const cat = document.getElementById('inp-cat')?.value || 'Copywriting';
   const jurusContext = getJurusPrompt(cat, 'hook');
-  const prompt = `Kamu adalah copywriter & viral marketing expert Indonesia berpengalaman tinggi.
-Tugasmu adalah menganalisis kekuatan HOOK/HEADLINE pembuka berikut:
+  const activePb = (typeof getActivePlaybook === 'function') ? getActivePlaybook() : null;
+
+  // Ambil pola hook dari konten winner / tested / views tinggi user
+  const winnerHooks = (data.contents || []).filter(c => 
+    (c.status === 'Winner' || c.status === 'Tested' || c.stars >= 4) && c.sections && c.sections.length
+  ).map(c => {
+    const hSec = c.sections.find(s => isHook(s.name));
+    const hText = (hSec && hSec.items && hSec.items[0]) ? hSec.items[0].replace(/\n+/g, ' ').slice(0, 140) : '';
+    let mStr = '';
+    if(c.metrics && (c.metrics.views || c.metrics.leads || c.metrics.orders)){
+      mStr = ` (${(c.metrics.views||0).toLocaleString()} views, ${(c.metrics.leads||0).toLocaleString()} leads)`;
+    }
+    return hText ? `- "${hText}" [${c.status || 'Winner'}${mStr}]` : null;
+  }).filter(Boolean).slice(0, 3);
+
+  // Ambil jurus relevan untuk hook dari Tab Learn
+  const hookLearns = (typeof getRelevantLearnsForReview === 'function') ? getRelevantLearnsForReview({
+    category: cat,
+    tags: ['#hook', '#headline', '#opening', '#viral'],
+    text: hookText,
+    limit: 3
+  }) : [];
+  const learnJurusLines = hookLearns.map((l, i) => `${i+1}. [${l.topic || 'Jurus'}] ${l.title}: "${(l.body || '').replace(/\n+/g, ' ').slice(0, 160)}"`).join('\n');
+
+  const prompt = `Kamu adalah GURU COPYWRITING & VIRAL HOOK ANALYZER PRIBADI Indonesia.
+Tugasmu: Menilai dan membedah kalimat pembuka (Hook/Headline) berikut BUKAN dengan standar generik AI, melainkan dengan STANDAR GURU (mengacu pada Kaidah Jurus Tab Learn murid dan Riwayat Hook Pemenang yang terbukti berhasil).
+
+=== HOOK YANG DIUJI ===
 "${hookText}"
-${jurusContext}
-Analisis secara objektif dan berikan penilaian dalam format JSON murni TANPA markdown pembungkus:
+
+=== STANDAR JURUS HOOK DARI TAB LEARN ===
+${learnJurusLines || '(Terapkan kaidah Aturan 3 Detik Pertama, Curiosity Gap, dan Angka Konkret)'}
+
+=== PLAYBOOK AKTIF ===
+${activePb ? `${activePb.name}: ${activePb.desc}` : 'Framework B-A-P'}
+
+=== RIWAYAT HOOK PEMENANG MILIK USER (YANG SUDAH TERBUKTI FYP / WINNER) ===
+${winnerHooks.length ? winnerHooks.join('\n') : '(Belum ada riwayat winner, gunakan standar formula viral: Angka Konkret + Konfrontasi Opini Populer / Buka dari Fakta Menusuk)'}
+
+Analisis secara objektif, jujur, dan to-the-point. Berikan penilaian dalam format JSON murni TANPA markdown pembungkus:
 {
   "score": <angka integer 1-100>,
   "level": "<Viral / Kuat & Efektif / Standar / Lemah>",
-  "diagnosis": "<1-2 kalimat tajam kenapa hook ini dapat skor ini dan apa yang perlu dipertajam>",
+  "guru_critique": "<Kritik tajam 1-2 kalimat dari guru: apa kelemahan fatal hook ini dan kenapa belum semenyengat hook winner masa lalu>",
+  "winner_comparison": "<Analisis pola: bandingkan hook ini dengan pola konsisten yang pernah FYP pada riwayat user (misal: penggunaan angka konkret vs kalimat normatif klise)>",
+  "learn_compliance": "<Ulasan singkat apakah hook ini mematuhi kaidah jurus Tab Learn>",
   "pillars": {
     "curiosity": <angka 1-100>,
     "punchiness": <angka 1-100>,
@@ -2221,16 +2377,16 @@ Analisis secara objektif dan berikan penilaian dalam format JSON murni TANPA mar
   },
   "suggestions": [
     {
-      "angle": "Curiosity Gap",
-      "hook": "<hook baru yang membangkitkan rasa penasaran mendalam>"
+      "angle": "Pola Angka + Konfrontasi (Gaya Winner)",
+      "hook": "<hook baru yang tajam dengan angka konkret>"
     },
     {
-      "angle": "Pain Point Menusuk",
-      "hook": "<hook baru yang menyinggung rasa sakit / ketakutan audiens>"
+      "angle": "Kaidah Jurus Tab Learn",
+      "hook": "<hook baru yang menerapkan kaidah jurus Learn>"
     },
     {
-      "angle": "Spesifik & Angka",
-      "hook": "<hook baru dengan angka konkret atau fakta mengejutkan>"
+      "angle": "Luka Emosional (Pola B-A-P)",
+      "hook": "<hook baru yang menusuk luka pembaca>"
     }
   ]
 }`;
@@ -2245,14 +2401,16 @@ Analisis secara objektif dan berikan penilaian dalam format JSON murni TANPA mar
 
     if(!parsed || typeof parsed.score !== 'number'){
       parsed = {
-        score: 75,
-        level: 'Standar / Bisa Dipertajam',
-        diagnosis: raw.replace(/\{|\}/g,'').slice(0,180) || 'Hook sudah cukup baik, tapi bisa lebih menonjolkan rasa penasaran audiens.',
-        pillars: { curiosity: 75, punchiness: 78, emotion: 70, brevity: 80 },
+        score: 74,
+        level: 'Standar / Perlu Penajaman Guru',
+        guru_critique: raw.replace(/\{|\}/g,'').slice(0,180) || 'Hook masih terlalu normatif. Belum ada kejutan angka konkret atau benturan opini seperti pola konten winner masa lalu.',
+        winner_comparison: 'Konten winner user konsisten memakai kontras angka dan validasi rasa sakit, sedangkan draf ini masih bersifat deskriptif biasa.',
+        learn_compliance: 'Belum memaksimalkan Aturan 3 Detik Pertama dan Framework B-A-P.',
+        pillars: { curiosity: 72, punchiness: 76, emotion: 70, brevity: 80 },
         suggestions: [
-          { angle: 'Curiosity Gap', hook: 'Rahasia di balik ini yang jarang dibahas kreator lain...' },
-          { angle: 'Pain Point', hook: 'Stop lakukan ini kalau kamu nggak mau rugi waktu dan tenaga!' },
-          { angle: 'Angka Spesifik', hook: 'Hanya butuh 3 langkah simpel untuk hasil 2x lipat lebih cepat.' }
+          { angle: 'Pola Angka + Konfrontasi (Gaya Winner)', hook: 'Habis 3 juta buat coba cara umum, ternyata trik 0 rupiah ini yang bikin closing!' },
+          { angle: 'Kaidah Jurus Tab Learn', hook: 'Jangan sentuh produk ini kalau kamu belum siap hadapi konsekuensi 2 minggu ke depan.' },
+          { angle: 'Luka Emosional (Pola B-A-P)', hook: 'Capek dibilang rajin tapi rekening tetap kering? Masalahnya bukan di usaha kamu...' }
         ]
       };
     }
@@ -2263,7 +2421,7 @@ Analisis secara objektif dan berikan penilaian dalam format JSON murni TANPA mar
     out.innerHTML = `<div style="color:var(--txd);padding:12px;font-size:13px">Error: ${e.message}</div>`;
   }
   btn.disabled = false;
-  btn.innerHTML = '<i class="ti ti-flame"></i> Analisis Ulang';
+  btn.innerHTML = '<i class="ti ti-flame"></i> Analisis Ulang Guru';
 }
 
 function renderHookScoreResult(res){
@@ -2278,18 +2436,37 @@ function renderHookScoreResult(res){
   out.innerHTML = `
     <div style="border-top:1px solid var(--bd);padding-top:16px;margin-top:16px">
       <!-- METER HEADER -->
-      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:${badgeBg};border-radius:12px;border:1px solid var(--bd);margin-bottom:14px">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;background:${badgeBg};border-radius:12px;border:1px solid var(--bd);margin-bottom:14px;flex-wrap:wrap">
         <div style="width:64px;height:64px;border-radius:50%;background:${scoreColor};display:flex;flex-direction:column;align-items:center;justify-content:center;color:#fff;font-weight:800;flex-shrink:0;box-shadow:0 4px 12px rgba(0,0,0,0.12)">
           <span style="font-size:22px;line-height:1">${score}</span>
           <span style="font-size:9px;text-transform:uppercase;opacity:0.85">/100</span>
         </div>
-        <div style="flex:1">
+        <div style="flex:1;min-width:180px">
           <div style="font-size:14px;font-weight:700;color:var(--tx);margin-bottom:4px;display:flex;align-items:center;gap:6px">
-            <i class="ti ti-flame" style="color:${scoreColor}"></i> ${res.level || 'Penilaian Hook'}
+            <i class="ti ti-school" style="color:${scoreColor}"></i> ${res.level || 'Penilaian Guru'}
           </div>
-          <div style="font-size:12px;color:var(--tx2);line-height:1.5">${res.diagnosis || ''}</div>
+          <div style="font-size:12px;color:var(--tx2);line-height:1.5">${res.guru_critique || res.diagnosis || ''}</div>
         </div>
       </div>
+
+      <!-- ANALISIS KOMPARASI POLA WINNER & JURUS LEARN -->
+      ${res.winner_comparison ? `
+        <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div style="font-size:11px;font-weight:700;color:var(--txa);margin-bottom:3px;display:flex;align-items:center;gap:5px">
+            <i class="ti ti-chart-bar"></i> Komparasi Terhadap Riwayat Winner User:
+          </div>
+          <div style="font-size:12px;color:var(--tx);line-height:1.4">${escapeHtml(res.winner_comparison)}</div>
+        </div>
+      ` : ''}
+
+      ${res.learn_compliance ? `
+        <div style="background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:8px 12px;margin-bottom:12px">
+          <div style="font-size:11px;font-weight:700;color:var(--txs);margin-bottom:2px;display:flex;align-items:center;gap:5px">
+            <i class="ti ti-certificate"></i> Kepatuhan Terhadap Jurus Tab Learn:
+          </div>
+          <div style="font-size:11px;color:var(--tx2);line-height:1.4">${escapeHtml(res.learn_compliance)}</div>
+        </div>
+      ` : ''}
 
       <!-- 4 PILARS -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px">
@@ -2313,7 +2490,7 @@ function renderHookScoreResult(res){
         </div>
         <div style="background:var(--s1);border:1px solid var(--bd);padding:9px 12px;border-radius:8px">
           <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--tx2);font-weight:600;margin-bottom:4px">
-            <span>💡 Emosi & Masalah</span>
+            <span>💡 Emosi &amp; Masalah</span>
             <span style="color:var(--txa)">${p.emotion || 70}%</span>
           </div>
           <div style="background:var(--s2);height:5px;border-radius:99px;overflow:hidden">
@@ -2332,13 +2509,13 @@ function renderHookScoreResult(res){
       </div>
 
       <!-- 3 SUGGESTIONS -->
-      <div class="lbl" style="margin-bottom:8px">3 Alternatif Hook Lebih Viral (Siap Pakai)</div>
+      <div class="lbl" style="margin-bottom:8px">Alternatif Hook Versi Guru (Berdasarkan Pola Winner &amp; Jurus)</div>
       <div style="display:flex;flex-direction:column;gap:8px">
         ${(res.suggestions || []).map((s, idx) => `
           <div style="background:var(--s1);border:1px solid var(--bd);padding:10px 12px;border-radius:8px;display:flex;flex-direction:column;gap:6px">
-            <div style="display:flex;align-items:center;justify-content:space-between">
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;flex-wrap:wrap">
               <span class="badge b-input" style="font-size:10px">${s.angle}</span>
-              <button class="btn sm primary" onclick="applyHookScoreSuggestion(${idx})"><i class="ti ti-check"></i> Pakai Hook Ini</button>
+              <button class="btn sm primary" onclick="applyHookScoreSuggestion(${idx})"><i class="ti ti-check"></i> Terapkan ke Editor</button>
             </div>
             <div style="font-size:13px;color:var(--tx);font-weight:500;line-height:1.5">${formatMarkdown(s.hook)}</div>
           </div>
@@ -2358,20 +2535,17 @@ function applyHookScoreSuggestion(idx){
     currentSections[si].items[0] = hookText;
     renderSections();
     showToast('✓ Hook baru diterapkan ke editor!');
-  } else if(currentSections.length){
-    const hookSec = currentSections.find(s => isHook(s.name));
-    if(hookSec){
-      hookSec.items[0] = hookText;
+  } else {
+    // Cari section hook pertama
+    const hSec = currentSections.find(s => isHook(s.name));
+    if(hSec){
+      hSec.items[0] = hookText;
       renderSections();
       showToast('✓ Hook baru diterapkan ke editor!');
     } else {
-      currentSections[0].items[0] = hookText;
-      renderSections();
-      showToast('✓ Hook diterapkan ke bagian pertama!');
+      navigator.clipboard.writeText(hookText);
+      showToast('✓ Hook disalin ke clipboard!');
     }
-  } else {
-    navigator.clipboard.writeText(hookText);
-    showToast('✓ Hook disalin ke clipboard!');
   }
   closeModal();
 }
@@ -2516,6 +2690,8 @@ function openAICoachReviewModal(autoRun){
   var goal = (document.getElementById('inp-tujuan')?.value || '').trim();
   var tplName = window._activeTpl?.name || 'Kustom';
   var activeP = (typeof getActivePersona === 'function') ? getActivePersona() : null;
+  var activePb = (typeof getActivePlaybook === 'function') ? getActivePlaybook() : null;
+  var activePb = (typeof getActivePlaybook === 'function') ? getActivePlaybook() : null;
 
   var filledSections = (currentSections || []).filter(function(s){
     return s.items && s.items.some(function(x){ return x && x.trim(); });
@@ -2567,15 +2743,20 @@ function openAICoachReviewModal(autoRun){
       AI Coach bertindak sebagai guru nulis pribadi yang menguji drafmu dengan <strong>standar jurus di Tab Learn</strong> (bukan saran generic!). Memberikan evaluasi kelulusan jurus, kritik tajam, dan naskah revisi yang siap diterapkan.
     </div>
 
-    <!-- TOLOK UKUR JURUS BAR -->
+    <!-- TOLOK UKUR PLAYBOOK & JURUS BAR -->
     <div style="padding:10px 12px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:14px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:6px;flex-wrap:wrap">
         <div style="font-size:11px;font-weight:700;color:var(--tx);text-transform:uppercase;letter-spacing:0.04em;display:flex;align-items:center;gap:5px">
-          <i class="ti ti-certificate" style="color:var(--txa)"></i> Standar &amp; Jurus Acuan Terpilih:
+          <i class="ti ti-notebook" style="color:#2563eb"></i> Framework Playbook &amp; Jurus Acuan:
         </div>
-        <span style="font-size:11px;color:var(--txm)">Diambil dari Tab Learn (localStorage)</span>
+        <span style="font-size:11px;color:var(--txm)">Playbook Aktif &amp; Tab Learn</span>
       </div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        ${activePb ? `
+          <span class="badge" style="background:rgba(37,99,235,0.1);color:#2563eb;font-size:11px;padding:3px 8px;border-radius:6px;display:inline-flex;align-items:center;gap:4px">
+            <i class="ti ti-notebook"></i> Playbook: ${escapeHtml(activePb.name)}
+          </span>
+        ` : ''}
         ${learnsBadges || '<span style="font-size:11px;color:var(--txm)">Belum ada jurus di Tab Learn</span>'}
       </div>
     </div>
@@ -2672,6 +2853,9 @@ Tujuan / Brief: "${goal || '(Belum diisi)'}"
 
 ${draftSections}
 
+=== FRAMEWORK PLAYBOOK RAHASIA PENGGUNA (TOLOK UKUR STRUKTUR) ===
+${activePb ? `- Nama Framework: ${activePb.name} (${activePb.tagline || ''})\n- Konsep: ${activePb.desc}\n- Urutan Alur:\n${activePb.steps}\n- Kaidah Wajib: ${activePb.rules}` : '(Gunakan Framework B-A-P: Before -> After -> Painkiller)'}
+
 === STANDAR JURUS DARI TAB LEARN (TOLOK UKUR REVIEW) ===
 ${learnsText || '(Gunakan prinsip dasar Framework B-A-P, Solusi Gratisan Dulu, dan Masalah Manusiawi)'}
 
@@ -2679,8 +2863,8 @@ ${personaContext}
 
 === ATURAN MUTLAK REVIEW AI COACH ===
 1. JANGAN PERNAH berikan pujian palsu, basa-basi, atau saran generic template AI (AI slop seperti "buat lebih engaging", "perbaiki ejaan", "tambahkan bullet points" DILARANG!).
-2. Uji naskah secara objektif pasal demi pasal terhadap jurus-jurus di atas.
-3. Sebutkan nama jurus secara eksplisit (misal: "Jurus 3: Framework B-A-P", "Jurus 4: Harga Jangkar", dll).
+2. Uji naskah secara objektif pasal demi pasal terhadap jurus-jurus dan kerangka alur Playbook di atas.
+3. Sebutkan nama jurus dan Playbook secara eksplisit (misal: "Playbook: ${activePb ? activePb.name : 'Framework B-A-P'}", "Jurus 3: Framework B-A-P", "Jurus 4: Harga Jangkar", dll).
 4. Berikan format respon dalam JSON MURNI TANPA pembungkus markdown apapun, dengan struktur:
 {
   "score": <angka integer 1-100 kelulusan naskah terhadap jurus>,
@@ -3882,6 +4066,127 @@ function saveMix(){
   save();showToast('Hasil mix disimpan!');initMixSlots();
 }
 
+// ===================== FEEDBACK LOOP & HASIL REAL =====================
+function formatMetricsShort(m){
+  if(!m) return '';
+  const parts = [];
+  if(m.views) parts.push((m.views >= 1000 ? (m.views/1000).toFixed(1) + 'k' : m.views) + ' views');
+  if(m.leads) parts.push(m.leads + ' leads');
+  if(m.orders) parts.push(m.orders + ' order');
+  return parts.join(' · ');
+}
+
+function formatMetricsLong(m){
+  if(!m) return '';
+  const parts = [];
+  if(m.views) parts.push('<strong>' + (m.views).toLocaleString() + '</strong> views');
+  if(m.leads) parts.push('<strong>' + (m.leads).toLocaleString() + '</strong> leads');
+  if(m.orders) parts.push('<strong>' + (m.orders).toLocaleString() + '</strong> order');
+  if(m.revenue) parts.push('<strong>Rp ' + (m.revenue).toLocaleString() + '</strong>');
+  return parts.join(' · ');
+}
+
+function openRecordMetricsModal(id){
+  const c = data.contents.find(x => x.id === id);
+  if(!c) return;
+  const m = c.metrics || {};
+
+  openModal(`
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-chart-arrows" style="color:#10b981;font-size:20px"></i>
+      <span>Catat Hasil Real (Feedback Loop)</span>
+    </div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.5">
+      Masukkan data performa nyata di lapangan untuk konten <strong>"${escapeHtml(c.title)}"</strong>. Sistem akan otomatis menandai konten sebagai <strong>Winner / Tested</strong> sehingga AI bisa belajar dari pola keberhasilan aslimu!
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <div class="lbl">Views / Tayangan</div>
+        <input type="number" id="metrics-inp-views" value="${m.views || ''}" placeholder="Contoh: 15400" min="0"/>
+      </div>
+      <div>
+        <div class="lbl">Likes / Reaksi</div>
+        <input type="number" id="metrics-inp-likes" value="${m.likes || ''}" placeholder="Contoh: 1250" min="0"/>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <div>
+        <div class="lbl">Leads / Inbound DM / Chat</div>
+        <input type="number" id="metrics-inp-leads" value="${m.leads || ''}" placeholder="Contoh: 18" min="0"/>
+      </div>
+      <div>
+        <div class="lbl">Order / Closing Penjualan</div>
+        <input type="number" id="metrics-inp-orders" value="${m.orders || ''}" placeholder="Contoh: 4" min="0"/>
+      </div>
+    </div>
+
+    <div style="margin-bottom:10px">
+      <div class="lbl">Omset / Revenue (Rp)</div>
+      <input type="number" id="metrics-inp-revenue" value="${m.revenue || ''}" placeholder="Contoh: 388000" min="0"/>
+    </div>
+
+    <div style="margin-bottom:14px">
+      <div class="lbl">Catatan Lapangan &amp; Evaluasi (Apa yang berhasil?)</div>
+      <textarea id="metrics-inp-notes" style="min-height:60px" placeholder="Contoh: Hook B-A-P berhasil menembus FYP jam 8 malam, 4 closing masuk lewat link bio...">${escapeHtml(m.notes || '')}</textarea>
+    </div>
+
+    <div class="row" style="justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap">
+      <span style="font-size:11px;color:var(--txm)">Auto-upgrade: Views &ge; 5k / Order &ge; 1 -> Winner</span>
+      <div style="display:flex;gap:6px">
+        <button class="btn" onclick="closeModal()">Batal</button>
+        <button class="btn primary" onclick="saveMetricsModal(${id})" style="background:#059669;border-color:#059669">
+          <i class="ti ti-check"></i> Simpan Hasil Real
+        </button>
+      </div>
+    </div>
+  `);
+}
+
+function saveMetricsModal(id){
+  const c = data.contents.find(x => x.id === id);
+  if(!c) return;
+
+  const views = parseInt(document.getElementById('metrics-inp-views')?.value || 0) || 0;
+  const likes = parseInt(document.getElementById('metrics-inp-likes')?.value || 0) || 0;
+  const leads = parseInt(document.getElementById('metrics-inp-leads')?.value || 0) || 0;
+  const orders = parseInt(document.getElementById('metrics-inp-orders')?.value || 0) || 0;
+  const revenue = parseInt(document.getElementById('metrics-inp-revenue')?.value || 0) || 0;
+  const notes = (document.getElementById('metrics-inp-notes')?.value || '').trim();
+
+  c.metrics = {
+    views: views,
+    likes: likes,
+    leads: leads,
+    orders: orders,
+    revenue: revenue,
+    notes: notes,
+    updated: new Date().toLocaleDateString('id-ID')
+  };
+
+  // Auto-marking status Winner / Tested berdasarkan hasil real
+  let oldStatus = c.status;
+  if(views >= 5000 || orders >= 1 || leads >= 5){
+    c.status = 'Winner';
+    if(c.stars < 5) c.stars = 5;
+  } else if(views >= 1000 || leads >= 2){
+    if(c.status !== 'Winner') c.status = 'Tested';
+    if(c.stars < 4) c.stars = 4;
+  }
+
+  save();
+  closeModal();
+  renderBank();
+  viewContent(id);
+
+  if(c.status !== oldStatus){
+    showToast(`✓ Hasil real disimpan! Status otomatis diupgrade ke ${c.status}!`);
+  } else {
+    showToast('✓ Hasil real berhasil dicatat!');
+  }
+}
+
 // ===================== BANK =====================
 function setView(v){
   bankView=v;
@@ -3925,6 +4230,11 @@ function renderBank(){
           <div class="kb-card" onclick="viewContent(${c.id})">
             <div class="kct">${c.title}</div>
             <div class="kcm">${c.category} · ${renderStars(c.stars||0)}</div>
+            ${c.metrics && (c.metrics.views || c.metrics.leads || c.metrics.orders) ? `
+              <div style="font-size:10px;font-weight:700;color:var(--txa);margin:4px 0;display:flex;align-items:center;gap:3px">
+                <i class="ti ti-chart-bar"></i> ${formatMetricsShort(c.metrics)}
+              </div>
+            ` : ''}
             ${(c.tags||[]).length?`<div style="margin-top:6px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
           </div>
         `).join('')}
@@ -3949,9 +4259,16 @@ function renderBank(){
         <span style="color:#f59e0b;font-size:13px;flex-shrink:0">${renderStars(c.stars||0)}</span>
       </div>
       ${(c.tags||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:4px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+      ${c.metrics && (c.metrics.views || c.metrics.leads || c.metrics.orders) ? `
+        <div style="background:var(--s1);padding:4px 8px;border-radius:6px;border:1px solid var(--bd);display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--tx)">
+          <span style="font-weight:700;color:var(--txa);display:inline-flex;align-items:center;gap:3px"><i class="ti ti-chart-bar"></i> Hasil Real:</span>
+          <span>${formatMetricsLong(c.metrics)}</span>
+        </div>
+      ` : ''}
       <div class="cc-prev">${c.sections.slice(0,2).map(s=>`<b>${s.name}:</b> ${s.items[0]||''}`).join('<br>')}</div>
       <div class="row" style="gap:6px;flex-wrap:wrap">
         <button class="btn sm" onclick="viewContent(${c.id})"><i class="ti ti-eye"></i> Lihat</button>
+        <button class="btn sm" onclick="openRecordMetricsModal(${c.id})" style="border-color:#10b981;color:#059669;background:rgba(16,185,129,0.06)" title="Catat hasil performa nyata (views, leads, order)"><i class="ti ti-chart-arrows"></i> Catat Hasil</button>
         <button class="btn sm" onclick="copyContent(${c.id})"><i class="ti ti-copy"></i> Copy</button>
         <button class="btn sm" onclick="aiAnalyzeContent(${c.id})"><i class="ti ti-sparkles"></i> AI Analisis</button>
         ${(c.versions||[]).length?`<button class="btn sm" onclick="viewVersions(${c.id})"><i class="ti ti-history"></i> Versi (${c.versions.length})</button>`:''}
@@ -3982,7 +4299,44 @@ function viewContent(id){
       <span>${c.category} · ${c.created}</span>
       <span style="color:#f59e0b">${renderStars(c.stars||0)}</span>
     </div>
-    ${(c.tags||[]).length?`<div style="margin-bottom:12px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+    ${(c.tags||[]).length?`<div style="margin-bottom:8px">${c.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`:''}
+    ${c.metrics ? `
+      <div style="background:var(--s1);border:1px solid var(--bda);border-radius:var(--r);padding:10px 14px;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <span style="font-size:11px;font-weight:700;color:var(--txa);text-transform:uppercase;display:flex;align-items:center;gap:4px">
+            <i class="ti ti-chart-arrows"></i> Performa Nyata di Lapangan
+          </span>
+          <button class="btn sm" onclick="openRecordMetricsModal(${id})" style="padding:2px 8px;font-size:11px"><i class="ti ti-pencil"></i> Update Metrik</button>
+        </div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+          <div style="padding:6px 12px;background:var(--s2);border-radius:6px;border:1px solid var(--bd);text-align:center">
+            <div style="font-size:16px;font-weight:800;color:var(--tx)">${(c.metrics.views||0).toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--txm)">Views</div>
+          </div>
+          <div style="padding:6px 12px;background:var(--s2);border-radius:6px;border:1px solid var(--bd);text-align:center">
+            <div style="font-size:16px;font-weight:800;color:var(--txs)">${(c.metrics.leads||0).toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--txm)">Leads</div>
+          </div>
+          <div style="padding:6px 12px;background:var(--s2);border-radius:6px;border:1px solid var(--bd);text-align:center">
+            <div style="font-size:16px;font-weight:800;color:var(--txp)">${(c.metrics.orders||0).toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--txm)">Order</div>
+          </div>
+          ${c.metrics.revenue ? `
+          <div style="padding:6px 12px;background:var(--s2);border-radius:6px;border:1px solid var(--bd);text-align:center">
+            <div style="font-size:16px;font-weight:800;color:#059669">Rp ${(c.metrics.revenue||0).toLocaleString()}</div>
+            <div style="font-size:10px;color:var(--txm)">Omset</div>
+          </div>
+          ` : ''}
+        </div>
+        ${c.metrics.notes ? `<div style="font-size:11px;color:var(--tx2);line-height:1.4"><strong>Evaluasi:</strong> ${escapeHtml(c.metrics.notes)}</div>` : ''}
+      </div>
+    ` : `
+      <div style="margin-bottom:12px">
+        <button class="btn sm" onclick="openRecordMetricsModal(${id})" style="border-color:#10b981;color:#059669;background:rgba(16,185,129,0.06);font-size:11px">
+          <i class="ti ti-chart-arrows"></i> Catat Hasil Nyata Lapangan (Views / Leads / Order)
+        </button>
+      </div>
+    `}
     ${c.sections.map(s=>`
       <div style="margin-bottom:12px;border:1px solid var(--bd);border-radius:var(--r);overflow:hidden">
         <div style="display:flex;align-items:center;justify-content:space-between;background:var(--s1);padding:6px 10px">
@@ -5325,6 +5679,188 @@ async function confirmLoadDefaultBank(){
   }
 }
 
+// ===================== PLAYBOOK ENGINE =====================
+function getActivePlaybook(){
+  if(!data.playbooks || !data.playbooks.length){
+    data.playbooks = JSON.parse(JSON.stringify(DEFAULT_PLAYBOOKS));
+    data.activePlaybookId = 'bap';
+  }
+  const pb = data.playbooks.find(p => p.id === data.activePlaybookId);
+  return pb || data.playbooks[0] || null;
+}
+
+function setActivePlaybook(id){
+  if(!data.playbooks || !data.playbooks.length) return;
+  const target = data.playbooks.find(p => p.id === id);
+  if(!target) return;
+  data.activePlaybookId = id;
+  save();
+  updatePlaybookBarSummary();
+  showToast(`✓ Playbook aktif: "${target.name}"`);
+}
+
+function updatePlaybookBarSummary(){
+  const bar = document.getElementById('playbook-summary');
+  if(!bar) return;
+  const pb = getActivePlaybook();
+  if(!pb){
+    bar.innerHTML = '<span style="color:var(--txm)">Belum ada playbook aktif</span>';
+    return;
+  }
+  bar.innerHTML = `<strong>${escapeHtml(pb.name)}</strong> · ${escapeHtml(pb.tagline || pb.desc.slice(0, 50))}`;
+}
+
+function openPlaybookModal(){
+  const activePb = getActivePlaybook();
+  const playbooks = data.playbooks || DEFAULT_PLAYBOOKS;
+
+  openModal(`
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px">
+      <i class="ti ti-notebook" style="color:#2563eb;font-size:20px"></i>
+      <span>Kelola Playbook Rahasia (Framework User)</span>
+    </div>
+    <div style="font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.5">
+      Playbook adalah framework rahasia milikmu sendiri (seperti B-A-P, Pilihan Setan, dll). Berbeda dari template bawaan (yang sekadar layout bagian), playbook menentukan <strong>metodologi psikologis &amp; alur persuasi</strong> yang disuntikkan ke prompt AI setiap kali generate maupun review.
+    </div>
+
+    <!-- LIST PLAYBOOK -->
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;max-height:360px;overflow-y:auto;padding-right:2px">
+      ${playbooks.map(pb => {
+        const isActive = activePb && activePb.id === pb.id;
+        return `
+          <div style="border:1px solid ${isActive ? '#2563eb' : 'var(--bd)'};background:${isActive ? 'rgba(37,99,235,0.04)' : 'var(--s1)'};border-radius:10px;padding:12px;position:relative">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;flex-wrap:wrap">
+              <div>
+                <strong style="font-size:13px;color:var(--tx)">${escapeHtml(pb.name)}</strong>
+                ${pb.tagline ? `<span style="font-size:11px;color:#2563eb;margin-left:6px;font-weight:600">(${escapeHtml(pb.tagline)})</span>` : ''}
+              </div>
+              <div style="display:flex;gap:6px;align-items:center">
+                ${isActive ? `
+                  <span class="badge" style="background:rgba(37,99,235,0.12);color:#2563eb;font-size:10px;font-weight:700">
+                    <i class="ti ti-check"></i> AKTIF
+                  </span>
+                ` : `
+                  <button class="btn sm primary" type="button" onclick="setActivePlaybook('${pb.id}');openPlaybookModal()" style="font-size:11px;padding:3px 10px;background:#2563eb;border-color:#2563eb">
+                    Pilih Ini
+                  </button>
+                `}
+                ${pb.isCustom ? `
+                  <button class="btn sm" type="button" onclick="openAddPlaybookModal('${pb.id}')" title="Edit Playbook" style="padding:3px 8px;font-size:11px"><i class="ti ti-edit"></i></button>
+                  <button class="btn sm danger" type="button" onclick="deleteCustomPlaybook('${pb.id}')" title="Hapus Playbook" style="padding:3px 8px;font-size:11px"><i class="ti ti-trash"></i></button>
+                ` : ''}
+              </div>
+            </div>
+            <div style="font-size:12px;color:var(--tx2);line-height:1.4;margin-bottom:6px">${escapeHtml(pb.desc || '')}</div>
+            <div style="background:var(--s2);padding:6px 10px;border-radius:6px;border:1px dashed var(--bd);font-size:11px;color:var(--tx);white-space:pre-wrap;line-height:1.4"><strong>Alur Framework:</strong>\n${escapeHtml(pb.steps || '')}</div>
+            ${pb.rules ? `<div style="font-size:11px;color:var(--txm);margin-top:4px"><em>Kaidah: ${escapeHtml(pb.rules)}</em></div>` : ''}
+          </div>
+        `;
+      }).join('')}
+    </div>
+
+    <div class="row" style="justify-content:space-between;gap:8px;flex-wrap:wrap">
+      <button class="btn sm" type="button" onclick="openAddPlaybookModal()" style="border-color:#2563eb;color:#2563eb">
+        <i class="ti ti-plus"></i> Tambah Playbook Kustom
+      </button>
+      <button class="btn sm primary" type="button" onclick="closeModal()">Selesai</button>
+    </div>
+  `);
+}
+
+function openAddPlaybookModal(editId = null){
+  let pb = null;
+  if(editId && data.playbooks){
+    pb = data.playbooks.find(p => p.id === editId);
+  }
+
+  openModal(`
+    <div class="modal-title">
+      <i class="ti ti-notebook" style="color:#2563eb"></i>
+      <span>${pb ? 'Edit Playbook Rahasia' : 'Tambah Playbook Rahasia Baru'}</span>
+    </div>
+    <div style="font-size:12px;color:var(--tx2);margin-bottom:12px">
+      Definisikan framework unik pribadimu agar AI selalu menulis dan me-review mengikuti standar metodologi rahasiamu.
+    </div>
+
+    <div class="lbl">Nama Framework / Playbook</div>
+    <input type="text" id="pb-input-name" value="${escapeHtml(pb ? pb.name : '')}" placeholder="Contoh: Framework 4-Pillar Story Selling" style="margin-bottom:10px"/>
+
+    <div class="lbl">Tagline / Sub-judul</div>
+    <input type="text" id="pb-input-tagline" value="${escapeHtml(pb ? (pb.tagline || '') : '')}" placeholder="Contoh: Hook Menusuk -> Cerita Nyata -> Validasi -> Offer" style="margin-bottom:10px"/>
+
+    <div class="lbl">Deskripsi &amp; Konsep Filosofi</div>
+    <textarea id="pb-input-desc" style="min-height:60px;margin-bottom:10px" placeholder="Jelaskan secara ringkas bagaimana pola pikir framework ini bekerja...">${escapeHtml(pb ? pb.desc : '')}</textarea>
+
+    <div class="lbl">Langkah-langkah Alur Penulisan (1 per baris)</div>
+    <textarea id="pb-input-steps" style="min-height:80px;margin-bottom:10px" placeholder="1. Opening Hook: Bongkar luka lama&#10;2. Bridge: Kenapa cara umum selalu gagal&#10;3. Solution: Tawarkan sistem kita">${escapeHtml(pb ? pb.steps : '')}</textarea>
+
+    <div class="lbl">Kaidah / Aturan Wajib Framework</div>
+    <input type="text" id="pb-input-rules" value="${escapeHtml(pb ? (pb.rules || '') : '')}" placeholder="Contoh: Dilarang menyebut nama produk di 3 paragraf pertama." style="margin-bottom:14px"/>
+
+    <div class="row" style="justify-content:flex-end;gap:8px">
+      <button class="btn" onclick="openPlaybookModal()">Batal</button>
+      <button class="btn primary" onclick="savePlaybookFromModal('${editId || ''}')">
+        <i class="ti ti-check"></i> ${pb ? 'Simpan Perubahan' : 'Buat Playbook'}
+      </button>
+    </div>
+  `);
+}
+
+function savePlaybookFromModal(editId){
+  const name = (document.getElementById('pb-input-name')?.value || '').trim();
+  const tagline = (document.getElementById('pb-input-tagline')?.value || '').trim();
+  const desc = (document.getElementById('pb-input-desc')?.value || '').trim();
+  const steps = (document.getElementById('pb-input-steps')?.value || '').trim();
+  const rules = (document.getElementById('pb-input-rules')?.value || '').trim();
+
+  if(!name){
+    showToast('Nama playbook tidak boleh kosong!', 'warn');
+    return;
+  }
+
+  if(!data.playbooks) data.playbooks = JSON.parse(JSON.stringify(DEFAULT_PLAYBOOKS));
+
+  if(editId && editId !== 'null' && editId !== ''){
+    const pb = data.playbooks.find(p => p.id === editId);
+    if(pb){
+      pb.name = name;
+      pb.tagline = tagline;
+      pb.desc = desc;
+      pb.steps = steps;
+      pb.rules = rules;
+    }
+  } else {
+    const newId = 'pb_' + Date.now();
+    data.playbooks.push({
+      id: newId,
+      name: name,
+      tagline: tagline,
+      desc: desc,
+      steps: steps,
+      rules: rules,
+      isCustom: true
+    });
+    data.activePlaybookId = newId;
+  }
+
+  save();
+  updatePlaybookBarSummary();
+  showToast('✓ Playbook rahasia berhasil disimpan!');
+  openPlaybookModal();
+}
+
+function deleteCustomPlaybook(id){
+  if(!confirm('Yakin ingin menghapus playbook ini?')) return;
+  data.playbooks = (data.playbooks || []).filter(p => p.id !== id);
+  if(data.activePlaybookId === id){
+    data.activePlaybookId = data.playbooks.length ? data.playbooks[0].id : 'bap';
+  }
+  save();
+  updatePlaybookBarSummary();
+  showToast('Playbook dihapus.');
+  openPlaybookModal();
+}
+
 // ===================== PERSONA ENGINE =====================
 function getActivePersona(){
   if(!data.personas || !data.personas.length) {
@@ -5344,6 +5880,7 @@ function setActivePersona(id){
   save();
   renderPersona();
   updateInputPersonaBar();
+  updatePlaybookBarSummary();
   updateCopilotRibbon();
   showToast(`✓ Persona aktif: "${target.name}"`);
 }

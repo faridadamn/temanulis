@@ -59,7 +59,15 @@
             "Cek link di bio no. 14 selagi diskon 40% masih aktif!"
           ]
         }
-      ]
+      ],
+      "metrics": {
+        "views": 48500,
+        "likes": 3200,
+        "leads": 145,
+        "orders": 38,
+        "revenue": 1140000,
+        "notes": "Hook kontras Stop scroll + barang 30 ribuan terbukti viral di FYP TikTok & Reels."
+      }
     },
     {
       "id": 1001,
@@ -125,7 +133,15 @@
             "Daftar sekarang lewat tombol di bawah sebelum kuota diskon ditutup malam ini!"
           ]
         }
-      ]
+      ],
+      "metrics": {
+        "views": 24200,
+        "likes": 1850,
+        "leads": 92,
+        "orders": 24,
+        "revenue": 2328000,
+        "notes": "Framework B-A-P validasi luka freelance -> realita baru penghasilan pertama."
+      }
     },
     {
       "id": 1002,
@@ -178,7 +194,15 @@
             "Jadwalkan sesi konsultasi gratis 30 menit dengan lead strategist kami sekarang."
           ]
         }
-      ]
+      ],
+      "metrics": {
+        "views": 8900,
+        "likes": 410,
+        "leads": 18,
+        "orders": 3,
+        "revenue": 15000000,
+        "notes": "Studi kasus transparan tanpa klaim lebay, closing 3 klien agensi B2B."
+      }
     },
     {
       "id": 1003,
@@ -280,7 +304,15 @@
             "Komen 'MAU' kalau kamu pengen daftar 20 produk affiliate komisi besar minggu ini!"
           ]
         }
-      ]
+      ],
+      "metrics": {
+        "views": 12400,
+        "likes": 980,
+        "leads": 34,
+        "orders": 8,
+        "revenue": 240000,
+        "notes": "Carousel swipe step-by-step edukasi niche affiliate."
+      }
     },
     {
       "id": 1005,
