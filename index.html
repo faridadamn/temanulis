@@ -112,6 +112,11 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 .b-winner{background:#fef3c7;color:#92400e}
 .b-tested{background:var(--bga);color:var(--txa)}
 .b-draft{background:var(--s1);color:var(--tx2)}
+.b-type-jurus{background:var(--bga);color:var(--txa);border:1px solid var(--bda)}
+.b-type-evidence{background:var(--bgs);color:var(--txs);border:1px solid var(--txs)}
+.b-type-gaya{background:var(--bgp);color:var(--txp);border:1px solid var(--txp)}
+.lc-linked-content{display:inline-flex;align-items:center;gap:6px;background:var(--s1);border:1px solid var(--bd);border-radius:var(--r);padding:4px 10px;font-size:12px;color:var(--tx);cursor:pointer;transition:all .15s;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lc-linked-content:hover{border-color:var(--bda);background:var(--bga);color:var(--txa)}
 .section-block{border:1px solid var(--bd);border-radius:var(--r);margin-bottom:10px;overflow:hidden}
 .sec-hdr{display:flex;align-items:center;gap:8px;padding:9px 12px;background:var(--s1);cursor:grab;user-select:none;flex-wrap:wrap;min-width:0}
 .sec-hdr:active{cursor:grabbing}
@@ -803,20 +808,84 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
     </div>
   </div>
 
-  <div class="card">
-    <div class="lbl">Tambah ilmu manual</div>
-    <input type="text" id="learn-title" placeholder="Judul / topik..." style="margin-bottom:10px"/>
-    <select id="learn-topic" style="margin-bottom:10px"></select>
-    <textarea id="learn-body" placeholder="Tulis ilmunya di sini..."></textarea>
-    <div style="margin-top:10px;display:flex;justify-content:flex-end">
-      <button class="btn primary" onclick="saveLearn()"><i class="ti ti-plus"></i> Simpan</button>
+  <!-- CARD KNOWLEDGE BASE INPUT / EDITOR -->
+  <div class="card" id="learn-form-card" style="border:1px solid var(--bd);background:var(--s2)">
+    <div class="row center" style="justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="lbl" style="margin:0;font-size:14px;font-weight:700;color:var(--tx)">
+          <i class="ti ti-books" style="color:var(--txa)"></i> Knowledge Base — Jurus, Bukti & Gaya
+        </div>
+        <span id="learn-edit-badge" class="badge b-winner" style="display:none;font-size:11px">
+          <i class="ti ti-pencil"></i> Mode Edit
+        </span>
+      </div>
+      <div style="font-size:11px;color:var(--txm)">
+        Fondasi standar ilmu yang dibaca AI Coach saat me-review tulisanmu
+      </div>
+    </div>
+
+    <input type="hidden" id="learn-id" value="">
+    <input type="text" id="learn-title" placeholder="Judul jurus, bukti hasil real, atau referensi gaya..." style="margin-bottom:10px;width:100%"/>
+
+    <div class="row" style="gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Tipe Catatan</label>
+        <select id="learn-type" style="width:100%">
+          <option value="Jurus/Framework">⚡ Jurus / Framework (Kaidah & Aturan)</option>
+          <option value="Hasil Real/Evidence">📈 Hasil Real / Evidence (Bukti Angka & Metrik)</option>
+          <option value="Gaya/Contoh">✍️ Gaya / Contoh (Swipe File & Referensi)</option>
+        </select>
+      </div>
+      <div style="flex:1;min-width:180px">
+        <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Topik</label>
+        <select id="learn-topic" style="width:100%"></select>
+      </div>
+    </div>
+
+    <div class="row" style="gap:10px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:180px">
+        <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Tags (Kata Kunci)</label>
+        <input type="text" id="learn-tags" placeholder="#bap, #affiliate, #pricing (pisahkan koma)" style="width:100%"/>
+      </div>
+      <div style="flex:1;min-width:200px">
+        <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Link ke Konten Bank Terkait (Opsional)</label>
+        <select id="learn-linked-content" style="width:100%">
+          <option value="">-- Tanpa Link Konten Bank --</option>
+        </select>
+      </div>
+    </div>
+
+    <label style="font-size:11px;font-weight:600;color:var(--tx2);display:block;margin-bottom:4px">Isi Catatan / Penjelasan Kaidah</label>
+    <textarea id="learn-body" placeholder="Tuliskan formula kaidah, data angka bukti real, atau contoh gaya tulisan yang wajib dipelajari AI..." style="min-height:90px;margin-bottom:12px;width:100%"></textarea>
+
+    <div class="row" style="justify-content:flex-end;gap:8px;align-items:center">
+      <button type="button" class="btn sm" id="btn-cancel-learn-edit" onclick="cancelEditLearn()" style="display:none">
+        <i class="ti ti-x"></i> Batal Edit
+      </button>
+      <button type="button" class="btn primary" id="btn-save-learn" onclick="saveLearn()">
+        <i class="ti ti-plus"></i> Simpan ke Knowledge Base
+      </button>
     </div>
   </div>
+
+  <!-- FILTER & SEARCH BAR -->
   <div class="row" style="gap:8px;flex-wrap:wrap;align-items:center">
-    <div class="sb" style="flex:1;min-width:180px"><i class="ti ti-search"></i><input type="text" id="learn-search" placeholder="Cari ilmu..." oninput="renderLearn()"></div>
+    <div class="sb" style="flex:2;min-width:180px">
+      <i class="ti ti-search"></i>
+      <input type="text" id="learn-search" placeholder="Cari jurus, bukti, tag, kata kunci..." oninput="renderLearn()">
+    </div>
+    <select id="learn-filter-type" onchange="renderLearn()" style="width:auto">
+      <option value="">Semua Tipe</option>
+      <option value="Jurus/Framework">⚡ Jurus / Framework</option>
+      <option value="Hasil Real/Evidence">📈 Hasil Real / Evidence</option>
+      <option value="Gaya/Contoh">✍️ Gaya / Contoh</option>
+    </select>
     <select id="learn-filter" onchange="renderLearn()" style="width:auto"></select>
-    <button class="btn sm" onclick="openLoadDefaultLearnsModal()" style="border-color:var(--bd)"><i class="ti ti-database-import"></i> Muat Jurus Database</button>
+    <button class="btn sm" onclick="openLoadDefaultLearnsModal()" style="border-color:var(--bd);flex-shrink:0">
+      <i class="ti ti-database-import"></i> Muat Database
+    </button>
   </div>
+  <div id="learn-tag-filter-bar" style="display:flex;flex-wrap:wrap;gap:4px"></div>
   <div id="learn-list" style="display:flex;flex-direction:column;gap:12px"></div>
 </div>
 
@@ -1008,131 +1077,183 @@ input:focus,textarea:focus,select:focus{outline:none;border-color:var(--bda);box
 <script>
 // ===================== DATA =====================
 const DEFAULT_LEARNS = [
-  // === 14 JURUS KITAB AFFILIATE RIZAL ===
   {
     id: 1,
     title: "Jurus 1: It's Not About The Product, It's About You",
+    type: "Jurus/Framework",
     topic: "Affiliate",
+    tags: ["#affiliate", "#mindset", "#painPoint"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Mulai dari masalah manusiawi, bukan spek produk. Jual rasa sakit (malu, capek, takut, rugi), bukan fitur. Bukan 'bahan stainless anti karat', tapi 'lo nggak perlu nanggung malu lagi di depan rekan kerja karena kemeja kusut'. Orang beli pereda sakit, bukan vitamin."
   },
   {
     id: 2,
     title: "Jurus 2: Solusi Gratisan Dulu, Produk Belakangan",
+    type: "Jurus/Framework",
     topic: "Affiliate",
+    tags: ["#affiliate", "#kredibilitas", "#trust"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Sebelum produk affiliate muncul, selalu tawarkan 2-3 alternatif solusi gratis (trik mandiri, kebiasaan baru, atau setting manual). Ini membangun kredibilitas sebagai penolong jujur yang peduli masalah audiens, bukan sales lapar komisi."
   },
   {
     id: 3,
     title: "Jurus 3: Framework B-A-P (Bobek, Ajaib, Pulih)",
+    type: "Jurus/Framework",
     topic: "Copywriting",
+    tags: ["#copywriting", "#konversi", "#bap"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Alur konversi affiliate: Tusuk luka spesifik (Bobek) di awal → Perdalam lukanya dengan menghitung efek jangka panjang atau biaya tersembunyi yang bikin nyesek → Baru hadirkan produk ajaib pereda luka saat pembaca sadar solusi gratisan nggak cukup → Ceritakan hasil pulih yang jujur."
   },
   {
     id: 4,
     title: "Jurus 4: Teknik Harga Jangkar & Pecah Biaya Harian",
+    type: "Jurus/Framework",
     topic: "Marketing",
+    tags: ["#marketing", "#hargaJangkar", "#closing"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Jangan sebut harga produk begitu saja. Bandingkan dengan alternatif yang jauh lebih mahal (Harga Jangkar) atau pecah biayanya jadi pengeluaran receh harian: 'Cuma Rp2.500 sehari, lebih murah dari segelas es teh, tapi bikin masalah punggung beres 6 bulan'."
   },
   {
     id: 5,
     title: "Jurus 5: Teknik Pilihan Setan (Pancing Komentar & Debat)",
+    type: "Jurus/Framework",
     topic: "Affiliate",
+    tags: ["#affiliate", "#engagement", "#viral"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Tutup konten dengan kontras ekstrem 2 kubu: Tim A (tetap tahan sakit, buang waktu & uang seperti biasa) vs Tim B (ambil tindakan, masalah kelar mulai hari ini). Ini memicu debat sehat dan memancing ribuan komentar organik di Threads / TikTok."
   },
   {
     id: 6,
     title: "Jurus 6: Testimoni Jujur & Flaw Disclosure (Kasih Racun Sedikit)",
+    type: "Jurus/Framework",
     topic: "Copywriting",
+    tags: ["#copywriting", "#testimoni", "#trust"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Selalu sebutkan 1 kekurangan kecil produk secara jujur (misal: 'pengirimannya agak lama' atau 'bahannya agak berat'). Review yang 100% manis memicu curiga pembaca; kasih racunnya sedikit supaya madunya laku keras!"
   },
   {
     id: 7,
     title: "Jurus 7: Tahan Link Sampai Baris Terakhir (T-E-K-S)",
+    type: "Jurus/Framework",
     topic: "Affiliate",
+    tags: ["#affiliate", "#cta", "#threads"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Jangan pernah menaruh link affiliate di hook atau paragraf pembuka. Bangun cerita dan keterikatan emosi sampai klimaks. Tahan link sampai baris paling akhir ketika audiens sudah merasa butuh dan siap checkout."
   },
   {
     id: 8,
     title: "Jurus 8: 5 Jenis Konten Funnel Utas (Rotasi Anti-Bosan)",
+    type: "Jurus/Framework",
     topic: "Affiliate",
+    tags: ["#affiliate", "#funnel", "#rotasi"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Jangan tiap hari jualan! Terapkan rotasi 4 jenis konten: 40% Engagement (Pilihan Setan pancing rame), 30% Awareness (cerita relatable sehari-hari), 20% Edukasi (tips murni tanpa jualan buat bangun trust), dan cuma 10% Konversi (hard sell B-A-P + link)."
   },
   {
     id: 9,
     title: "Jurus 9: Ubah Fitur Menjadi Borok & Rasa Malu",
+    type: "Jurus/Framework",
     topic: "Copywriting",
+    tags: ["#copywriting", "#painPoint", "#angle"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Stop bilang 'barang ini bagus'. Cari produk yang punya borok/masalah nyata. Ubah spesifikasi jadi rasa malu atau kerugian: bukan 'baterai 5000 mAh', tapi 'lo nggak perlu panik celingukan nyari colokan pas lagi meeting penting bareng bos'."
   },
   {
     id: 10,
     title: "Jurus 10: Model Trinitas Copywriting (PAS vs AIDA vs FAB)",
+    type: "Jurus/Framework",
     topic: "Copywriting",
+    tags: ["#copywriting", "#framework", "#trinitas"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Pilih model sesuai medan: PAS (Problem-Agitate-Solution) paling sakti buat feed Threads/FB. AIDA (Attention-Interest-Desire-Action) paling pas buat video pendek/Reels. FAB (Feature-Advantage-Benefit) cocok buat jualan to-the-point yang fokus 'apa untungnya buat gue'."
   },
   {
     id: 11,
     title: "Jurus 11: Hook Berasa Ditampar (Anti Brosur Indomaret)",
+    type: "Jurus/Framework",
     topic: "Copywriting",
+    tags: ["#copywriting", "#hook", "#stopScroll"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Konten tanpa hook yang menusuk itu bukan konten, itu nafas terakhir brosur promo. Gunakan hook yang bikin audiens ngerasa ditampar: sebut kebiasaan salah mereka yang bikin boncos atau rugi waktu bertahun-tahun."
   },
   {
     id: 12,
     title: "Jurus 12: Bedah Mayat Konten (Fokus CTR daripada Followers)",
+    type: "Hasil Real/Evidence",
     topic: "Affiliate",
+    tags: ["#affiliate", "#ctr", "#evaluasiMetrik"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Posting lalu ditinggal itu cuma nitip harapan ke server. Evaluasi metrik: affiliate butuh pembeli (CTR link), bukan sekadar followers. Kalau views rame tapi komisi nol, masalah ada di transisi solusi gratisan ke produk yang kurang halus."
   },
   {
     id: 13,
     title: "Jurus 13: Formula Alur 3 Hari (Storytelling Mesin Komisi)",
+    type: "Jurus/Framework",
     topic: "Affiliate",
+    tags: ["#affiliate", "#storytelling", "#funnel"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Jual produk lewat cerita berseri: Hari 1 ceritakan kegiatan sehari-hari 'B aja' yang relatable. Hari 2 angkat frustrasi dan masalah yang dialami. Hari 3 baru produk nempel sebagai penyelamat. Audiens terikat secara alami tanpa merasa dijualin."
   },
   {
     id: 14,
     title: "Jurus 14: Tamparan Data & Perbandingan Rugi Nyata",
+    type: "Hasil Real/Evidence",
     topic: "Marketing",
+    tags: ["#marketing", "#lossAversion", "#dataNyata"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Gunakan perbandingan kerugian konkret: 'Bukan soal harga produk Rp50.000, tapi lo sadar nggak selama ini udah buang Rp400.000 cuma buat nambal akibat masalah yang lo sepelekan?'. Ubah fokus dari harga beli ke biaya menunda."
   },
-  // === 4 KAIDAH EMAS COPYWRITING ===
   {
     id: 15,
     title: "Aturan 3 Detik Pertama (Stop-Scroll Hook)",
+    type: "Jurus/Framework",
     topic: "Copywriting",
+    tags: ["#copywriting", "#hook", "#3detik"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Jangan pernah langsung sebut nama brand atau jualan di kalimat pembuka. Selalu buka dengan rasa sakit spesifik, fakta kontras, atau kebiasaan salah audiens untuk menghentikan scrolling."
   },
   {
     id: 16,
     title: "Curiosity Gap Principle (Pemicu Penasaran)",
+    type: "Jurus/Framework",
     topic: "Marketing",
+    tags: ["#marketing", "#curiosity", "#hook"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Beri tahu 'Apa' dan 'Mengapa' suatu fenomena terjadi, tapi simpan 'Bagaimana cara kerjanya' untuk bagian solusi atau CTA. Ini memicu rasa penasaran alami manusia untuk membaca sampai tuntas."
   },
   {
     id: 17,
     title: "Bahasa Mengobrol Santai (Gaya Ngopi)",
+    type: "Gaya/Contoh",
     topic: "Copywriting",
+    tags: ["#copywriting", "#toneOfVoice", "#gayaNgopi"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Gunakan bahasa Indonesia percakapan yang luwes, kalimat pendek-pendek (maksimal 15 kata per kalimat). Hindari kata-kata birokratis atau kaku seperti 'oleh karena itu', 'guna mewujudkan'."
   },
   {
     id: 18,
     title: "Single Call to Action (Satu Aksi Jelas)",
+    type: "Jurus/Framework",
     topic: "Marketing",
+    tags: ["#marketing", "#cta", "#closing"],
+    linkedContentId: null,
     created: "03/09/2026",
     body: "Setiap konten hanya boleh punya 1 ajakan bertindak (One Single Action: klik link, komen kata kunci, atau DM). Beri alasan mendesak kenapa harus bertindak sekarang juga (urgensi/kelangkaan)."
   }
@@ -1276,8 +1397,44 @@ function load(){
     if(j) jurusConfig = Object.assign(jurusConfig, JSON.parse(j));
   }catch(e){}
 
-  // Otomatis sinkronkan DEFAULT_LEARNS ke data.learns jika belum ada
+  // Migrasi otomatis struktur data.learns ke Knowledge Base (type, tags, linkedContentId)
   if(!data.learns) data.learns = [];
+  let learnsMigrated = false;
+  data.learns.forEach(l => {
+    if(!l.type){
+      const tLower = (l.title || '').toLowerCase();
+      const bLower = (l.body || '').toLowerCase();
+      if(tLower.includes('hasil') || tLower.includes('bukti') || tLower.includes('studi kasus') || tLower.includes('ctr') || bLower.includes('omset') || bLower.includes('views') || bLower.includes('konversi')){
+        l.type = 'Hasil Real/Evidence';
+      } else if(tLower.includes('gaya') || tLower.includes('contoh') || tLower.includes('swipe') || tLower.includes('ngopi') || bLower.includes('contoh') || bLower.includes('percakapan')){
+        l.type = 'Gaya/Contoh';
+      } else {
+        l.type = 'Jurus/Framework';
+      }
+      learnsMigrated = true;
+    }
+    if(!Array.isArray(l.tags)){
+      if(typeof l.tags === 'string' && l.tags.trim()){
+        l.tags = l.tags.split(/[,]+/).map(t => {
+          const s = t.trim();
+          return s.startsWith('#') ? s : '#' + s;
+        }).filter(Boolean);
+      } else {
+        l.tags = [];
+        if(l.topic){
+          const tTag = '#' + l.topic.toLowerCase().replace(/[^a-z0-9]/g, '');
+          if(tTag.length > 1) l.tags.push(tTag);
+        }
+      }
+      learnsMigrated = true;
+    }
+    if(l.linkedContentId === undefined){
+      l.linkedContentId = null;
+      learnsMigrated = true;
+    }
+  });
+
+  // Otomatis sinkronkan DEFAULT_LEARNS ke data.learns jika belum ada
   const existingTitles = new Set(data.learns.map(l => l.title));
   let autoAdded = false;
   DEFAULT_LEARNS.forEach(dl => {
@@ -1286,7 +1443,7 @@ function load(){
       autoAdded = true;
     }
   });
-  if(autoAdded){
+  if(learnsMigrated || autoAdded){
     save();
   }
 
@@ -1357,6 +1514,8 @@ function populateSelects(){
   set('bank-filter-type','<option value="">Semua tipe</option><option>Input</option><option>Mix</option><option>AI Rekomen</option>');
   set('learn-topic','<option value="">Tanpa topik</option>'+data.topics.map(t=>`<option>${t}</option>`).join(''));
   set('learn-filter','<option value="">Semua topik</option>'+data.topics.map(t=>`<option>${t}</option>`).join(''));
+  set('learn-filter-type','<option value="">Semua Tipe</option><option value="Jurus/Framework">⚡ Jurus / Framework</option><option value="Hasil Real/Evidence">📈 Hasil Real / Evidence</option><option value="Gaya/Contoh">✍️ Gaya / Contoh</option>');
+  if(typeof populateLearnLinkedContent === 'function') populateLearnLinkedContent();
   renderTagPicker();
   renderTemplates();
   updateInputPersonaBar();
@@ -1827,7 +1986,10 @@ function saveQuickJurus(){
   const newLearn = {
     id: Date.now(),
     title,
+    type: 'Jurus/Framework',
     topic,
+    tags: ['#' + (topic || 'Copywriting').toLowerCase().replace(/[^a-z0-9]/g, '')],
+    linkedContentId: null,
     body,
     created: new Date().toLocaleDateString('id-ID')
   };
@@ -2291,6 +2453,40 @@ function getRelevantLearnsForReview(opts){
       }
     }
 
+    // Prioritas 5b: Kecocokan Tags Knowledge Base vs Tags Naskah
+    var lTags = Array.isArray(l.tags) ? l.tags.map(function(t){ return (t||'').toLowerCase(); }) : [];
+    if(tags.length && lTags.length){
+      for(var t = 0; t < tags.length; t++){
+        var cleanT = tags[t].replace(/^#/, '');
+        for(var lt = 0; lt < lTags.length; lt++){
+          var cleanLt = lTags[lt].replace(/^#/, '');
+          if(cleanT === cleanLt || tags[t] === lTags[lt]){
+            score += 25;
+            break;
+          }
+        }
+      }
+    }
+
+    // Prioritas 5c: Kecocokan Tags Knowledge Base di Teks Naskah
+    if(text && lTags.length){
+      for(var lt = 0; lt < lTags.length; lt++){
+        var cleanTag = lTags[lt].replace(/^#/, '');
+        if(cleanTag.length > 2 && text.indexOf(cleanTag) !== -1){
+          score += 12;
+          break;
+        }
+      }
+    }
+
+    // Prioritas 5d: Tipe Knowledge Base relevan
+    if(l.type === 'Hasil Real/Evidence' && (query.indexOf('bukti') !== -1 || query.indexOf('hasil') !== -1 || text.indexOf('bukti') !== -1 || text.indexOf('hasil') !== -1)){
+      score += 20;
+    }
+    if(l.type === 'Gaya/Contoh' && (query.indexOf('gaya') !== -1 || query.indexOf('contoh') !== -1 || query.indexOf('tone') !== -1)){
+      score += 20;
+    }
+
     // Prioritas 6: Deteksi kata kunci di teks naskah
     if(text){
       if((text.indexOf('harga') !== -1 || text.indexOf('rp') !== -1 || text.indexOf('biaya') !== -1 || text.indexOf('jual') !== -1) && lTitle.indexOf('jangkar') !== -1) score += 10;
@@ -2447,7 +2643,16 @@ async function runAICoachReview(){
 
   var learnsText = relevantLearns.map(function(l, i){
     var cleanB = (l.body || '').replace(/\n+/g, ' ');
-    return (i+1) + '. [' + (l.topic || 'Jurus') + '] "' + l.title + '":\n   Kaidah: "' + cleanB + '"';
+    var tagsStr = (Array.isArray(l.tags) && l.tags.length) ? ' (Tags: ' + l.tags.join(', ') + ')' : '';
+    var typeStr = l.type ? '[' + l.type + ']' : '[Jurus/Framework]';
+    var linkNote = '';
+    if(l.linkedContentId && typeof data !== 'undefined' && data.contents){
+      var linkedC = data.contents.find(function(c){ return String(c.id) === String(l.linkedContentId); });
+      if(linkedC){
+        linkNote = '\n   Bukti Konten Terkait: "' + linkedC.title + '" (' + linkedC.category + ' · ' + (linkedC.status || 'Winner') + ')';
+      }
+    }
+    return (i+1) + '. ' + typeStr + ' [' + (l.topic || 'Umum') + '] "' + l.title + '"' + tagsStr + ':\n   Materi: "' + cleanB + '"' + linkNote;
   }).join('\n\n');
 
   var personaContext = activeP ? `=== DNA PERSONA BRAND PENGGUNA ===
@@ -4031,12 +4236,15 @@ function saveAnalysisToLearn(){
   const topicName='AI Analisis';
   if(!data.topics.includes(topicName))data.topics.push(topicName);
   data.learns.push({
-    id:Date.now(),
-    title:`[AI Analisis] ${a.contentTitle}`,
-    body:a.result,
-    topic:topicName,
-    created:new Date().toLocaleDateString('id-ID'),
-    isAI:true
+    id: Date.now(),
+    title: `[AI Analisis] ${a.contentTitle}`,
+    type: 'Hasil Real/Evidence',
+    topic: topicName,
+    tags: ['#aiAnalisis', '#evaluasi'],
+    linkedContentId: a.contentId || null,
+    body: a.result,
+    created: new Date().toLocaleDateString('id-ID'),
+    isAI: true
   });
   save();
   // Visual feedback
@@ -4130,58 +4338,279 @@ function saveRekomToBank(sourceId){
   renderBank();
 }
 
-// ===================== LEARN =====================
+// ===================== LEARN (KNOWLEDGE BASE) =====================
+let activeLearnTag = '';
+
+function setLearnTagFilter(tag){
+  if(activeLearnTag === tag){
+    activeLearnTag = '';
+  } else {
+    activeLearnTag = tag;
+  }
+  renderLearn();
+}
+
+function cancelEditLearn(){
+  const idEl = document.getElementById('learn-id');
+  const titleEl = document.getElementById('learn-title');
+  const typeEl = document.getElementById('learn-type');
+  const topicEl = document.getElementById('learn-topic');
+  const tagsEl = document.getElementById('learn-tags');
+  const linkEl = document.getElementById('learn-linked-content');
+  const bodyEl = document.getElementById('learn-body');
+  const badgeEl = document.getElementById('learn-edit-badge');
+  const cancelBtn = document.getElementById('btn-cancel-learn-edit');
+  const saveBtn = document.getElementById('btn-save-learn');
+
+  if(idEl) idEl.value = '';
+  if(titleEl) titleEl.value = '';
+  if(typeEl) typeEl.value = 'Jurus/Framework';
+  if(topicEl) topicEl.selectedIndex = 0;
+  if(tagsEl) tagsEl.value = '';
+  if(linkEl) linkEl.value = '';
+  if(bodyEl) bodyEl.value = '';
+
+  if(badgeEl) badgeEl.style.display = 'none';
+  if(cancelBtn) cancelBtn.style.display = 'none';
+  if(saveBtn) saveBtn.innerHTML = '<i class="ti ti-plus"></i> Simpan ke Knowledge Base';
+}
+
+function editLearn(id){
+  const l = (data.learns || []).find(x => String(x.id) === String(id));
+  if(!l) return;
+
+  const idEl = document.getElementById('learn-id');
+  const titleEl = document.getElementById('learn-title');
+  const typeEl = document.getElementById('learn-type');
+  const topicEl = document.getElementById('learn-topic');
+  const tagsEl = document.getElementById('learn-tags');
+  const linkEl = document.getElementById('learn-linked-content');
+  const bodyEl = document.getElementById('learn-body');
+  const badgeEl = document.getElementById('learn-edit-badge');
+  const cancelBtn = document.getElementById('btn-cancel-learn-edit');
+  const saveBtn = document.getElementById('btn-save-learn');
+
+  if(idEl) idEl.value = l.id;
+  if(titleEl) titleEl.value = l.title || '';
+  if(typeEl) typeEl.value = l.type || 'Jurus/Framework';
+  if(topicEl && l.topic) topicEl.value = l.topic;
+  if(tagsEl) tagsEl.value = (Array.isArray(l.tags) ? l.tags.join(', ') : (l.tags || ''));
+  if(linkEl) linkEl.value = l.linkedContentId ? String(l.linkedContentId) : '';
+  if(bodyEl) bodyEl.value = l.body || '';
+
+  if(badgeEl) badgeEl.style.display = 'inline-block';
+  if(cancelBtn) cancelBtn.style.display = 'inline-flex';
+  if(saveBtn) saveBtn.innerHTML = '<i class="ti ti-check"></i> Perbarui Catatan';
+
+  const formCard = document.getElementById('learn-form-card');
+  if(formCard){
+    formCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
 function saveLearn(){
-  const title=document.getElementById('learn-title').value.trim();
-  const body=document.getElementById('learn-body').value.trim();
-  const topic=document.getElementById('learn-topic').value;
-  if(!title||!body){showToast('Isi judul dan isi ilmunya!','warn');return;}
-  data.learns.push({id:Date.now(),title,body,topic,created:new Date().toLocaleDateString('id-ID')});
+  const idEl = document.getElementById('learn-id');
+  const title = (document.getElementById('learn-title').value || '').trim();
+  const type = document.getElementById('learn-type')?.value || 'Jurus/Framework';
+  const topic = document.getElementById('learn-topic')?.value || '';
+  const rawTags = (document.getElementById('learn-tags')?.value || '').trim();
+  const linkedContentId = document.getElementById('learn-linked-content')?.value || null;
+  const body = (document.getElementById('learn-body').value || '').trim();
+
+  if(!title || !body){
+    showToast('Isi judul dan isi ilmunya!', 'warn');
+    return;
+  }
+
+  // Parse tags
+  const tags = rawTags ? rawTags.split(/[,]+/).map(t => {
+    let clean = t.trim();
+    if(!clean) return '';
+    return clean.startsWith('#') ? clean : '#' + clean;
+  }).filter(Boolean) : [];
+
+  const editId = idEl ? idEl.value : '';
+
+  if(editId){
+    // Update existing
+    const existing = data.learns.find(x => String(x.id) === String(editId));
+    if(existing){
+      existing.title = title;
+      existing.type = type;
+      existing.topic = topic;
+      existing.tags = tags;
+      existing.linkedContentId = linkedContentId ? (isNaN(linkedContentId) ? linkedContentId : Number(linkedContentId)) : null;
+      existing.body = body;
+    }
+    showToast('✓ Catatan Knowledge Base berhasil diperbarui!');
+  } else {
+    // Add new
+    const newLearn = {
+      id: Date.now(),
+      title,
+      type,
+      topic,
+      tags,
+      linkedContentId: linkedContentId ? (isNaN(linkedContentId) ? linkedContentId : Number(linkedContentId)) : null,
+      body,
+      created: new Date().toLocaleDateString('id-ID')
+    };
+    if(!data.learns) data.learns = [];
+    data.learns.push(newLearn);
+    if(jurusConfig && jurusConfig.selectedLearnIds && !jurusConfig.selectedLearnIds.includes(newLearn.id)){
+      jurusConfig.selectedLearnIds.push(newLearn.id);
+    }
+    showToast('✓ Ilmu baru disimpan ke Knowledge Base!');
+  }
+
   save();
-  document.getElementById('learn-title').value='';
-  document.getElementById('learn-body').value='';
-  renderLearn();showToast('Ilmu disimpan!');
+  cancelEditLearn();
+  renderLearn();
+  updateJurusBarSummary();
 }
 
 function renderLearn(){
-  const search=(document.getElementById('learn-search').value||'').toLowerCase();
-  const filter=document.getElementById('learn-filter').value;
-  const el=document.getElementById('learn-list');
-  let list=data.learns.filter(l=>{
-    const m=l.title.toLowerCase().includes(search)||l.body.toLowerCase().includes(search);
-    const f=!filter||l.topic===filter;
-    return m&&f;
+  const search = (document.getElementById('learn-search')?.value || '').toLowerCase();
+  const filterTopic = document.getElementById('learn-filter')?.value || '';
+  const filterType = document.getElementById('learn-filter-type')?.value || '';
+  const el = document.getElementById('learn-list');
+  const tagBarEl = document.getElementById('learn-tag-filter-bar');
+
+  if(!data.learns) data.learns = [];
+
+  // Populate dynamic linked content dropdown if present
+  populateLearnLinkedContent();
+
+  // Render tag filter bar
+  if(tagBarEl){
+    const allTags = new Set();
+    data.learns.forEach(l => {
+      if(Array.isArray(l.tags)) l.tags.forEach(t => allTags.add(t));
+    });
+    const tagList = Array.from(allTags);
+    if(tagList.length){
+      tagBarEl.innerHTML = tagList.map(t => `
+        <span class="tag ${activeLearnTag === t ? 'active' : ''}" onclick="setLearnTagFilter('${escapeJsStr(t)}')" style="font-size:11px">
+          ${escapeHtml(t)}
+        </span>
+      `).join('');
+      tagBarEl.style.display = 'flex';
+    } else {
+      tagBarEl.innerHTML = '';
+      tagBarEl.style.display = 'none';
+    }
+  }
+
+  let list = data.learns.filter(l => {
+    const lTitle = (l.title || '').toLowerCase();
+    const lBody = (l.body || '').toLowerCase();
+    const lTopic = (l.topic || '').toLowerCase();
+    const lType = (l.type || 'Jurus/Framework').toLowerCase();
+    const lTags = Array.isArray(l.tags) ? l.tags.map(t => (t||'').toLowerCase()).join(' ') : '';
+
+    const matchSearch = !search || lTitle.includes(search) || lBody.includes(search) || lTopic.includes(search) || lType.includes(search) || lTags.includes(search);
+    const matchTopic = !filterTopic || l.topic === filterTopic;
+    const matchType = !filterType || (l.type || 'Jurus/Framework') === filterType;
+    const matchTag = !activeLearnTag || (Array.isArray(l.tags) && l.tags.includes(activeLearnTag));
+
+    return matchSearch && matchTopic && matchType && matchTag;
   });
-  if(!list.length){el.innerHTML='<div class="empty"><i class="ti ti-school"></i>Belum ada catatan ilmu.</div>';return;}
-  el.innerHTML=list.slice().reverse().map(l=>`
-    <div class="lc">
-      <div class="row center" style="margin-bottom:6px;flex-wrap:wrap;gap:6px">
-        <div class="lc-title flex1" style="min-width:160px">${l.title}</div>
-        <div style="display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0">
-          ${l.isAI?'<span class="badge b-ai">AI</span>':''}
-          ${l.topic?`<span class="badge b-learn">${l.topic}</span>`:''}
+
+  if(!list.length){
+    el.innerHTML = '<div class="empty"><i class="ti ti-books"></i>Tidak ada catatan ilmu di Knowledge Base.</div>';
+    return;
+  }
+
+  el.innerHTML = list.slice().reverse().map(l => {
+    const lType = l.type || 'Jurus/Framework';
+    let typeBadge = '';
+    if(lType === 'Hasil Real/Evidence'){
+      typeBadge = `<span class="badge b-type-evidence"><i class="ti ti-chart-bar"></i> Hasil Real</span>`;
+    } else if(lType === 'Gaya/Contoh'){
+      typeBadge = `<span class="badge b-type-gaya"><i class="ti ti-palette"></i> Gaya / Contoh</span>`;
+    } else {
+      typeBadge = `<span class="badge b-type-jurus"><i class="ti ti-bulb"></i> Jurus</span>`;
+    }
+
+    let linkedHtml = '';
+    if(l.linkedContentId && data.contents){
+      const linkedContent = data.contents.find(c => String(c.id) === String(l.linkedContentId));
+      if(linkedContent){
+        const statusClass = (linkedContent.status || 'draft').toLowerCase();
+        linkedHtml = `
+          <div style="margin-top:6px;margin-bottom:8px">
+            <div class="lc-linked-content" onclick="viewContent(${linkedContent.id})" title="Klik untuk lihat konten bank terkait">
+              <i class="ti ti-link"></i> Konten Bank Terkait: <strong>${escapeHtml(linkedContent.title)}</strong>
+              <span class="badge b-${statusClass}" style="font-size:10px;padding:1px 6px">${linkedContent.status || 'Draft'}</span>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    const tagsHtml = (Array.isArray(l.tags) && l.tags.length) ? `
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">
+        ${l.tags.map(t => `<span class="tag" onclick="setLearnTagFilter('${escapeJsStr(t)}')">${escapeHtml(t)}</span>`).join('')}
+      </div>
+    ` : '';
+
+    return `
+      <div class="lc">
+        <div class="row center" style="margin-bottom:8px;flex-wrap:wrap;gap:6px">
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+            ${typeBadge}
+            ${l.topic ? `<span class="badge b-draft">${escapeHtml(l.topic)}</span>` : ''}
+            ${l.isAI ? '<span class="badge b-ai">AI</span>' : ''}
+          </div>
+          <div style="font-size:12px;color:var(--txm);margin-left:auto">${l.created || ''}</div>
+        </div>
+
+        <div class="lc-title">${escapeHtml(l.title)}</div>
+        ${tagsHtml}
+        ${linkedHtml}
+        <div class="lc-body">${formatMarkdown(l.body)}</div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;align-items:center">
+          <button class="btn sm" onclick="editLearn(${l.id})"><i class="ti ti-pencil"></i> Edit</button>
+          <button class="btn sm" onclick="copyLearn(${l.id})"><i class="ti ti-copy"></i> Copy</button>
+          <button class="btn sm danger" onclick="deleteLearn(${l.id})"><i class="ti ti-trash"></i></button>
         </div>
       </div>
-      <div style="font-size:12px;color:var(--txm);margin-bottom:10px">${l.created}</div>
-      <div class="lc-body">${formatMarkdown(l.body)}</div>
-      <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap">
-        <button class="btn sm" onclick="copyLearn(${l.id})"><i class="ti ti-copy"></i> Copy</button>
-        <button class="btn sm danger" onclick="deleteLearn(${l.id})"><i class="ti ti-trash"></i></button>
-      </div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function copyLearn(id){
-  const l=data.learns.find(x=>x.id===id);if(!l)return;
-  const txt=l.title+'\n\n'+l.body;
-  navigator.clipboard.writeText(txt).then(()=>showToast('Materi dicopy!')).catch(()=>showToast('Gagal copy','warn'));
+  const l = (data.learns || []).find(x => String(x.id) === String(id));
+  if(!l) return;
+  const tagsStr = (Array.isArray(l.tags) && l.tags.length) ? '\nTags: ' + l.tags.join(', ') : '';
+  const typeStr = l.type ? '[' + l.type + '] ' : '';
+  const txt = typeStr + l.title + tagsStr + '\n\n' + l.body;
+  navigator.clipboard.writeText(txt).then(() => showToast('Materi dicopy!')).catch(() => showToast('Gagal copy', 'warn'));
 }
 
 function deleteLearn(id){
-  if(!confirm('Hapus catatan ini?'))return;
-  data.learns=data.learns.filter(l=>l.id!==id);
-  save();renderLearn();
+  if(!confirm('Hapus catatan ini dari Knowledge Base?')) return;
+  data.learns = data.learns.filter(l => String(l.id) !== String(id));
+  if(jurusConfig && jurusConfig.selectedLearnIds){
+    jurusConfig.selectedLearnIds = jurusConfig.selectedLearnIds.filter(x => String(x) !== String(id));
+  }
+  save();
+  renderLearn();
+  updateJurusBarSummary();
+  showToast('Catatan dihapus dari Knowledge Base');
+}
+
+function populateLearnLinkedContent(){
+  const sel = document.getElementById('learn-linked-content');
+  if(!sel || !data.contents) return;
+  const currentVal = sel.value;
+  let options = '<option value="">-- Tanpa Link Konten Bank --</option>';
+  data.contents.forEach(c => {
+    options += `<option value="${c.id}">[${c.status || 'Draft'}] ${escapeHtml(c.title)} (${c.category || ''})</option>`;
+  });
+  sel.innerHTML = options;
+  if(currentVal) sel.value = currentVal;
 }
 
 // ===================== STATS =====================
@@ -4698,7 +5127,10 @@ function addAllExtractedJurus(){
     const newLearn = {
       id: Date.now() + '_' + Math.random().toString(36).substr(2, 5),
       title: j.title,
+      type: 'Jurus/Framework',
       topic: j.topic || 'Copywriting',
+      tags: ['#ekstrakAI', '#' + (j.topic || 'Copywriting').toLowerCase().replace(/[^a-z0-9]/g, '')],
+      linkedContentId: null,
       created: new Date().toLocaleDateString('id-ID'),
       body: j.body,
       source: 'Ekstrak AI Vision'
@@ -5322,7 +5754,10 @@ function applyAllJurusFromChat(msgIdx){
     const newLearn = {
       id: Date.now() + '_' + Math.random().toString(36).substr(2, 5) + '_' + i,
       title: j.title,
+      type: 'Jurus/Framework',
       topic: j.topic || 'Copywriting',
+      tags: ['#copilotAI', '#' + (j.topic || 'Copywriting').toLowerCase().replace(/[^a-z0-9]/g, '')],
+      linkedContentId: null,
       created: new Date().toLocaleDateString('id-ID'),
       body: j.body,
       source: 'Copilot AI'
@@ -5404,19 +5839,26 @@ async function confirmLoadDefaultLearns(){
     const mode = document.querySelector('input[name="learns-import-mode"]:checked')?.value || 'merge';
     const serverLearns = _defaultLearnsCache.learns || [];
 
+    const formattedServerLearns = serverLearns.map(item => ({
+      ...item,
+      type: item.type || 'Jurus/Framework',
+      tags: Array.isArray(item.tags) ? item.tags : [],
+      linkedContentId: item.linkedContentId || null
+    }));
+
     if(mode === 'replace'){
-      data.learns = JSON.parse(JSON.stringify(serverLearns));
-      showToast('✓ Tab Learn di-reset ke jurus default database!');
+      data.learns = JSON.parse(JSON.stringify(formattedServerLearns));
+      showToast('✓ Knowledge Base di-reset ke data default database!');
     } else {
       const existingTitles = new Set((data.learns || []).map(l => l.title));
       let added = 0;
-      serverLearns.forEach(item => {
+      formattedServerLearns.forEach(item => {
         if(!existingTitles.has(item.title)){
           data.learns.push(JSON.parse(JSON.stringify(item)));
           added++;
         }
       });
-      showToast(`✓ ${added} jurus baru berhasil digabungkan!`);
+      showToast(`✓ ${added} catatan baru berhasil digabungkan ke Knowledge Base!`);
     }
 
     save();

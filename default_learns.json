@@ -10,7 +10,14 @@
       "topic": "Affiliate",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Mulai dari masalah manusiawi, bukan spek produk. Jual rasa sakit (malu, capek, takut, rugi), bukan fitur. Bukan 'bahan stainless anti karat', tapi 'lo nggak perlu nanggung malu lagi di depan rekan kerja karena kemeja kusut'. Orang beli pereda sakit, bukan vitamin."
+      "body": "Mulai dari masalah manusiawi, bukan spek produk. Jual rasa sakit (malu, capek, takut, rugi), bukan fitur. Bukan 'bahan stainless anti karat', tapi 'lo nggak perlu nanggung malu lagi di depan rekan kerja karena kemeja kusut'. Orang beli pereda sakit, bukan vitamin.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#affiliate",
+        "#mindset",
+        "#painPoint"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 2,
@@ -18,7 +25,14 @@
       "topic": "Affiliate",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Sebelum produk affiliate muncul, selalu tawarkan 2-3 alternatif solusi gratis (trik mandiri, kebiasaan baru, atau setting manual). Ini membangun kredibilitas sebagai penolong jujur yang peduli masalah audiens, bukan sales lapar komisi."
+      "body": "Sebelum produk affiliate muncul, selalu tawarkan 2-3 alternatif solusi gratis (trik mandiri, kebiasaan baru, atau setting manual). Ini membangun kredibilitas sebagai penolong jujur yang peduli masalah audiens, bukan sales lapar komisi.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#affiliate",
+        "#kredibilitas",
+        "#trust"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 3,
@@ -26,7 +40,14 @@
       "topic": "Copywriting",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Alur konversi affiliate: Tusuk luka spesifik (Bobek) di awal → Perdalam lukanya dengan menghitung efek jangka panjang atau biaya tersembunyi yang bikin nyesek → Baru hadirkan produk ajaib pereda luka saat pembaca sadar solusi gratisan nggak cukup → Ceritakan hasil pulih yang jujur."
+      "body": "Alur konversi affiliate: Tusuk luka spesifik (Bobek) di awal → Perdalam lukanya dengan menghitung efek jangka panjang atau biaya tersembunyi yang bikin nyesek → Baru hadirkan produk ajaib pereda luka saat pembaca sadar solusi gratisan nggak cukup → Ceritakan hasil pulih yang jujur.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#copywriting",
+        "#konversi",
+        "#bap"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 4,
@@ -34,7 +55,14 @@
       "topic": "Marketing",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Jangan sebut harga produk begitu saja. Bandingkan dengan alternatif yang jauh lebih mahal (Harga Jangkar) atau pecah biayanya jadi pengeluaran receh harian: 'Cuma Rp2.500 sehari, lebih murah dari segelas es teh, tapi bikin masalah punggung beres 6 bulan'."
+      "body": "Jangan sebut harga produk begitu saja. Bandingkan dengan alternatif yang jauh lebih mahal (Harga Jangkar) atau pecah biayanya jadi pengeluaran receh harian: 'Cuma Rp2.500 sehari, lebih murah dari segelas es teh, tapi bikin masalah punggung beres 6 bulan'.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#marketing",
+        "#hargaJangkar",
+        "#closing"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 5,
@@ -42,7 +70,14 @@
       "topic": "Affiliate",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Tutup konten dengan kontras ekstrem 2 kubu: Tim A (tetap tahan sakit, buang waktu & uang seperti biasa) vs Tim B (ambil tindakan, masalah kelar mulai hari ini). Ini memicu debat sehat dan memancing ribuan komentar organik di Threads / TikTok."
+      "body": "Tutup konten dengan kontras ekstrem 2 kubu: Tim A (tetap tahan sakit, buang waktu & uang seperti biasa) vs Tim B (ambil tindakan, masalah kelar mulai hari ini). Ini memicu debat sehat dan memancing ribuan komentar organik di Threads / TikTok.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#affiliate",
+        "#engagement",
+        "#viral"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 6,
@@ -50,7 +85,14 @@
       "topic": "Copywriting",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Selalu sebutkan 1 kekurangan kecil produk secara jujur (misal: 'pengirimannya agak lama' atau 'bahannya agak berat'). Review yang 100% manis memicu curiga pembaca; kasih racunnya sedikit supaya madunya laku keras!"
+      "body": "Selalu sebutkan 1 kekurangan kecil produk secara jujur (misal: 'pengirimannya agak lama' atau 'bahannya agak berat'). Review yang 100% manis memicu curiga pembaca; kasih racunnya sedikit supaya madunya laku keras!",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#copywriting",
+        "#testimoni",
+        "#trust"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 7,
@@ -58,7 +100,14 @@
       "topic": "Affiliate",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Jangan pernah menaruh link affiliate di hook atau paragraf pembuka. Bangun cerita dan keterikatan emosi sampai klimaks. Tahan link sampai baris paling akhir ketika audiens sudah merasa butuh dan siap checkout."
+      "body": "Jangan pernah menaruh link affiliate di hook atau paragraf pembuka. Bangun cerita dan keterikatan emosi sampai klimaks. Tahan link sampai baris paling akhir ketika audiens sudah merasa butuh dan siap checkout.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#affiliate",
+        "#cta",
+        "#threads"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 8,
@@ -66,7 +115,14 @@
       "topic": "Affiliate",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Jangan tiap hari jualan! Terapkan rotasi 4 jenis konten: 40% Engagement (Pilihan Setan pancing rame), 30% Awareness (cerita relatable sehari-hari), 20% Edukasi (tips murni tanpa jualan buat bangun trust), dan cuma 10% Konversi (hard sell B-A-P + link)."
+      "body": "Jangan tiap hari jualan! Terapkan rotasi 4 jenis konten: 40% Engagement (Pilihan Setan pancing rame), 30% Awareness (cerita relatable sehari-hari), 20% Edukasi (tips murni tanpa jualan buat bangun trust), dan cuma 10% Konversi (hard sell B-A-P + link).",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#affiliate",
+        "#funnel",
+        "#rotasi"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 9,
@@ -74,7 +130,14 @@
       "topic": "Copywriting",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Stop bilang 'barang ini bagus'. Cari produk yang punya borok/masalah nyata. Ubah spesifikasi jadi rasa malu atau kerugian: bukan 'baterai 5000 mAh', tapi 'lo nggak perlu panik celingukan nyari colokan pas lagi meeting penting bareng bos'."
+      "body": "Stop bilang 'barang ini bagus'. Cari produk yang punya borok/masalah nyata. Ubah spesifikasi jadi rasa malu atau kerugian: bukan 'baterai 5000 mAh', tapi 'lo nggak perlu panik celingukan nyari colokan pas lagi meeting penting bareng bos'.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#copywriting",
+        "#painPoint",
+        "#angle"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 10,
@@ -82,7 +145,14 @@
       "topic": "Copywriting",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Pilih model sesuai medan: PAS (Problem-Agitate-Solution) paling sakti buat feed Threads/FB. AIDA (Attention-Interest-Desire-Action) paling pas buat video pendek/Reels. FAB (Feature-Advantage-Benefit) cocok buat jualan to-the-point yang fokus 'apa untungnya buat gue'."
+      "body": "Pilih model sesuai medan: PAS (Problem-Agitate-Solution) paling sakti buat feed Threads/FB. AIDA (Attention-Interest-Desire-Action) paling pas buat video pendek/Reels. FAB (Feature-Advantage-Benefit) cocok buat jualan to-the-point yang fokus 'apa untungnya buat gue'.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#copywriting",
+        "#framework",
+        "#trinitas"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 11,
@@ -90,7 +160,14 @@
       "topic": "Copywriting",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Konten tanpa hook yang menusuk itu bukan konten, itu nafas terakhir brosur promo. Gunakan hook yang bikin audiens ngerasa ditampar: sebut kebiasaan salah mereka yang bikin boncos atau rugi waktu bertahun-tahun."
+      "body": "Konten tanpa hook yang menusuk itu bukan konten, itu nafas terakhir brosur promo. Gunakan hook yang bikin audiens ngerasa ditampar: sebut kebiasaan salah mereka yang bikin boncos atau rugi waktu bertahun-tahun.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#copywriting",
+        "#hook",
+        "#stopScroll"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 12,
@@ -98,7 +175,14 @@
       "topic": "Affiliate",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Posting lalu ditinggal itu cuma nitip harapan ke server. Evaluasi metrik: affiliate butuh pembeli (CTR link), bukan sekadar followers. Kalau views rame tapi komisi nol, masalah ada di transisi solusi gratisan ke produk yang kurang halus."
+      "body": "Posting lalu ditinggal itu cuma nitip harapan ke server. Evaluasi metrik: affiliate butuh pembeli (CTR link), bukan sekadar followers. Kalau views rame tapi komisi nol, masalah ada di transisi solusi gratisan ke produk yang kurang halus.",
+      "type": "Hasil Real/Evidence",
+      "tags": [
+        "#affiliate",
+        "#ctr",
+        "#evaluasiMetrik"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 13,
@@ -106,7 +190,14 @@
       "topic": "Affiliate",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Jual produk lewat cerita berseri: Hari 1 ceritakan kegiatan sehari-hari 'B aja' yang relatable. Hari 2 angkat frustrasi dan masalah yang dialami. Hari 3 baru produk nempel sebagai penyelamat. Audiens terikat secara alami tanpa merasa dijualin."
+      "body": "Jual produk lewat cerita berseri: Hari 1 ceritakan kegiatan sehari-hari 'B aja' yang relatable. Hari 2 angkat frustrasi dan masalah yang dialami. Hari 3 baru produk nempel sebagai penyelamat. Audiens terikat secara alami tanpa merasa dijualin.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#affiliate",
+        "#storytelling",
+        "#funnel"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 14,
@@ -114,7 +205,14 @@
       "topic": "Marketing",
       "source": "Kitab Affiliate Rizal",
       "created": "03/09/2026",
-      "body": "Gunakan perbandingan kerugian konkret: 'Bukan soal harga produk Rp50.000, tapi lo sadar nggak selama ini udah buang Rp400.000 cuma buat nambal akibat masalah yang lo sepelekan?'. Ubah fokus dari harga beli ke biaya menunda."
+      "body": "Gunakan perbandingan kerugian konkret: 'Bukan soal harga produk Rp50.000, tapi lo sadar nggak selama ini udah buang Rp400.000 cuma buat nambal akibat masalah yang lo sepelekan?'. Ubah fokus dari harga beli ke biaya menunda.",
+      "type": "Hasil Real/Evidence",
+      "tags": [
+        "#marketing",
+        "#lossAversion",
+        "#dataNyata"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 15,
@@ -122,7 +220,14 @@
       "topic": "Copywriting",
       "source": "Kaidah Emas",
       "created": "03/09/2026",
-      "body": "Jangan pernah langsung sebut nama brand atau jualan di kalimat pembuka. Selalu buka dengan rasa sakit spesifik, fakta kontras, atau kebiasaan salah audiens untuk menghentikan scrolling."
+      "body": "Jangan pernah langsung sebut nama brand atau jualan di kalimat pembuka. Selalu buka dengan rasa sakit spesifik, fakta kontras, atau kebiasaan salah audiens untuk menghentikan scrolling.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#copywriting",
+        "#hook",
+        "#3detik"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 16,
@@ -130,7 +235,14 @@
       "topic": "Marketing",
       "source": "Kaidah Emas",
       "created": "03/09/2026",
-      "body": "Beri tahu 'Apa' dan 'Mengapa' suatu fenomena terjadi, tapi simpan 'Bagaimana cara kerjanya' untuk bagian solusi atau CTA. Ini memicu rasa penasaran alami manusia untuk membaca sampai tuntas."
+      "body": "Beri tahu 'Apa' dan 'Mengapa' suatu fenomena terjadi, tapi simpan 'Bagaimana cara kerjanya' untuk bagian solusi atau CTA. Ini memicu rasa penasaran alami manusia untuk membaca sampai tuntas.",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#marketing",
+        "#curiosity",
+        "#hook"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 17,
@@ -138,7 +250,14 @@
       "topic": "Copywriting",
       "source": "Kaidah Emas",
       "created": "03/09/2026",
-      "body": "Gunakan bahasa Indonesia percakapan yang luwes, kalimat pendek-pendek (maksimal 15 kata per kalimat). Hindari kata-kata birokratis atau kaku seperti 'oleh karena itu', 'guna mewujudkan'."
+      "body": "Gunakan bahasa Indonesia percakapan yang luwes, kalimat pendek-pendek (maksimal 15 kata per kalimat). Hindari kata-kata birokratis atau kaku seperti 'oleh karena itu', 'guna mewujudkan'.",
+      "type": "Gaya/Contoh",
+      "tags": [
+        "#copywriting",
+        "#toneOfVoice",
+        "#gayaNgopi"
+      ],
+      "linkedContentId": null
     },
     {
       "id": 18,
@@ -146,7 +265,14 @@
       "topic": "Marketing",
       "source": "Kaidah Emas",
       "created": "03/09/2026",
-      "body": "Setiap konten hanya boleh punya 1 ajakan bertindak (One Single Action: klik link, komen kata kunci, atau DM). Beri alasan mendesak kenapa harus bertindak sekarang juga (urgensi/kelangkaan)."
+      "body": "Setiap konten hanya boleh punya 1 ajakan bertindak (One Single Action: klik link, komen kata kunci, atau DM). Beri alasan mendesak kenapa harus bertindak sekarang juga (urgensi/kelangkaan).",
+      "type": "Jurus/Framework",
+      "tags": [
+        "#marketing",
+        "#cta",
+        "#closing"
+      ],
+      "linkedContentId": null
     }
   ]
 }

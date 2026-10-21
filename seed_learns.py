@@ -174,10 +174,21 @@ print(f"Successfully inserted all {len(ALL_JURUS)} jurus into PostgreSQL!")
 
 learns_export = []
 for i, item in enumerate(ALL_JURUS):
+    item_id = i + 1
+    # Type mapping
+    item_type = "Jurus/Framework"
+    if item_id in (12, 14):
+        item_type = "Hasil Real/Evidence"
+    elif item_id == 17:
+        item_type = "Gaya/Contoh"
+
     learns_export.append({
-        "id": i + 1,
+        "id": item_id,
         "title": item["title"],
+        "type": item_type,
         "topic": item["topic"],
+        "tags": item.get("tags", []),
+        "linkedContentId": None,
         "source": item.get("source", ""),
         "created": "03/09/2026",
         "body": item["body"]
